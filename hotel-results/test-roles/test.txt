@@ -1,0 +1,1553 @@
+
+[1] Question: I am an administrator and I want to register a new room in the system with id: 10, hotel: President, reserved: false, cleaned: true, price: 125
+[EXECUTION PLAN]
+  - Task: register room
+    - Service ID: room-mock
+    - Endpoint:   http://mock-server:8080/rest/Room+API/1.0/room
+    - Operation:  POST
+    - Input:      {'cleaned': True, 'hotel': 'President', 'id': 10, 'price': 125, 'reserved': False}
+[1] SUCCESS
+[{'operation': 'POST', 'result': {'cleaned': True, 'hotel': 'President', 'id': 140, 'price': 125, 'reserved': False}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'register room'}]
+====================================================================================================
+
+[2] Question: I am an administrator and I wanto to retrieve the list of all rooms in the system
+[EXECUTION PLAN]
+  - Task: retrieve all rooms
+    - Service ID: room-mock
+    - Endpoint:   http://mock-server:8080/rest/Room+API/1.0/room
+    - Operation:  GET
+    - Input:      
+[2] SUCCESS
+[{'operation': 'GET', 'result': [{'cleaned': True, 'hotel': 'Grand Hotel', 'id': 1, 'price': 120.0, 'rating': 5, 'reserved': True}, {'cleaned': False, 'hotel': 'Ocean View', 'id': 2, 'price': 140.5, 'rating': 4, 'reserved': False}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve all rooms'}]
+====================================================================================================
+
+[3] Question: I am an administrator and I want to retrieve information about the room with id: 1
+[EXECUTION PLAN]
+  - Task: retrieve room info
+    - Service ID: room-mock
+    - Endpoint:   http://mock-server:8080/rest/Room+API/1.0/room/1
+    - Operation:  GET
+    - Input:      
+[3] SUCCESS
+[{'operation': 'GET', 'result': {'cleaned': False, 'hotel': 'Grand Hotel', 'id': 1, 'price': 120.0, 'rating': 5, 'reserved': True}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve room info'}]
+====================================================================================================
+
+[4] Question: I am an administrator and I want to update the room with id: 1, hotel: Grand Hotel, rating: 5, reserved: false, cleaned: true, price: 130.0 to set reserved: true
+[EXECUTION PLAN]
+  - Task: update room
+    - Service ID: room-mock
+    - Endpoint:   http://mock-server:8080/rest/Room+API/1.0/room/1
+    - Operation:  PUT
+    - Input:      {'cleaned': True, 'hotel': 'Grand Hotel', 'price': 130.0, 'rating': 5, 'reserved': True}
+[4] SUCCESS
+[{'operation': 'PUT', 'result': {'cleaned': True, 'hotel': 'Grand Hotel', 'id': 1, 'price': 130.0, 'rating': 5, 'reserved': False}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update room'}]
+====================================================================================================
+
+[5] Question: I am an administrator and I want to delete the room with id: 1 from the system
+[EXECUTION PLAN]
+  - Task: delete room
+    - Service ID: room-mock
+    - Endpoint:   http://mock-server:8080/rest/Room+API/1.0/room/1
+    - Operation:  DELETE
+    - Input:      
+[5] SUCCESS
+[{'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'delete room'}]
+====================================================================================================
+
+[6] Question: I am a waiter and I want to retrieve the list of all restaurants in the system
+[EXECUTION PLAN]
+  - Task: retrieve list of all restaurants
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant
+    - Operation:  GET
+    - Input:      
+[6] SUCCESS
+[{'operation': 'GET', 'result': [{'available': True, 'id': 1, 'name': 'Table 1', 'price': 20.0, 'reserved': False, 'seats': 4}, {'available': False, 'id': 2, 'name': 'VIP Room', 'price': 100.0, 'reserved': True, 'seats': 8}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve list of all restaurants'}]
+====================================================================================================
+
+[7] Question: I am a waiter and I want to register a new restaurant in the system with name: 'Garden Table', seats: 2, reserved: false, available: true, price: 15.0
+[EXECUTION PLAN]
+  - Task: register new restaurant
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant
+    - Operation:  POST
+    - Input:      {'available': True, 'name': 'Garden Table', 'price': 15.0, 'reserved': False, 'seats': 2}
+[7] SUCCESS
+[{'operation': 'POST', 'result': {'available': True, 'id': 301, 'name': 'Garden Table', 'price': 15.0, 'reserved': False, 'seats': 2}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'register new restaurant'}]
+====================================================================================================
+
+[8] Question: I am a waiter and I want to retrieve information about the restaurant with id: 1
+[EXECUTION PLAN]
+  - Task: retrieve restaurant info
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant/1
+    - Operation:  GET
+    - Input:      
+[8] SUCCESS
+[{'operation': 'GET', 'result': {'available': True, 'id': 1, 'name': 'Table 1', 'price': 20.0, 'reserved': False, 'seats': 4}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve restaurant info'}]
+====================================================================================================
+
+[9] Question: I am a waiter and I want to update the restaurant with id: 1, name: 'VIP Room', seats: 10, reserved: true, available: false, price: 120.0 to set reserved: false and available: true
+[EXECUTION PLAN]
+  - Task: update restaurant
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant/1
+    - Operation:  PUT
+    - Input:      {'available': True, 'name': 'VIP Room', 'price': 120.0, 'reserved': False, 'seats': 10}
+[9] SUCCESS
+[{'operation': 'PUT', 'result': {'available': False, 'id': 1, 'name': 'VIP Room', 'price': 120.0, 'reserved': True, 'seats': 10}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update restaurant'}]
+====================================================================================================
+
+[10] Question: I am a waiter and I want to delete the restaurant with id: 1 from the system
+[EXECUTION PLAN]
+  - Task: delete restaurant
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant/1
+    - Operation:  DELETE
+    - Input:      
+[10] SUCCESS
+[{'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'delete restaurant'}]
+====================================================================================================
+
+[11] Question: I am a guest and I want to get the list of all reservations in the system
+[EXECUTION PLAN]
+  - Task: get_all_reservations
+    - Service ID: reservation-mock
+    - Endpoint:   http://mock-server:8080/rest/Reservation+API/1.0/reservation
+    - Operation:  GET
+    - Input:      
+[11] SUCCESS
+[{'operation': 'GET', 'result': [{'customerId': 10, 'customerName': 'Alice', 'date': '2025-09-01T15:00:00Z', 'id': 1, 'paid': True, 'referenceId': 101, 'type': 'room'}, {'customerId': 20, 'customerName': 'Bob', 'date': '2025-09-02T19:30:00Z', 'id': 2, 'paid': False, 'referenceId': 201, 'type': 'restaurant'}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'get_all_reservations'}]
+====================================================================================================
+
+[12] Question: I am a guest and I want to make a new reservation with the following details: id: 1, customerId: 30, customerName: Charlie, type: bar, referenceId: 301, date: '2025-09-05T21:00:00Z', paid: false
+[EXECUTION PLAN]
+  - Task: create reservation
+    - Service ID: reservation-mock
+    - Endpoint:   http://mock-server:8080/rest/Reservation+API/1.0/reservation
+    - Operation:  POST
+    - Input:      {'customerId': 30, 'customerName': 'Charlie', 'date': '2025-09-05T21:00:00Z', 'id': 1, 'paid': False, 'referenceId': 301, 'type': 'bar'}
+[12] SUCCESS
+[{'operation': 'POST', 'result': {'customerId': 30, 'customerName': 'Charlie', 'date': '2025-09-05T21:00:00Z', 'id': 101, 'paid': False, 'referenceId': 301, 'type': 'bar'}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'create reservation'}]
+====================================================================================================
+
+[13] Question: I am a guest and I want to retrieve information about the reservation with id: 1
+[EXECUTION PLAN]
+  - Task: retrieve reservation
+    - Service ID: reservation-mock
+    - Endpoint:   http://mock-server:8080/rest/Reservation+API/1.0/reservation/1
+    - Operation:  GET
+    - Input:      
+[13] SUCCESS
+[{'operation': 'GET', 'result': {'customerId': 10, 'customerName': 'Alice', 'date': '2025-09-01T15:00:00Z', 'id': 1, 'paid': True, 'referenceId': 101, 'type': 'room'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve reservation'}]
+====================================================================================================
+
+[14] Question: I am a guest and I want to update the reservation with id: 1, customerId: 10, customerName: Alice, type: room, referenceId: 102, date: '2025-09-02T10:00:00Z', paid: true to set paid: false
+[EXECUTION PLAN]
+  - Task: update_reservation
+    - Service ID: reservation-mock
+    - Endpoint:   http://mock-server:8080/rest/Reservation+API/1.0/reservation/1
+    - Operation:  PUT
+    - Input:      {'customerId': 10, 'customerName': 'Alice', 'date': '2025-09-02T10:00:00Z', 'paid': False, 'referenceId': 102, 'type': 'room'}
+[14] SUCCESS
+[{'operation': 'PUT', 'result': {'customerId': 10, 'customerName': 'Alice', 'date': '2025-09-02T10:00:00Z', 'id': 1, 'paid': True, 'referenceId': 102, 'type': 'room'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update_reservation'}]
+====================================================================================================
+
+[15] Question: I am a guest and I want to cancel the reservation with id: 1
+[EXECUTION PLAN]
+  - Task: cancel_reservation
+    - Service ID: reservation-mock
+    - Endpoint:   http://mock-server:8080/rest/Reservation+API/1.0/reservation/1
+    - Operation:  DELETE
+    - Input:      
+[15] SUCCESS
+[{'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'cancel_reservation'}]
+====================================================================================================
+
+[16] Question: I am a receptionist and I want to retrieve the list of all reservations across Room, Restaurant, and Bar
+[EXECUTION PLAN]
+  - Task: retrieve reservations
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/reservations
+    - Operation:  GET
+    - Input:      
+[16] SUCCESS
+[{'operation': 'GET', 'result': [{'endDate': '2025-09-05T11:00:00Z', 'id': 1, 'referenceId': 101, 'startDate': '2025-09-01T14:00:00Z', 'type': 'room'}, {'endDate': '2025-09-02T22:00:00Z', 'id': 2, 'referenceId': 302, 'startDate': '2025-09-02T20:00:00Z', 'type': 'restaurant'}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve reservations'}]
+====================================================================================================
+
+[17] Question: I am a receptionist and I want to create a new reservation from the reception with the following details: id: 1, type: room, referenceId: 1, startDate: '2025-09-10T15:00:00Z', endDate: '2025-09-13T11:00:00Z'
+[EXECUTION PLAN]
+  - Task: create_reservation
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/reservations
+    - Operation:  POST
+    - Input:      {'endDate': '2025-09-13T11:00:00Z', 'id': 1, 'referenceId': 1, 'startDate': '2025-09-10T15:00:00Z', 'type': 'room'}
+[17] SUCCESS
+[{'operation': 'POST', 'result': {'endDate': '2025-09-13T11:00:00Z', 'id': 99, 'referenceId': 1, 'startDate': '2025-09-10T15:00:00Z', 'type': 'room'}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'create_reservation'}]
+====================================================================================================
+
+[18] Question: I am a receptionist and I want to retrieve information about the reservation from the reception with id: 1
+[EXECUTION PLAN]
+  - Task: retrieve reservation info
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/reservations/1
+    - Operation:  GET
+    - Input:      
+[18] SUCCESS
+[{'operation': 'GET', 'result': {'endDate': '2025-09-05T11:00:00Z', 'id': 1, 'referenceId': 101, 'startDate': '2025-09-01T14:00:00Z', 'type': 'room'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve reservation info'}]
+====================================================================================================
+
+[19] Question: I am a receptionist and I want to cancel the reservation from the reception with id: 1
+[EXECUTION PLAN]
+  - Task: cancel reservation
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/reservations/1
+    - Operation:  DELETE
+    - Input:      
+[19] SUCCESS
+[{'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'cancel reservation'}]
+====================================================================================================
+
+[20] Question: I am a receptionist and I want to request room cleaning service from the reception for the room with roomId: 2, requestedBy: 'Reception Desk', notes: 'Guest requested cleaning at 15:00'
+[EXECUTION PLAN]
+  - Task: request room cleaning
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/cleaning
+    - Operation:  POST
+    - Input:      {'notes': 'Guest requested cleaning at 15:00', 'requestedBy': 'Reception Desk', 'roomId': 2}
+[20] SUCCESS
+[{'operation': 'POST', 'result': {'httpCode': 200, 'message': 'Cleaning service requested for room 2', 'status': 'success'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'request room cleaning'}]
+====================================================================================================
+
+[21] Question: I am a customer and I want to know the all the ratings of the hotels available in the system
+[EXECUTION PLAN]
+  - Task: retrieve all ratings
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings
+    - Operation:  GET
+    - Input:      
+[21] SUCCESS
+[{'operation': 'GET', 'result': [{'comment': 'Excellent room, very clean.', 'customerId': 10, 'date': '2025-08-20T14:30:00Z', 'id': 1, 'roomId': 101, 'score': 5}, {'comment': 'Good room but noisy.', 'customerId': 12, 'date': '2025-08-21T10:00:00Z', 'id': 2, 'roomId': 101, 'score': 4}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve all ratings'}]
+====================================================================================================
+
+[22] Question: I am a customer and I want to create a rating for a room with id: 3, roomId: 101, customerId: 10, score: 5, comment: 'Loved the stay!', date: '2025-08-22T09:00:00Z'
+[EXECUTION PLAN]
+  - Task: create rating
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings
+    - Operation:  POST
+    - Input:      {'comment': 'Loved the stay!', 'customerId': 10, 'date': '2025-08-22T09:00:00Z', 'id': 3, 'roomId': 101, 'score': 5}
+[22] SUCCESS
+[{'operation': 'POST', 'result': {'comment': 'Loved the stay!', 'customerId': 10, 'date': '2025-08-22T09:00:00Z', 'id': 3, 'roomId': 101, 'score': 5}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'create rating'}]
+====================================================================================================
+
+[23] Question: I am a customer and I want to retrieve the rating with id: 1
+[EXECUTION PLAN]
+  - Task: retrieve rating
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings/1
+    - Operation:  GET
+    - Input:      
+[23] SUCCESS
+[{'operation': 'GET', 'result': {'comment': 'Excellent room, very clean.', 'customerId': 10, 'date': '2025-08-20T14:30:00Z', 'id': 1, 'roomId': 101, 'score': 5}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve rating'}]
+====================================================================================================
+
+[24] Question: I am a customer and I want to update the rating with id:1, roomId: 101, customerId: 10, score: 4, comment: 'Good, but had some noise.', date: '2025-08-21T11:00:00Z'
+[EXECUTION PLAN]
+  - Task: update rating
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings/1
+    - Operation:  PUT
+    - Input:      {'comment': 'Good, but had some noise.', 'customerId': 10, 'date': '2025-08-21T11:00:00Z', 'roomId': 101, 'score': 4}
+[24] SUCCESS
+[{'operation': 'PUT', 'result': {'comment': 'Good, but had some noise.', 'customerId': 10, 'date': '2025-08-21T11:00:00Z', 'id': 1, 'roomId': 101, 'score': 4}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update rating'}]
+====================================================================================================
+
+[25] Question: I am a customer and I want to delete the rating with id: 1
+[EXECUTION PLAN]
+  - Task: delete rating
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings/1
+    - Operation:  DELETE
+    - Input:      
+[25] SUCCESS
+[{'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'delete rating'}]
+====================================================================================================
+
+[26] Question: I am a manager and I want to retrieve the list of all customers in the system
+[EXECUTION PLAN]
+  - Task: retrieve all customers
+    - Service ID: customer-mock
+    - Endpoint:   http://mock-server:8080/rest/Customer+API/1.0/customers
+    - Operation:  GET
+    - Input:      
+[26] SUCCESS
+[{'operation': 'GET', 'result': [{'dateOfBirth': '1980-05-12', 'documentNumber': 'XH1234567', 'email': 'mario.rossi@example.com', 'firstName': 'Mario', 'id': 1, 'lastName': 'Rossi', 'phone': '+39061234567'}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve all customers'}]
+====================================================================================================
+
+[27] Question: I am a manager and I want to register a new customer in the system with id: 1, firstName: Mario, lastName: Rossi, email: mario.rossi@example.com, phone: '+39061234567', dateOfBirth: '1980-05-12', documentNumber: 'XH1234567'
+[EXECUTION PLAN]
+  - Task: register customer
+    - Service ID: customer-mock
+    - Endpoint:   http://mock-server:8080/rest/Customer+API/1.0/customers
+    - Operation:  POST
+    - Input:      {'dateOfBirth': '1980-05-12', 'documentNumber': 'XH1234567', 'email': 'mario.rossi@example.com', 'firstName': 'Mario', 'id': 1, 'lastName': 'Rossi', 'phone': '+39061234567'}
+[27] SUCCESS
+[{'operation': 'POST', 'result': {'dateOfBirth': '1980-05-12', 'documentNumber': 'XH1234567', 'email': 'mario.rossi@example.com', 'firstName': 'Mario', 'id': 1, 'lastName': 'Rossi', 'phone': '+39061234567'}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'register customer'}]
+====================================================================================================
+
+[28] Question: I am a manager and I want to retrieve information about the customer with id: 1
+[EXECUTION PLAN]
+  - Task: retrieve customer details
+    - Service ID: customer-mock
+    - Endpoint:   http://mock-server:8080/rest/Customer+API/1.0/customers/1
+    - Operation:  GET
+    - Input:      
+[28] SUCCESS
+[{'operation': 'GET', 'result': {'dateOfBirth': '1980-05-12', 'documentNumber': 'XH1234567', 'email': 'mario.rossi@example.com', 'firstName': 'Mario', 'id': 1, 'lastName': 'Rossi', 'phone': '+39061234567'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve customer details'}]
+====================================================================================================
+
+[29] Question: I am a manager and I want to update the customer with id: 1, firstName: Mario, lastName: Rossi, email: mario.rossi@example.com, phone: '+39061234567', dateOfBirth: '1980-05-12', documentNumber: 'XH1234567'
+[EXECUTION PLAN]
+  - Task: update customer
+    - Service ID: customer-mock
+    - Endpoint:   http://mock-server:8080/rest/Customer+API/1.0/customers/1
+    - Operation:  PUT
+    - Input:      {'dateOfBirth': '1980-05-12', 'documentNumber': 'XH1234567', 'email': 'mario.rossi@example.com', 'firstName': 'Mario', 'lastName': 'Rossi', 'phone': '+39061234567'}
+[29] SUCCESS
+[{'operation': 'PUT', 'result': {'dateOfBirth': '1980-05-12', 'documentNumber': 'XH1234567', 'email': 'mario.rossi@example.com', 'firstName': 'Mario', 'id': 1, 'lastName': 'Rossi', 'phone': '+39061234567'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update customer'}]
+====================================================================================================
+
+[30] Question: I am a manager and I want to delete the customer with id: 1 from the system
+[EXECUTION PLAN]
+  - Task: delete customer
+    - Service ID: customer-mock
+    - Endpoint:   http://mock-server:8080/rest/Customer+API/1.0/customers/1
+    - Operation:  DELETE
+    - Input:      
+[30] SUCCESS
+[{'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'delete customer'}]
+====================================================================================================
+
+[31] Question: I am a cleaner and I want to retrieve the list of all cleaning requests in the system
+[EXECUTION PLAN]
+  - Task: retrieve all cleaning requests
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning
+    - Operation:  GET
+    - Input:      
+[31] SUCCESS
+[{'operation': 'GET', 'result': [{'createdAt': '2025-08-24T10:00:00Z', 'id': 100, 'notes': 'Please clean ASAP', 'requestedBy': 'Reception Desk', 'roomId': 1, 'status': 'pending'}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve all cleaning requests'}]
+====================================================================================================
+
+[32] Question: I am a cleaner and I want to create a new cleaning request with the following details: roomId: 1, requestedBy: 'Reception Desk', notes: 'Please clean ASAP'
+[EXECUTION PLAN]
+  - Task: create cleaning request
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning
+    - Operation:  POST
+    - Input:      {'notes': 'Please clean ASAP', 'requestedBy': 'Reception Desk', 'roomId': 1}
+[32] SUCCESS
+[{'operation': 'POST', 'result': {'createdAt': '2025-08-24T10:00:00Z', 'id': 1, 'notes': 'Please clean ASAP', 'requestedBy': 'Reception Desk', 'roomId': 1, 'status': 'pending'}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'create cleaning request'}]
+====================================================================================================
+
+[33] Question: I am a cleaner and I want to retrieve information about the cleaning request with id: 1
+[EXECUTION PLAN]
+  - Task: retrieve cleaning request
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning/1
+    - Operation:  GET
+    - Input:      
+[33] SUCCESS
+[{'operation': 'GET', 'result': {'createdAt': '2025-08-24T10:00:00Z', 'id': 1, 'notes': 'Please clean ASAP', 'requestedBy': 'Reception Desk', 'roomId': 1, 'status': 'pending'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve cleaning request'}]
+====================================================================================================
+
+[34] Question: I am a cleaner and I want to update the cleaning request with id: 1 to set status: completed
+[EXECUTION PLAN]
+  - Task: update cleaning request
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning/1
+    - Operation:  PUT
+    - Input:      {'status': 'completed'}
+[34] SUCCESS
+[{'operation': 'PUT', 'result': {'httpCode': 200, 'message': 'Status updated successfully', 'status': 'success'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update cleaning request'}]
+====================================================================================================
+
+[35] Question: I am a cleaner and I want to delete the cleaning request with id: 1 from the system
+[EXECUTION PLAN]
+  - Task: delete cleaning request
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning/1
+    - Operation:  DELETE
+    - Input:      
+[35] SUCCESS
+[{'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'delete cleaning request'}]
+====================================================================================================
+
+[36] Question: I am a cleaner and I want to retrieve all cleaning requests of the room with id: 1
+[EXECUTION PLAN]
+  - Task: retrieve cleaning requests
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning/room/1
+    - Operation:  GET
+    - Input:      
+[36] SUCCESS
+[{'operation': 'GET', 'result': [{'createdAt': '2025-08-24T10:00:00Z', 'id': 1, 'notes': 'Please clean ASAP', 'requestedBy': 'Reception Desk', 'roomId': 1, 'status': 'pending'}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve cleaning requests'}]
+====================================================================================================
+
+[37] Question: I am a bartender and I want to retrieve the list of all bars in the system
+[EXECUTION PLAN]
+  - Task: retrieve list of bars
+    - Service ID: bar-mock
+    - Endpoint:   http://mock-server:8080/rest/Bar+API/1.0/bar
+    - Operation:  GET
+    - Input:      
+[37] SUCCESS
+[{'operation': 'GET', 'result': [{'available': True, 'id': 1, 'name': 'Sky Lounge', 'price': 45.0, 'reserved': False, 'vip': True}, {'available': False, 'id': 2, 'name': 'Main Bar', 'price': 25.0, 'reserved': True, 'vip': False}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve list of bars'}]
+====================================================================================================
+
+[38] Question: I am a bartender and I want to register a new bar in the system with name: Pool Bar, available: true, reserved: false, vip: false, price: 30.0
+[EXECUTION PLAN]
+  - Task: register new bar
+    - Service ID: bar-mock
+    - Endpoint:   http://mock-server:8080/rest/Bar+API/1.0/bar
+    - Operation:  POST
+    - Input:      {'available': True, 'name': 'Pool Bar', 'price': 30.0, 'reserved': False, 'vip': False}
+[38] SUCCESS
+[{'operation': 'POST', 'result': {'available': True, 'id': 3, 'name': 'Pool Bar', 'price': 30.0, 'reserved': False, 'vip': False}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'register new bar'}]
+====================================================================================================
+
+[39] Question: I am a bartender and I want to retrieve information about the bar with id: 1
+[EXECUTION PLAN]
+  - Task: retrieve bar information
+    - Service ID: bar-mock
+    - Endpoint:   http://mock-server:8080/rest/Bar+API/1.0/bar/1
+    - Operation:  GET
+    - Input:      
+[39] SUCCESS
+[{'operation': 'GET', 'result': {'available': True, 'id': 1, 'name': 'Sky Lounge', 'price': 45.0, 'reserved': False, 'vip': True}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve bar information'}]
+====================================================================================================
+
+[40] Question: I am a bartender and I want to update the bar with id: 1, name: Sky Lounge, available: false, reserved: true, vip: true, price: 50.0
+[EXECUTION PLAN]
+  - Task: update bar
+    - Service ID: bar-mock
+    - Endpoint:   http://mock-server:8080/rest/Bar+API/1.0/bar/1
+    - Operation:  PUT
+    - Input:      {'available': False, 'id': 1, 'name': 'Sky Lounge', 'price': 50.0, 'reserved': True, 'vip': True}
+[40] SUCCESS
+[{'operation': 'PUT', 'result': {'available': False, 'id': 1, 'name': 'Sky Lounge', 'price': 50.0, 'reserved': True, 'vip': True}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update bar'}]
+====================================================================================================
+
+[41] Question: I am a bartender and I want to delete the bar with id: 1 from the system
+[EXECUTION PLAN]
+  - Task: delete bar
+    - Service ID: bar-mock
+    - Endpoint:   http://mock-server:8080/rest/Bar+API/1.0/bar/1
+    - Operation:  DELETE
+    - Input:      
+[41] SUCCESS
+[{'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'delete bar'}]
+====================================================================================================
+
+[42] Question: I am an administrator and I want to register a new room in the system with id: 1, hotel: President, reserved: false, cleaned: true, price: 125 and retrieve the list of all rooms in the system
+[EXECUTION PLAN]
+  - Task: register new room
+    - Service ID: room-mock
+    - Endpoint:   http://mock-server:8080/rest/Room+API/1.0/room
+    - Operation:  POST
+    - Input:      {"id": 1, "hotel": "President", "reserved": false, "cleaned": true, "price": 125}
+  - Task: retrieve all rooms
+    - Service ID: room-mock
+    - Endpoint:   http://mock-server:8080/rest/Room+API/1.0/room
+    - Operation:  GET
+    - Input:      
+[42] SUCCESS
+[{'operation': 'POST', 'result': {'cleaned': None, 'hotel': 'null', 'id': 105, 'price': None, 'reserved': None}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'register new room'}, {'operation': 'GET', 'result': [{'cleaned': True, 'hotel': 'Grand Hotel', 'id': 1, 'price': 120.0, 'rating': 5, 'reserved': True}, {'cleaned': False, 'hotel': 'Ocean View', 'id': 2, 'price': 140.5, 'rating': 4, 'reserved': False}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve all rooms'}]
+====================================================================================================
+
+[43] Question: I am an administrator and I want to retrieve information about the room with id: 1, hotel: President, reserved: false, cleaned: true, price: 125 and update it with hotel: Grand Hotel, rating: 5, reserved: false, cleaned: true, price: 130.0 to set reserved: true
+[EXECUTION PLAN]
+  - Task: retrieve room
+    - Service ID: room-mock
+    - Endpoint:   http://mock-server:8080/rest/Room+API/1.0/room/1
+    - Operation:  GET
+    - Input:      {'id': 1}
+  - Task: update room details
+    - Service ID: room-mock
+    - Endpoint:   http://mock-server:8080/rest/Room+API/1.0/room/1
+    - Operation:  PUT
+    - Input:      {'cleaned': True, 'hotel': 'Grand Hotel', 'price': 130.0, 'reserved': True}
+  - Task: create room rating
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings
+    - Operation:  POST
+    - Input:      {'rating': 5, 'roomId': 1}
+[43] SUCCESS
+[{'operation': 'GET', 'result': {'cleaned': False, 'hotel': 'Grand Hotel', 'id': 1, 'price': 120.0, 'rating': 5, 'reserved': True}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve room'}, {'operation': 'PUT', 'result': {'cleaned': True, 'hotel': 'Grand Hotel', 'id': 1, 'price': 130.0, 'rating': 5, 'reserved': False}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update room details'}, {'operation': 'POST', 'result': {'comment': 'Loved the stay!', 'customerId': 10, 'date': '2025-08-22T09:00:00Z', 'id': 3, 'roomId': 101, 'score': 5}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'create room rating'}]
+====================================================================================================
+
+[44] Question: I am an administrator and I want to update the room with id: 1 to set reserved: true and then delete it from the system
+[EXECUTION PLAN]
+  - Task: update room
+    - Service ID: room-mock
+    - Endpoint:   http://mock-server:8080/rest/Room+API/1.0/room/1
+    - Operation:  PUT
+    - Input:      {'reserved': True}
+  - Task: delete room
+    - Service ID: room-mock
+    - Endpoint:   http://mock-server:8080/rest/Room+API/1.0/room/1
+    - Operation:  DELETE
+    - Input:      
+[44] SUCCESS
+[{'operation': 'PUT', 'result': {'cleaned': True, 'hotel': 'Grand Hotel', 'id': 1, 'price': 130.0, 'rating': 5, 'reserved': False}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update room'}, {'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'delete room'}]
+====================================================================================================
+
+[45] Question: I am an administrator and I want to register a new room in the system with id: 1, hotel: President, reserved: false, cleaned: true, price: 125 and then delete the room with id: 1 from the system
+[EXECUTION PLAN]
+  - Task: register room
+    - Service ID: room-mock
+    - Endpoint:   http://mock-server:8080/rest/Room+API/1.0/room
+    - Operation:  POST
+    - Input:      {'cleaned': True, 'hotel': 'President', 'id': 1, 'price': 125, 'reserved': False}
+  - Task: delete room
+    - Service ID: room-mock
+    - Endpoint:   http://mock-server:8080/rest/Room+API/1.0/room/1
+    - Operation:  DELETE
+    - Input:      
+[45] SUCCESS
+[{'operation': 'POST', 'result': {'cleaned': True, 'hotel': 'President', 'id': 153, 'price': 125, 'reserved': False}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'register room'}, {'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'delete room'}]
+====================================================================================================
+
+[46] Question: I am an administrator and I want to retrieve the list of all rooms in the system and get detailed information about the room with id: 1
+[EXECUTION PLAN]
+  - Task: retrieve all rooms
+    - Service ID: room-mock
+    - Endpoint:   http://mock-server:8080/rest/Room+API/1.0/room
+    - Operation:  GET
+    - Input:      
+  - Task: get detailed information about room with id 1
+    - Service ID: room-mock
+    - Endpoint:   http://mock-server:8080/rest/Room+API/1.0/room/1
+    - Operation:  GET
+    - Input:      
+[46] SUCCESS
+[{'operation': 'GET', 'result': [{'cleaned': True, 'hotel': 'Grand Hotel', 'id': 1, 'price': 120.0, 'rating': 5, 'reserved': True}, {'cleaned': False, 'hotel': 'Ocean View', 'id': 2, 'price': 140.5, 'rating': 4, 'reserved': False}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve all rooms'}, {'operation': 'GET', 'result': {'cleaned': False, 'hotel': 'Grand Hotel', 'id': 1, 'price': 120.0, 'rating': 5, 'reserved': True}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'get detailed information about room with id 1'}]
+====================================================================================================
+
+[47] Question: I am a waiter and I want to register a new restaurant in the system with name: 'Garden Table', seats: 2, reserved: false, available: true, price: 15.0 and retrieve the list of all restaurants in the system. "POST /restaurant \n GET /restaurant \n"
+[EXECUTION PLAN]
+  - Task: register restaurant
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant
+    - Operation:  POST
+    - Input:      {'available': True, 'name': 'Garden Table', 'price': 15.0, 'reserved': False, 'seats': 2}
+  - Task: retrieve restaurants list
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant
+    - Operation:  GET
+    - Input:      
+[47] SUCCESS
+[{'operation': 'POST', 'result': {'available': True, 'id': 301, 'name': 'Garden Table', 'price': 15.0, 'reserved': False, 'seats': 2}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'register restaurant'}, {'operation': 'GET', 'result': [{'available': True, 'id': 1, 'name': 'Table 1', 'price': 20.0, 'reserved': False, 'seats': 4}, {'available': False, 'id': 2, 'name': 'VIP Room', 'price': 100.0, 'reserved': True, 'seats': 8}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve restaurants list'}]
+====================================================================================================
+
+[48] Question: I am a waiter and I want to retrieve information about the restaurant with id: 1 and update it with name: 'VIP Room', seats: 10, reserved: true, available: false, price: 120.0 to set reserved: false and available: true.
+[EXECUTION PLAN]
+  - Task: retrieve restaurant info
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant/1
+    - Operation:  GET
+    - Input:      
+  - Task: update restaurant info
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant/1
+    - Operation:  PUT
+    - Input:      {"name": "VIP Room", "seats": 10, "reserved": false, "available": true, "price": 120.0}
+[48] SUCCESS
+[{'operation': 'GET', 'result': {'available': True, 'id': 1, 'name': 'Table 1', 'price': 20.0, 'reserved': False, 'seats': 4}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve restaurant info'}, {'operation': 'PUT', 'result': {'available': False, 'id': 1, 'name': 'VIP Room', 'price': 120.0, 'reserved': True, 'seats': 10}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update restaurant info'}]
+====================================================================================================
+
+[49] Question: I am a waiter and I want to update the restaurant with id: 1 to set reserved: false and available: true and then delete the restaurant with id: 1 from the system.
+[EXECUTION PLAN]
+  - Task: update restaurant
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant/1
+    - Operation:  PUT
+    - Input:      {'available': True, 'reserved': False}
+  - Task: delete restaurant
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant/1
+    - Operation:  DELETE
+    - Input:      
+[49] SUCCESS
+[{'operation': 'PUT', 'result': {'available': False, 'id': 1, 'name': 'VIP Room', 'price': 120.0, 'reserved': True, 'seats': 10}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update restaurant'}, {'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'delete restaurant'}]
+====================================================================================================
+
+[50] Question: I am a waiter and I want to register a new restaurant withname: 'Garden Table', seats: 2, reserved: false, available: true, price: 15.0 and delete the restaurant with id: 1 from the system.
+[EXECUTION PLAN]
+  - Task: register restaurant
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant
+    - Operation:  POST
+    - Input:      {'available': True, 'name': 'Garden Table', 'price': 15.0, 'reserved': False, 'seats': 2}
+  - Task: delete restaurant
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant/1
+    - Operation:  DELETE
+    - Input:      
+[50] SUCCESS
+[{'operation': 'POST', 'result': {'available': True, 'id': 301, 'name': 'Garden Table', 'price': 15.0, 'reserved': False, 'seats': 2}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'register restaurant'}, {'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'delete restaurant'}]
+====================================================================================================
+
+[51] Question: I am a waiter and I want to retrieve the list of all restaurants in the system and get detailed information about the restaurant with id: 1.
+[EXECUTION PLAN]
+  - Task: retrieve all restaurants
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant
+    - Operation:  GET
+    - Input:      
+  - Task: get restaurant details by id
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant/1
+    - Operation:  GET
+    - Input:      
+[51] SUCCESS
+[{'operation': 'GET', 'result': [{'available': True, 'id': 1, 'name': 'Table 1', 'price': 20.0, 'reserved': False, 'seats': 4}, {'available': False, 'id': 2, 'name': 'VIP Room', 'price': 100.0, 'reserved': True, 'seats': 8}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve all restaurants'}, {'operation': 'GET', 'result': {'available': True, 'id': 1, 'name': 'Table 1', 'price': 20.0, 'reserved': False, 'seats': 4}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'get restaurant details by id'}]
+====================================================================================================
+
+[52] Question: I am a guest and I want to make a new reservation with the following details: id: 1, customerId: 30, customerName: Charlie, type: bar, referenceId: 301, date: '2025-09-05T21:00:00Z', paid: false and retrieve the list of all reservations in the system.
+[EXECUTION PLAN]
+  - Task: create reservation
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/reservations
+    - Operation:  POST
+    - Input:      {'customerId': 30, 'customerName': 'Charlie', 'date': '2025-09-05T21:00:00Z', 'id': 1, 'paid': False, 'referenceId': 301, 'type': 'bar'}
+  - Task: retrieve reservations
+    - Service ID: reservation-mock
+    - Endpoint:   http://mock-server:8080/rest/Reservation+API/1.0/reservation
+    - Operation:  GET
+    - Input:      
+[52] SUCCESS
+[{'operation': 'POST', 'result': {'endDate': '2025-09-13T11:00:00Z', 'id': 99, 'referenceId': 1, 'startDate': '2025-09-10T15:00:00Z', 'type': 'room'}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'create reservation'}, {'operation': 'GET', 'result': [{'customerId': 10, 'customerName': 'Alice', 'date': '2025-09-01T15:00:00Z', 'id': 1, 'paid': True, 'referenceId': 101, 'type': 'room'}, {'customerId': 20, 'customerName': 'Bob', 'date': '2025-09-02T19:30:00Z', 'id': 2, 'paid': False, 'referenceId': 201, 'type': 'restaurant'}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve reservations'}]
+====================================================================================================
+
+[53] Question: I am a guest and I want to retrieve information about the reservation with id: 1 and update it with customerId: 10, customerName: Alice, type: room, referenceId: 102, date: '2025-09-02T10:00:00Z', paid: true to set paid: false.
+[EXECUTION PLAN]
+  - Task: retrieve reservation
+    - Service ID: reservation-mock
+    - Endpoint:   http://mock-server:8080/rest/Reservation+API/1.0/reservation/1
+    - Operation:  GET
+    - Input:      
+  - Task: update reservation
+    - Service ID: reservation-mock
+    - Endpoint:   http://mock-server:8080/rest/Reservation+API/1.0/reservation/1
+    - Operation:  PUT
+    - Input:      {"customerId":10,"customerName":"Alice","type":"room","referenceId":102,"date":"2025-09-02T10:00:00Z","paid":false}
+[53] SUCCESS
+[{'operation': 'GET', 'result': {'customerId': 10, 'customerName': 'Alice', 'date': '2025-09-01T15:00:00Z', 'id': 1, 'paid': True, 'referenceId': 101, 'type': 'room'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve reservation'}, {'operation': 'PUT', 'result': {'customerId': 10, 'customerName': 'Alice', 'date': '2025-09-02T10:00:00Z', 'id': 1, 'paid': True, 'referenceId': 102, 'type': 'room'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update reservation'}]
+====================================================================================================
+
+[54] Question: I am a guest and I want to update the reservation with id:1, customerId: 10 to set paid: false and cancel the reservation with id: 1.
+[EXECUTION PLAN]
+  - Task: update reservation
+    - Service ID: reservation-mock
+    - Endpoint:   http://mock-server:8080/rest/Reservation+API/1.0/reservation/1
+    - Operation:  PUT
+    - Input:      {'customerId': 10, 'paid': False}
+  - Task: cancel reservation
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/reservations/1
+    - Operation:  DELETE
+    - Input:      
+[54] SUCCESS
+[{'operation': 'PUT', 'result': {'customerId': 10, 'customerName': 'Alice', 'date': '2025-09-02T10:00:00Z', 'id': 1, 'paid': True, 'referenceId': 102, 'type': 'room'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update reservation'}, {'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'cancel reservation'}]
+====================================================================================================
+
+[55] Question: I am a guest and I want to make a new reservation with id: 101 and cancel the reservation with id: 1.
+[EXECUTION PLAN]
+  - Task: create_reservation
+    - Service ID: reservation-mock
+    - Endpoint:   http://mock-server:8080/rest/Reservation+API/1.0/reservation
+    - Operation:  POST
+    - Input:      {"id":101}
+  - Task: cancel_reservation
+    - Service ID: reservation-mock
+    - Endpoint:   http://mock-server:8080/rest/Reservation+API/1.0/reservation/1
+    - Operation:  DELETE
+    - Input:      
+[55] SUCCESS
+[{'operation': 'POST', 'result': {'customerId': 30, 'customerName': 'Charlie', 'date': '2025-09-05T21:00:00Z', 'id': 101, 'paid': False, 'referenceId': 301, 'type': 'bar'}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'create_reservation'}, {'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'cancel_reservation'}]
+====================================================================================================
+
+[56] Question: I am a guest and I want to get the list of all reservations in the system and retrieve information about the reservation with id: 1.
+[EXECUTION PLAN]
+  - Task: get all reservations
+    - Service ID: reservation-mock
+    - Endpoint:   http://mock-server:8080/rest/Reservation+API/1.0/reservation
+    - Operation:  GET
+    - Input:      
+  - Task: get reservation by id
+    - Service ID: reservation-mock
+    - Endpoint:   http://mock-server:8080/rest/Reservation+API/1.0/reservation/1
+    - Operation:  GET
+    - Input:      
+[56] SUCCESS
+[{'operation': 'GET', 'result': [{'customerId': 10, 'customerName': 'Alice', 'date': '2025-09-01T15:00:00Z', 'id': 1, 'paid': True, 'referenceId': 101, 'type': 'room'}, {'customerId': 20, 'customerName': 'Bob', 'date': '2025-09-02T19:30:00Z', 'id': 2, 'paid': False, 'referenceId': 201, 'type': 'restaurant'}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'get all reservations'}, {'operation': 'GET', 'result': {'customerId': 10, 'customerName': 'Alice', 'date': '2025-09-01T15:00:00Z', 'id': 1, 'paid': True, 'referenceId': 101, 'type': 'room'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'get reservation by id'}]
+====================================================================================================
+
+[57] Question: I am a receptionist and I want to create a new reservation from the reception with the following details: id: 99, type: room, referenceId: 1, startDate: '2025-09-10T15:00:00Z', endDate: '2025-09-13T11:00:00Z' and request room cleaning service for the room with roomId: 2, requestedBy: 'Reception Desk', notes: 'Guest requested cleaning at 15:00'.
+[EXECUTION PLAN]
+  - Task: create reservation
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/reservations
+    - Operation:  POST
+    - Input:      {'endDate': '2025-09-13T11:00:00Z', 'id': 99, 'referenceId': 1, 'startDate': '2025-09-10T15:00:00Z', 'type': 'room'}
+  - Task: request room cleaning
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/cleaning
+    - Operation:  POST
+    - Input:      {'notes': 'Guest requested cleaning at 15:00', 'requestedBy': 'Reception Desk', 'roomId': 2}
+[57] SUCCESS
+[{'operation': 'POST', 'result': {'endDate': '2025-09-13T11:00:00Z', 'id': 99, 'referenceId': 1, 'startDate': '2025-09-10T15:00:00Z', 'type': 'room'}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'create reservation'}, {'operation': 'POST', 'result': {'httpCode': 200, 'message': 'Cleaning service requested for room 2', 'status': 'success'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'request room cleaning'}]
+====================================================================================================
+
+[58] Question: I am a receptionist and I want to retrieve the list of all reservations across Room, Restaurant, and Bar and retrieve from the reception information about the reservation with id: 1.
+[EXECUTION PLAN]
+  - Task: retrieve all reservations
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/reservations
+    - Operation:  GET
+    - Input:      
+  - Task: retrieve reservation details for id 1
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/reservations/1
+    - Operation:  GET
+    - Input:      
+[58] SUCCESS
+[{'operation': 'GET', 'result': [{'endDate': '2025-09-05T11:00:00Z', 'id': 1, 'referenceId': 101, 'startDate': '2025-09-01T14:00:00Z', 'type': 'room'}, {'endDate': '2025-09-02T22:00:00Z', 'id': 2, 'referenceId': 302, 'startDate': '2025-09-02T20:00:00Z', 'type': 'restaurant'}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve all reservations'}, {'operation': 'GET', 'result': {'endDate': '2025-09-05T11:00:00Z', 'id': 1, 'referenceId': 101, 'startDate': '2025-09-01T14:00:00Z', 'type': 'room'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve reservation details for id 1'}]
+====================================================================================================
+
+[59] Question: I am a receptionist and I want to cancel from the reception the reservation with id: 1 and request room cleaning service for the room with roomId: 2, requestedBy: 'Reception Desk', notes: 'Guest requested cleaning at 15:00'.
+[EXECUTION PLAN]
+  - Task: cancel_reservation
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/reservations/1
+    - Operation:  DELETE
+    - Input:      
+  - Task: request_room_cleaning
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/cleaning
+    - Operation:  POST
+    - Input:      {"roomId": 2, "requestedBy": "Reception Desk", "notes": "Guest requested cleaning at 15:00"}
+[59] SUCCESS
+[{'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'cancel_reservation'}, {'operation': 'POST', 'result': {'httpCode': 200, 'message': 'Cleaning service requested for room 2', 'status': 'success'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'request_room_cleaning'}]
+====================================================================================================
+
+[60] Question: I am a receptionist and I want to create from the reception a new reservation with id: 99 and cancel from the reception the reservation with id: 1.
+[EXECUTION PLAN]
+  - Task: create_reservation
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/reservations
+    - Operation:  POST
+    - Input:      {'id': 99}
+  - Task: cancel_reservation
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/reservations/1
+    - Operation:  DELETE
+    - Input:      
+[60] SUCCESS
+[{'operation': 'POST', 'result': {'endDate': '2025-09-13T11:00:00Z', 'id': 99, 'referenceId': 1, 'startDate': '2025-09-10T15:00:00Z', 'type': 'room'}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'create_reservation'}, {'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'cancel_reservation'}]
+====================================================================================================
+
+[61] Question: I am a receptionist and I want to retrieve from the reception the list of all reservations and cancel the reservation with id: 1.
+[EXECUTION PLAN]
+  - Task: retrieve reservations
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/reservations
+    - Operation:  GET
+    - Input:      
+  - Task: cancel reservation with id 1
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/reservations/1
+    - Operation:  DELETE
+    - Input:      
+[61] SUCCESS
+[{'operation': 'GET', 'result': [{'endDate': '2025-09-05T11:00:00Z', 'id': 1, 'referenceId': 101, 'startDate': '2025-09-01T14:00:00Z', 'type': 'room'}, {'endDate': '2025-09-02T22:00:00Z', 'id': 2, 'referenceId': 302, 'startDate': '2025-09-02T20:00:00Z', 'type': 'restaurant'}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve reservations'}, {'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'cancel reservation with id 1'}]
+====================================================================================================
+
+[62] Question: I am a customer and I want to create a rating for a room with id: 3, roomId: 101, customerId: 10, score: 5, comment: 'Loved the stay!', date: '2025-08-22T09:00:00Z' and know all the ratings of the hotels available in the system.
+[EXECUTION PLAN]
+  - Task: create rating
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings
+    - Operation:  POST
+    - Input:      {'comment': 'Loved the stay!', 'customerId': 10, 'date': '2025-08-22T09:00:00Z', 'id': 3, 'roomId': 101, 'score': 5}
+  - Task: get ratings
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings
+    - Operation:  GET
+    - Input:      
+[62] SUCCESS
+[{'operation': 'POST', 'result': {'comment': 'Loved the stay!', 'customerId': 10, 'date': '2025-08-22T09:00:00Z', 'id': 3, 'roomId': 101, 'score': 5}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'create rating'}, {'operation': 'GET', 'result': [{'comment': 'Excellent room, very clean.', 'customerId': 10, 'date': '2025-08-20T14:30:00Z', 'id': 1, 'roomId': 101, 'score': 5}, {'comment': 'Good room but noisy.', 'customerId': 12, 'date': '2025-08-21T10:00:00Z', 'id': 2, 'roomId': 101, 'score': 4}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'get ratings'}]
+====================================================================================================
+
+[63] Question: I am a customer and I want to retrieve the rating with id: 1 and update it with roomId: 101, customerId: 10, score: 4, comment: 'Good, but had some noise.', date: '2025-08-21T11:00:00Z'.
+[EXECUTION PLAN]
+  - Task: retrieve rating
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings/1
+    - Operation:  GET
+    - Input:      
+  - Task: update rating
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings/1
+    - Operation:  PUT
+    - Input:      {"roomId":101, "customerId":10, "score":4, "comment":"Good, but had some noise.", "date":"2025-08-21T11:00:00Z"}
+[63] SUCCESS
+[{'operation': 'GET', 'result': {'comment': 'Excellent room, very clean.', 'customerId': 10, 'date': '2025-08-20T14:30:00Z', 'id': 1, 'roomId': 101, 'score': 5}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve rating'}, {'operation': 'PUT', 'result': {'comment': 'Good, but had some noise.', 'customerId': 10, 'date': '2025-08-21T11:00:00Z', 'id': 1, 'roomId': 101, 'score': 4}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update rating'}]
+====================================================================================================
+
+[64] Question: I am a customer and I want to update the rating with id: 1 and delete it from the system.
+[EXECUTION PLAN]
+  - Task: update rating
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings/1
+    - Operation:  PUT
+    - Input:      
+  - Task: delete rating
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings/1
+    - Operation:  DELETE
+    - Input:      
+[64] SUCCESS
+[{'operation': 'PUT', 'result': {'comment': 'Good, but had some noise.', 'customerId': 10, 'date': '2025-08-21T11:00:00Z', 'id': 1, 'roomId': 101, 'score': 4}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update rating'}, {'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'delete rating'}]
+====================================================================================================
+
+[65] Question: I am a customer and I want to create a rating for a room with id: 3 and delete the rating with id: 1 from the system.
+[EXECUTION PLAN]
+  - Task: create rating for room id 3
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings
+    - Operation:  POST
+    - Input:      {'roomId': 3}
+  - Task: delete rating with id 1
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings/1
+    - Operation:  DELETE
+    - Input:      
+[65] SUCCESS
+[{'operation': 'POST', 'result': {'comment': 'Loved the stay!', 'customerId': 10, 'date': '2025-08-22T09:00:00Z', 'id': 3, 'roomId': 101, 'score': 5}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'create rating for room id 3'}, {'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'delete rating with id 1'}]
+====================================================================================================
+
+[66] Question: I am a customer and I want to know all the ratings of the hotels available in the system and retrieve the rating with id: 1.
+[EXECUTION PLAN]
+  - Task: retrieve all ratings
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings
+    - Operation:  GET
+    - Input:      
+  - Task: retrieve rating by id
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings/1
+    - Operation:  GET
+    - Input:      
+[66] SUCCESS
+[{'operation': 'GET', 'result': [{'comment': 'Excellent room, very clean.', 'customerId': 10, 'date': '2025-08-20T14:30:00Z', 'id': 1, 'roomId': 101, 'score': 5}, {'comment': 'Good room but noisy.', 'customerId': 12, 'date': '2025-08-21T10:00:00Z', 'id': 2, 'roomId': 101, 'score': 4}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve all ratings'}, {'operation': 'GET', 'result': {'comment': 'Excellent room, very clean.', 'customerId': 10, 'date': '2025-08-20T14:30:00Z', 'id': 1, 'roomId': 101, 'score': 5}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve rating by id'}]
+====================================================================================================
+
+[67] Question: I am a manager and I want to register a new customer in the system with id: 1, firstName: Mario, lastName: Rossi, email: mario.rossi@example.com, phone: '+39061234567', dateOfBirth: '1980-05-12', documentNumber: 'XH1234567' and retrieve the list of all customers in the system.
+[EXECUTION PLAN]
+  - Task: register customer
+    - Service ID: customer-mock
+    - Endpoint:   http://mock-server:8080/rest/Customer+API/1.0/customers
+    - Operation:  POST
+    - Input:      {'dateOfBirth': '1980-05-12', 'documentNumber': 'XH1234567', 'email': 'mario.rossi@example.com', 'firstName': 'Mario', 'id': 1, 'lastName': 'Rossi', 'phone': '+39061234567'}
+  - Task: retrieve customers
+    - Service ID: customer-mock
+    - Endpoint:   http://mock-server:8080/rest/Customer+API/1.0/customers
+    - Operation:  GET
+    - Input:      
+[67] SUCCESS
+[{'operation': 'POST', 'result': {'dateOfBirth': '1980-05-12', 'documentNumber': 'XH1234567', 'email': 'mario.rossi@example.com', 'firstName': 'Mario', 'id': 1, 'lastName': 'Rossi', 'phone': '+39061234567'}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'register customer'}, {'operation': 'GET', 'result': [{'dateOfBirth': '1980-05-12', 'documentNumber': 'XH1234567', 'email': 'mario.rossi@example.com', 'firstName': 'Mario', 'id': 1, 'lastName': 'Rossi', 'phone': '+39061234567'}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve customers'}]
+====================================================================================================
+
+[68] Question: I am a manager and I want to retrieve information about the customer with id: 1 and update the customer with id: 1 using the same data.
+[EXECUTION PLAN]
+  - Task: retrieve customer info
+    - Service ID: customer-mock
+    - Endpoint:   http://mock-server:8080/rest/Customer+API/1.0/customers/1
+    - Operation:  GET
+    - Input:      
+  - Task: update customer info
+    - Service ID: customer-mock
+    - Endpoint:   http://mock-server:8080/rest/Customer+API/1.0/customers/1
+    - Operation:  PUT
+    - Input:      data retrieved from GET /customers/1
+[68] SUCCESS
+[{'operation': 'GET', 'result': {'dateOfBirth': '1980-05-12', 'documentNumber': 'XH1234567', 'email': 'mario.rossi@example.com', 'firstName': 'Mario', 'id': 1, 'lastName': 'Rossi', 'phone': '+39061234567'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve customer info'}, {'operation': 'PUT', 'result': {'dateOfBirth': '1980-05-12', 'documentNumber': 'XH1234567', 'email': 'mario.rossi@example.com', 'firstName': 'Mario', 'id': 1, 'lastName': 'Rossi', 'phone': '+39061234567'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update customer info'}]
+====================================================================================================
+
+[69] Question: I am a manager and I want to update the customer with id: 1 and then delete the customer from the system.
+[EXECUTION PLAN]
+  - Task: update customer
+    - Service ID: customer-mock
+    - Endpoint:   http://mock-server:8080/rest/Customer+API/1.0/customers/1
+    - Operation:  PUT
+    - Input:      
+  - Task: delete customer
+    - Service ID: customer-mock
+    - Endpoint:   http://mock-server:8080/rest/Customer+API/1.0/customers/1
+    - Operation:  DELETE
+    - Input:      
+[69] SUCCESS
+[{'operation': 'PUT', 'result': {'dateOfBirth': '1980-05-12', 'documentNumber': 'XH1234567', 'email': 'mario.rossi@example.com', 'firstName': 'Mario', 'id': 1, 'lastName': 'Rossi', 'phone': '+39061234567'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update customer'}, {'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'delete customer'}]
+====================================================================================================
+
+[70] Question: I am a manager and I want to register a new customer with id: 1 and delete the customer with id: 1 from the system.
+[EXECUTION PLAN]
+  - Task: register customer
+    - Service ID: customer-mock
+    - Endpoint:   http://mock-server:8080/rest/Customer+API/1.0/customers
+    - Operation:  POST
+    - Input:      {'id': 1}
+  - Task: delete customer
+    - Service ID: customer-mock
+    - Endpoint:   http://mock-server:8080/rest/Customer+API/1.0/customers/1
+    - Operation:  DELETE
+    - Input:      
+[70] SUCCESS
+[{'operation': 'POST', 'result': {'dateOfBirth': '1980-05-12', 'documentNumber': 'XH1234567', 'email': 'mario.rossi@example.com', 'firstName': 'Mario', 'id': 1, 'lastName': 'Rossi', 'phone': '+39061234567'}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'register customer'}, {'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'delete customer'}]
+====================================================================================================
+
+[71] Question: I am a manager and I want to retrieve the list of all customers and retrieve information about the customer with id: 1.
+[EXECUTION PLAN]
+  - Task: retrieve all customers
+    - Service ID: customer-mock
+    - Endpoint:   http://mock-server:8080/rest/Customer+API/1.0/customers
+    - Operation:  GET
+    - Input:      
+  - Task: get customer details by id
+    - Service ID: customer-mock
+    - Endpoint:   http://mock-server:8080/rest/Customer+API/1.0/customers/1
+    - Operation:  GET
+    - Input:      
+[71] SUCCESS
+[{'operation': 'GET', 'result': [{'dateOfBirth': '1980-05-12', 'documentNumber': 'XH1234567', 'email': 'mario.rossi@example.com', 'firstName': 'Mario', 'id': 1, 'lastName': 'Rossi', 'phone': '+39061234567'}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve all customers'}, {'operation': 'GET', 'result': {'dateOfBirth': '1980-05-12', 'documentNumber': 'XH1234567', 'email': 'mario.rossi@example.com', 'firstName': 'Mario', 'id': 1, 'lastName': 'Rossi', 'phone': '+39061234567'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'get customer details by id'}]
+====================================================================================================
+
+[72] Question: I am a cleaner and I want to retrieve the list of all cleaning requests in the system and retrieve all cleaning requests of the room with id: 1.
+[EXECUTION PLAN]
+  - Task: retrieve all cleaning requests
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning
+    - Operation:  GET
+    - Input:      
+  - Task: retrieve cleaning requests for room id 1
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning/room/1
+    - Operation:  GET
+    - Input:      
+[72] SUCCESS
+[{'operation': 'GET', 'result': [{'createdAt': '2025-08-24T10:00:00Z', 'id': 100, 'notes': 'Please clean ASAP', 'requestedBy': 'Reception Desk', 'roomId': 1, 'status': 'pending'}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve all cleaning requests'}, {'operation': 'GET', 'result': [{'createdAt': '2025-08-24T10:00:00Z', 'id': 1, 'notes': 'Please clean ASAP', 'requestedBy': 'Reception Desk', 'roomId': 1, 'status': 'pending'}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve cleaning requests for room id 1'}]
+====================================================================================================
+
+[73] Question: I am a cleaner and I want to create a new cleaning request with the following details: roomId: 1, requestedBy: 'Reception Desk', notes: 'Please clean ASAP' and retrieve information about the cleaning request with id: 1.
+[EXECUTION PLAN]
+  - Task: create cleaning request
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning
+    - Operation:  POST
+    - Input:      {'notes': 'Please clean ASAP', 'requestedBy': 'Reception Desk', 'roomId': 1}
+  - Task: retrieve cleaning request
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning/1
+    - Operation:  GET
+    - Input:      
+[73] SUCCESS
+[{'operation': 'POST', 'result': {'createdAt': '2025-08-24T10:00:00Z', 'id': 1, 'notes': 'Please clean ASAP', 'requestedBy': 'Reception Desk', 'roomId': 1, 'status': 'pending'}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'create cleaning request'}, {'operation': 'GET', 'result': {'createdAt': '2025-08-24T10:00:00Z', 'id': 1, 'notes': 'Please clean ASAP', 'requestedBy': 'Reception Desk', 'roomId': 1, 'status': 'pending'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve cleaning request'}]
+====================================================================================================
+
+[74] Question: I am a cleaner and I want to update the cleaning request with id: 1 to set status: completed and then delete it from the system.
+[EXECUTION PLAN]
+  - Task: update cleaning request
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning/1
+    - Operation:  PUT
+    - Input:      {'status': 'completed'}
+  - Task: delete cleaning request
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning/1
+    - Operation:  DELETE
+    - Input:      
+[74] SUCCESS
+[{'operation': 'PUT', 'result': {'httpCode': 200, 'message': 'Status updated successfully', 'status': 'success'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update cleaning request'}, {'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'delete cleaning request'}]
+====================================================================================================
+
+[75] Question: I am a cleaner and I want to create a new cleaning request for roomId: 1 and update it to set status: completed.
+[EXECUTION PLAN]
+  - Task: create cleaning request
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning
+    - Operation:  POST
+    - Input:      {"roomId": 1}
+  - Task: update cleaning request status
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning/1
+    - Operation:  PUT
+    - Input:      {"status": "completed"}
+[75] SUCCESS
+[{'operation': 'POST', 'result': {'createdAt': '2025-08-24T10:00:00Z', 'id': 1, 'notes': 'Please clean ASAP', 'requestedBy': 'Reception Desk', 'roomId': 1, 'status': 'pending'}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'create cleaning request'}, {'operation': 'PUT', 'result': {'httpCode': 200, 'message': 'Status updated successfully', 'status': 'success'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update cleaning request status'}]
+====================================================================================================
+
+[76] Question: I am a cleaner and I want to retrieve information about the cleaning request with id: 1 and update it to set status: completed. "GET /cleaning/1 \n PUT /cleaning/1 \n"
+[EXECUTION PLAN]
+  - Task: retrieve cleaning request
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning/1
+    - Operation:  GET
+    - Input:      
+  - Task: update cleaning request status to completed
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning/1
+    - Operation:  PUT
+    - Input:      {"status": "completed"}
+[76] SUCCESS
+[{'operation': 'GET', 'result': {'createdAt': '2025-08-24T10:00:00Z', 'id': 1, 'notes': 'Please clean ASAP', 'requestedBy': 'Reception Desk', 'roomId': 1, 'status': 'pending'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve cleaning request'}, {'operation': 'PUT', 'result': {'httpCode': 200, 'message': 'Status updated successfully', 'status': 'success'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update cleaning request status to completed'}]
+====================================================================================================
+
+[77] Question: I am a bartender and I want to register a new bar in the system with id: 1, name: Pool Bar, available: true, reserved: false, vip: false, price: 30.0 and retrieve the list of all bars in the system.
+[EXECUTION PLAN]
+  - Task: register new bar
+    - Service ID: bar-mock
+    - Endpoint:   http://mock-server:8080/rest/Bar+API/1.0/bar
+    - Operation:  POST
+    - Input:      {'available': True, 'id': 1, 'name': 'Pool Bar', 'price': 30.0, 'reserved': False, 'vip': False}
+  - Task: retrieve list of bars
+    - Service ID: bar-mock
+    - Endpoint:   http://mock-server:8080/rest/Bar+API/1.0/bar
+    - Operation:  GET
+    - Input:      
+[77] SUCCESS
+[{'operation': 'POST', 'result': {'available': True, 'id': 3, 'name': 'Pool Bar', 'price': 30.0, 'reserved': False, 'vip': False}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'register new bar'}, {'operation': 'GET', 'result': [{'available': True, 'id': 1, 'name': 'Sky Lounge', 'price': 45.0, 'reserved': False, 'vip': True}, {'available': False, 'id': 2, 'name': 'Main Bar', 'price': 25.0, 'reserved': True, 'vip': False}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve list of bars'}]
+====================================================================================================
+
+[78] Question: I am a bartender and I want to retrieve information about the bar with id: 1 and update it with name: Sky Lounge, available: false, reserved: true, vip: true, price: 50.0.
+[EXECUTION PLAN]
+  - Task: retrieve bar
+    - Service ID: bar-mock
+    - Endpoint:   http://mock-server:8080/rest/Bar+API/1.0/bar/1
+    - Operation:  GET
+    - Input:      
+  - Task: update bar
+    - Service ID: bar-mock
+    - Endpoint:   http://mock-server:8080/rest/Bar+API/1.0/bar/1
+    - Operation:  PUT
+    - Input:      {'available': False, 'name': 'Sky Lounge', 'price': 50.0, 'reserved': True, 'vip': True}
+[78] SUCCESS
+[{'operation': 'GET', 'result': {'available': True, 'id': 1, 'name': 'Sky Lounge', 'price': 45.0, 'reserved': False, 'vip': True}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve bar'}, {'operation': 'PUT', 'result': {'available': False, 'id': 1, 'name': 'Sky Lounge', 'price': 50.0, 'reserved': True, 'vip': True}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update bar'}]
+====================================================================================================
+
+[79] Question: I am a bartender and I want to update the bar with id: 1 and then delete it from the system.
+[EXECUTION PLAN]
+  - Task: update bar
+    - Service ID: bar-mock
+    - Endpoint:   http://mock-server:8080/rest/Bar+API/1.0/bar/1
+    - Operation:  PUT
+    - Input:      
+  - Task: delete bar
+    - Service ID: bar-mock
+    - Endpoint:   http://mock-server:8080/rest/Bar+API/1.0/bar/1
+    - Operation:  DELETE
+    - Input:      
+[79] SUCCESS
+[{'operation': 'PUT', 'result': {'available': False, 'id': 1, 'name': 'Sky Lounge', 'price': 50.0, 'reserved': True, 'vip': True}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update bar'}, {'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'delete bar'}]
+====================================================================================================
+
+[80] Question: I am a bartender and I want to register a new bar in the system with id: 1, name: Pool Bar, available: true, reserved: false, vip: false, price: 30.0 and delete the bar with id: 1 from the system.
+[EXECUTION PLAN]
+  - Task: create bar
+    - Service ID: bar-mock
+    - Endpoint:   http://mock-server:8080/rest/Bar+API/1.0/bar
+    - Operation:  POST
+    - Input:      {'available': True, 'id': 1, 'name': 'Pool Bar', 'price': 30.0, 'reserved': False, 'vip': False}
+  - Task: delete bar
+    - Service ID: bar-mock
+    - Endpoint:   http://mock-server:8080/rest/Bar+API/1.0/bar/1
+    - Operation:  DELETE
+    - Input:      
+[80] SUCCESS
+[{'operation': 'POST', 'result': {'available': True, 'id': 3, 'name': 'Pool Bar', 'price': 30.0, 'reserved': False, 'vip': False}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'create bar'}, {'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'delete bar'}]
+====================================================================================================
+
+[81] Question: I am a bartender and I want to retrieve the list of all bars in the system and get detailed information about the bar with id: 1.
+[EXECUTION PLAN]
+  - Task: retrieve list of bars
+    - Service ID: bar-mock
+    - Endpoint:   http://mock-server:8080/rest/Bar+API/1.0/bar
+    - Operation:  GET
+    - Input:      
+  - Task: get bar details
+    - Service ID: bar-mock
+    - Endpoint:   http://mock-server:8080/rest/Bar+API/1.0/bar/1
+    - Operation:  GET
+    - Input:      
+[81] SUCCESS
+[{'operation': 'GET', 'result': [{'available': True, 'id': 1, 'name': 'Sky Lounge', 'price': 45.0, 'reserved': False, 'vip': True}, {'available': False, 'id': 2, 'name': 'Main Bar', 'price': 25.0, 'reserved': True, 'vip': False}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve list of bars'}, {'operation': 'GET', 'result': {'available': True, 'id': 1, 'name': 'Sky Lounge', 'price': 45.0, 'reserved': False, 'vip': True}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'get bar details'}]
+====================================================================================================
+
+[82] Question: I am a waiter and I want to register a new restaurant in the system with id: 1, name: 'Garden Table', seats: 2, reserved: false, available: true, price: 15.0, then retrieve the list of all restaurants, and retrieve information about the restaurant with id: 1.
+[EXECUTION PLAN]
+  - Task: register restaurant
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant
+    - Operation:  POST
+    - Input:      {'available': True, 'id': 1, 'name': 'Garden Table', 'price': 15.0, 'reserved': False, 'seats': 2}
+  - Task: retrieve restaurants list
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant
+    - Operation:  GET
+    - Input:      
+  - Task: get restaurant details
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant/1
+    - Operation:  GET
+    - Input:      
+[82] SUCCESS
+[{'operation': 'POST', 'result': {'available': True, 'id': 301, 'name': 'Garden Table', 'price': 15.0, 'reserved': False, 'seats': 2}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'register restaurant'}, {'operation': 'GET', 'result': [{'available': True, 'id': 1, 'name': 'Table 1', 'price': 20.0, 'reserved': False, 'seats': 4}, {'available': False, 'id': 2, 'name': 'VIP Room', 'price': 100.0, 'reserved': True, 'seats': 8}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve restaurants list'}, {'operation': 'GET', 'result': {'available': True, 'id': 1, 'name': 'Table 1', 'price': 20.0, 'reserved': False, 'seats': 4}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'get restaurant details'}]
+====================================================================================================
+
+[83] Question: I am a waiter and I want to retrieve information about the restaurant with id: 1, then update it with name: 'VIP Room', seats: 10, reserved: true, available: false, price: 120.0 to set reserved: false and available: true, and delete it from the system.
+[EXECUTION PLAN]
+  - Task: retrieve restaurant info
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant/1
+    - Operation:  GET
+    - Input:      
+  - Task: update restaurant details
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant/1
+    - Operation:  PUT
+    - Input:      {"name": "VIP Room", "seats": 10, "reserved": true, "available": false, "price": 120.0}
+  - Task: update restaurant reservation status
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant/1
+    - Operation:  PUT
+    - Input:      {"reserved": false, "available": true}
+  - Task: delete restaurant
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant/1
+    - Operation:  DELETE
+    - Input:      
+[83] SUCCESS
+[{'operation': 'GET', 'result': {'available': True, 'id': 1, 'name': 'Table 1', 'price': 20.0, 'reserved': False, 'seats': 4}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve restaurant info'}, {'operation': 'PUT', 'result': {'available': False, 'id': 1, 'name': 'VIP Room', 'price': 120.0, 'reserved': True, 'seats': 10}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update restaurant details'}, {'operation': 'PUT', 'result': {'available': False, 'id': 1, 'name': 'VIP Room', 'price': 120.0, 'reserved': True, 'seats': 10}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update restaurant reservation status'}, {'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'delete restaurant'}]
+====================================================================================================
+
+[84] Question: I am a waiter and I want to retrieve the list of all restaurants, then register a new restaurant with id: 1, name: 'Garden Table', seats: 2, reserved: false, available: true, price: 15.0 and delete the restaurant with id: 1 from the system.
+[EXECUTION PLAN]
+  - Task: retrieve restaurants
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant
+    - Operation:  GET
+    - Input:      
+  - Task: register restaurant
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant
+    - Operation:  POST
+    - Input:      {"id": 1, "name": "Garden Table", "seats": 2, "reserved": false, "available": true, "price": 15.0}
+  - Task: delete restaurant
+    - Service ID: restaurant-mock
+    - Endpoint:   http://mock-server:8080/rest/Restaurant+API/1.0/restaurant/1
+    - Operation:  DELETE
+    - Input:      
+[84] SUCCESS
+[{'operation': 'GET', 'result': [{'available': True, 'id': 1, 'name': 'Table 1', 'price': 20.0, 'reserved': False, 'seats': 4}, {'available': False, 'id': 2, 'name': 'VIP Room', 'price': 100.0, 'reserved': True, 'seats': 8}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve restaurants'}, {'operation': 'POST', 'result': {'available': True, 'id': 301, 'name': 'Garden Table', 'price': 15.0, 'reserved': False, 'seats': 2}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'register restaurant'}, {'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'delete restaurant'}]
+====================================================================================================
+
+[85] Question: I am a guest and I want to make a new reservation with id: 1, customerId: 30, customerName: Charlie, type: bar, referenceId: 301, date: '2025-09-05T21:00:00Z', paid: false, then retrieve the list of all reservations, and get information about the reservation with id: 1.
+[EXECUTION PLAN]
+  - Task: create new reservation
+    - Service ID: reservation-mock
+    - Endpoint:   http://mock-server:8080/rest/Reservation+API/1.0/reservation
+    - Operation:  POST
+    - Input:      {'customerId': 30, 'customerName': 'Charlie', 'date': '2025-09-05T21:00:00Z', 'id': 1, 'paid': False, 'referenceId': 301, 'type': 'bar'}
+  - Task: retrieve all reservations
+    - Service ID: reservation-mock
+    - Endpoint:   http://mock-server:8080/rest/Reservation+API/1.0/reservation
+    - Operation:  GET
+    - Input:      
+  - Task: get reservation details
+    - Service ID: reservation-mock
+    - Endpoint:   http://mock-server:8080/rest/Reservation+API/1.0/reservation/1
+    - Operation:  GET
+    - Input:      
+[85] SUCCESS
+[{'operation': 'POST', 'result': {'customerId': 30, 'customerName': 'Charlie', 'date': '2025-09-05T21:00:00Z', 'id': 101, 'paid': False, 'referenceId': 301, 'type': 'bar'}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'create new reservation'}, {'operation': 'GET', 'result': [{'customerId': 10, 'customerName': 'Alice', 'date': '2025-09-01T15:00:00Z', 'id': 1, 'paid': True, 'referenceId': 101, 'type': 'room'}, {'customerId': 20, 'customerName': 'Bob', 'date': '2025-09-02T19:30:00Z', 'id': 2, 'paid': False, 'referenceId': 201, 'type': 'restaurant'}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve all reservations'}, {'operation': 'GET', 'result': {'customerId': 10, 'customerName': 'Alice', 'date': '2025-09-01T15:00:00Z', 'id': 1, 'paid': True, 'referenceId': 101, 'type': 'room'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'get reservation details'}]
+====================================================================================================
+
+[86] Question: I am a guest and I want to retrieve information about the reservation with id: 1, then update it with customerId: 10 to set paid: false, and cancel the reservation.
+[EXECUTION PLAN]
+  - Task: retrieve reservation
+    - Service ID: reservation-mock
+    - Endpoint:   http://mock-server:8080/rest/Reservation+API/1.0/reservation/1
+    - Operation:  GET
+    - Input:      
+  - Task: update reservation
+    - Service ID: reservation-mock
+    - Endpoint:   http://mock-server:8080/rest/Reservation+API/1.0/reservation/1
+    - Operation:  PUT
+    - Input:      {'customerId': 10, 'paid': False}
+  - Task: cancel reservation
+    - Service ID: reservation-mock
+    - Endpoint:   http://mock-server:8080/rest/Reservation+API/1.0/reservation/1
+    - Operation:  DELETE
+    - Input:      
+[86] SUCCESS
+[{'operation': 'GET', 'result': {'customerId': 10, 'customerName': 'Alice', 'date': '2025-09-01T15:00:00Z', 'id': 1, 'paid': True, 'referenceId': 101, 'type': 'room'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve reservation'}, {'operation': 'PUT', 'result': {'customerId': 10, 'customerName': 'Alice', 'date': '2025-09-02T10:00:00Z', 'id': 1, 'paid': True, 'referenceId': 102, 'type': 'room'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update reservation'}, {'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'cancel reservation'}]
+====================================================================================================
+
+[87] Question: I am a guest and I want to make a new reservation with id: 1, customerId: 30, customerName: Charlie, type: bar, referenceId: 301, date: '2025-09-05T21:00:00Z', paid: false, then update the reservation with id: 1 to set paid: false, and cancel it right after.
+[EXECUTION PLAN]
+  - Task: create_reservation
+    - Service ID: reservation-mock
+    - Endpoint:   http://mock-server:8080/rest/Reservation+API/1.0/reservation
+    - Operation:  POST
+    - Input:      {'customerId': 30, 'customerName': 'Charlie', 'date': '2025-09-05T21:00:00Z', 'id': 1, 'paid': False, 'referenceId': 301, 'type': 'bar'}
+  - Task: update_reservation
+    - Service ID: reservation-mock
+    - Endpoint:   http://mock-server:8080/rest/Reservation+API/1.0/reservation/1
+    - Operation:  PUT
+    - Input:      {'paid': False}
+  - Task: cancel_reservation
+    - Service ID: reservation-mock
+    - Endpoint:   http://mock-server:8080/rest/Reservation+API/1.0/reservation/1
+    - Operation:  DELETE
+    - Input:      
+[87] SUCCESS
+[{'operation': 'POST', 'result': {'customerId': 30, 'customerName': 'Charlie', 'date': '2025-09-05T21:00:00Z', 'id': 101, 'paid': False, 'referenceId': 301, 'type': 'bar'}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'create_reservation'}, {'operation': 'PUT', 'result': {'customerId': 10, 'customerName': 'Alice', 'date': '2025-09-02T10:00:00Z', 'id': 1, 'paid': True, 'referenceId': 102, 'type': 'room'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update_reservation'}, {'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'cancel_reservation'}]
+====================================================================================================
+
+[88] Question: I am a receptionist and I want to create from the reception a new reservation with id: 99, type: room, referenceId: 1, startDate: '2025-09-10T15:00:00Z', endDate: '2025-09-13T11:00:00Z', then retrieve from the reception information about the reservation with id: 1, and cancel it.
+[EXECUTION PLAN]
+  - Task: create_reservation
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/reservations
+    - Operation:  POST
+    - Input:      {"id":99, "type":"room", "referenceId":1, "startDate":"2025-09-10T15:00:00Z", "endDate":"2025-09-13T11:00:00Z"}
+  - Task: retrieve_reservation_info
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/reservations/1
+    - Operation:  GET
+    - Input:      
+  - Task: cancel_reservation
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/reservations/1
+    - Operation:  DELETE
+    - Input:      
+[88] SUCCESS
+[{'operation': 'POST', 'result': {'endDate': '2025-09-13T11:00:00Z', 'id': 99, 'referenceId': 1, 'startDate': '2025-09-10T15:00:00Z', 'type': 'room'}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'create_reservation'}, {'operation': 'GET', 'result': {'endDate': '2025-09-05T11:00:00Z', 'id': 1, 'referenceId': 101, 'startDate': '2025-09-01T14:00:00Z', 'type': 'room'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve_reservation_info'}, {'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'cancel_reservation'}]
+====================================================================================================
+
+[89] Question: I am a receptionist and I want to retrieve all reservations across Room, Restaurant, and Bar, then create a new reservation with id: 99, type: room, referenceId: 1, startDate: '2025-09-10T15:00:00Z', endDate: '2025-09-13T11:00:00Z', and request room cleaning service for the room with roomId: 2, requestedBy: 'Reception Desk', notes: 'Guest requested cleaning at 15:00'.
+[EXECUTION PLAN]
+  - Task: retrieve_reservations
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/reservations
+    - Operation:  GET
+    - Input:      
+  - Task: create_reservation
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/reservations
+    - Operation:  POST
+    - Input:      {"id": 99, "type": "room", "referenceId": 1, "startDate": "2025-09-10T15:00:00Z", "endDate": "2025-09-13T11:00:00Z"}
+  - Task: request_cleaning
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/cleaning
+    - Operation:  POST
+    - Input:      {"roomId": 2, "requestedBy": "Reception Desk", "notes": "Guest requested cleaning at 15:00"}
+[89] SUCCESS
+[{'operation': 'GET', 'result': [{'endDate': '2025-09-05T11:00:00Z', 'id': 1, 'referenceId': 101, 'startDate': '2025-09-01T14:00:00Z', 'type': 'room'}, {'endDate': '2025-09-02T22:00:00Z', 'id': 2, 'referenceId': 302, 'startDate': '2025-09-02T20:00:00Z', 'type': 'restaurant'}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve_reservations'}, {'operation': 'POST', 'result': {'endDate': '2025-09-13T11:00:00Z', 'id': 99, 'referenceId': 1, 'startDate': '2025-09-10T15:00:00Z', 'type': 'room'}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'create_reservation'}, {'operation': 'POST', 'result': {'httpCode': 200, 'message': 'Cleaning service requested for room 2', 'status': 'success'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'request_cleaning'}]
+====================================================================================================
+
+[90] Question: I am a receptionist and I want to cancel from the reception the reservation with id: 1, then request room cleaning for roomId: 2, requestedBy: 'Reception Desk', notes: 'Guest requested cleaning at 15:00' and retrieve information about that reservation afterward.
+[EXECUTION PLAN]
+  - Task: cancel reservation
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/reservations/1
+    - Operation:  DELETE
+    - Input:      
+  - Task: request room cleaning
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/cleaning
+    - Operation:  POST
+    - Input:      {"roomId": 2, "requestedBy": "Reception Desk", "notes": "Guest requested cleaning at 15:00"}
+  - Task: retrieve reservation info
+    - Service ID: reception-mock
+    - Endpoint:   http://mock-server:8080/rest/Reception+API/1.0/reception/reservations/1
+    - Operation:  GET
+    - Input:      
+[90] SUCCESS
+[{'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'cancel reservation'}, {'operation': 'POST', 'result': {'httpCode': 200, 'message': 'Cleaning service requested for room 2', 'status': 'success'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'request room cleaning'}, {'operation': 'GET', 'result': {'endDate': '2025-09-05T11:00:00Z', 'id': 1, 'referenceId': 101, 'startDate': '2025-09-01T14:00:00Z', 'type': 'room'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve reservation info'}]
+====================================================================================================
+
+[91] Question: I am a customer and I want to create a rating for a room with id: 3, roomId: 101, customerId: 10, score: 5, comment: 'Loved the stay!', date: '2025-08-22T09:00:00Z', then retrieve all the ratings, and get the rating with id: 1.
+[EXECUTION PLAN]
+  - Task: create rating
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings
+    - Operation:  POST
+    - Input:      {"id":3, "roomId":101, "customerId":10, "score":5, "comment":"Loved the stay!", "date":"2025-08-22T09:00:00Z"}
+  - Task: retrieve all ratings
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings
+    - Operation:  GET
+    - Input:      
+  - Task: get rating by id
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings/1
+    - Operation:  GET
+    - Input:      
+[91] SUCCESS
+[{'operation': 'POST', 'result': {'comment': 'Loved the stay!', 'customerId': 10, 'date': '2025-08-22T09:00:00Z', 'id': 3, 'roomId': 101, 'score': 5}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'create rating'}, {'operation': 'GET', 'result': [{'comment': 'Excellent room, very clean.', 'customerId': 10, 'date': '2025-08-20T14:30:00Z', 'id': 1, 'roomId': 101, 'score': 5}, {'comment': 'Good room but noisy.', 'customerId': 12, 'date': '2025-08-21T10:00:00Z', 'id': 2, 'roomId': 101, 'score': 4}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve all ratings'}, {'operation': 'GET', 'result': {'comment': 'Excellent room, very clean.', 'customerId': 10, 'date': '2025-08-20T14:30:00Z', 'id': 1, 'roomId': 101, 'score': 5}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'get rating by id'}]
+====================================================================================================
+
+[92] Question: I am a customer and I want to retrieve the rating with id: 1, then update it to change the score and comment, and finally delete it from the system.
+[EXECUTION PLAN]
+  - Task: retrieve rating
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings/1
+    - Operation:  GET
+    - Input:      
+  - Task: update rating
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings/1
+    - Operation:  PUT
+    - Input:      {"score": 5, "comment": "Updated rating"}
+  - Task: delete rating
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings/1
+    - Operation:  DELETE
+    - Input:      
+[92] SUCCESS
+[{'operation': 'GET', 'result': {'comment': 'Excellent room, very clean.', 'customerId': 10, 'date': '2025-08-20T14:30:00Z', 'id': 1, 'roomId': 101, 'score': 5}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve rating'}, {'operation': 'PUT', 'result': {'comment': 'Good, but had some noise.', 'customerId': 10, 'date': '2025-08-21T11:00:00Z', 'id': 1, 'roomId': 101, 'score': 4}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update rating'}, {'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'delete rating'}]
+====================================================================================================
+
+[93] Question: I am a customer and I want to retrieve all hotel ratings, then create a new rating for a room with id: 3, roomId: 101, customerId: 10, score: 5, comment: 'Loved the stay!', date: '2025-08-22T09:00:00Z', and update the rating with id: 1 with comment: 'Enjoyed the service'.
+[EXECUTION PLAN]
+  - Task: retrieve all hotel ratings
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings
+    - Operation:  GET
+    - Input:      
+  - Task: create new rating for room
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings
+    - Operation:  POST
+    - Input:      {"id": 3, "roomId": 101, "customerId": 10, "score": 5, "comment": "Loved the stay!", "date": "2025-08-22T09:00:00Z"}
+  - Task: update rating with id: 1
+    - Service ID: rating-mock
+    - Endpoint:   http://mock-server:8080/rest/Rating+API/1.0/ratings/1
+    - Operation:  PUT
+    - Input:      {"comment": "Enjoyed the service"}
+[93] SUCCESS
+[{'operation': 'GET', 'result': [{'comment': 'Excellent room, very clean.', 'customerId': 10, 'date': '2025-08-20T14:30:00Z', 'id': 1, 'roomId': 101, 'score': 5}, {'comment': 'Good room but noisy.', 'customerId': 12, 'date': '2025-08-21T10:00:00Z', 'id': 2, 'roomId': 101, 'score': 4}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve all hotel ratings'}, {'operation': 'POST', 'result': {'comment': 'Loved the stay!', 'customerId': 10, 'date': '2025-08-22T09:00:00Z', 'id': 3, 'roomId': 101, 'score': 5}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'create new rating for room'}, {'operation': 'PUT', 'result': {'comment': 'Good, but had some noise.', 'customerId': 10, 'date': '2025-08-21T11:00:00Z', 'id': 1, 'roomId': 101, 'score': 4}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update rating with id: 1'}]
+====================================================================================================
+
+[94] Question: I am a manager and I want to register a new customer in the system with id: 1, firstName: Mario, lastName: Rossi, email: mario.rossi@example.com, phone: '+39061234567', dateOfBirth: '1980-05-12', documentNumber: 'XH1234567', then retrieve the list of all customers, and retrieve information about the customer with id: 1.
+[EXECUTION PLAN]
+  - Task: register new customer
+    - Service ID: customer-mock
+    - Endpoint:   http://mock-server:8080/rest/Customer+API/1.0/customers
+    - Operation:  POST
+    - Input:      {'dateOfBirth': '1980-05-12', 'documentNumber': 'XH1234567', 'email': 'mario.rossi@example.com', 'firstName': 'Mario', 'id': 1, 'lastName': 'Rossi', 'phone': '+39061234567'}
+  - Task: retrieve all customers
+    - Service ID: customer-mock
+    - Endpoint:   http://mock-server:8080/rest/Customer+API/1.0/customers
+    - Operation:  GET
+    - Input:      
+  - Task: retrieve customer by id
+    - Service ID: customer-mock
+    - Endpoint:   http://mock-server:8080/rest/Customer+API/1.0/customers/1
+    - Operation:  GET
+    - Input:      
+[94] SUCCESS
+[{'operation': 'POST', 'result': {'dateOfBirth': '1980-05-12', 'documentNumber': 'XH1234567', 'email': 'mario.rossi@example.com', 'firstName': 'Mario', 'id': 1, 'lastName': 'Rossi', 'phone': '+39061234567'}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'register new customer'}, {'operation': 'GET', 'result': [{'dateOfBirth': '1980-05-12', 'documentNumber': 'XH1234567', 'email': 'mario.rossi@example.com', 'firstName': 'Mario', 'id': 1, 'lastName': 'Rossi', 'phone': '+39061234567'}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve all customers'}, {'operation': 'GET', 'result': {'dateOfBirth': '1980-05-12', 'documentNumber': 'XH1234567', 'email': 'mario.rossi@example.com', 'firstName': 'Mario', 'id': 1, 'lastName': 'Rossi', 'phone': '+39061234567'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve customer by id'}]
+====================================================================================================
+
+[95] Question: I am a manager and I want to retrieve information about the customer with id: 1, then update that customer’s details, and delete the customer from the system.
+[EXECUTION PLAN]
+  - Task: retrieve customer
+    - Service ID: customer-mock
+    - Endpoint:   http://mock-server:8080/rest/Customer+API/1.0/customers/1
+    - Operation:  GET
+    - Input:      
+  - Task: update customer
+    - Service ID: customer-mock
+    - Endpoint:   http://mock-server:8080/rest/Customer+API/1.0/customers/1
+    - Operation:  PUT
+    - Input:      
+  - Task: delete customer
+    - Service ID: customer-mock
+    - Endpoint:   http://mock-server:8080/rest/Customer+API/1.0/customers/1
+    - Operation:  DELETE
+    - Input:      
+[95] SUCCESS
+[{'operation': 'GET', 'result': {'dateOfBirth': '1980-05-12', 'documentNumber': 'XH1234567', 'email': 'mario.rossi@example.com', 'firstName': 'Mario', 'id': 1, 'lastName': 'Rossi', 'phone': '+39061234567'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve customer'}, {'operation': 'PUT', 'result': {'dateOfBirth': '1980-05-12', 'documentNumber': 'XH1234567', 'email': 'mario.rossi@example.com', 'firstName': 'Mario', 'id': 1, 'lastName': 'Rossi', 'phone': '+39061234567'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update customer'}, {'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'delete customer'}]
+====================================================================================================
+
+[96] Question: I am a manager and I want to retrieve all customers, then register a new one with id: 1, firstName: Mario, lastName: Rossi, email: mario.rossi@example.com, phone: '+39061234567', dateOfBirth: '1980-05-12', documentNumber: 'XH1234567', and immediately update the customer with id: 1 to set firstName: Pippo.
+[EXECUTION PLAN]
+  - Task: retrieve all customers
+    - Service ID: customer-mock
+    - Endpoint:   http://mock-server:8080/rest/Customer+API/1.0/customers
+    - Operation:  GET
+    - Input:      
+  - Task: register new customer
+    - Service ID: customer-mock
+    - Endpoint:   http://mock-server:8080/rest/Customer+API/1.0/customers
+    - Operation:  POST
+    - Input:      {"id": 1, "firstName": "Mario", "lastName": "Rossi", "email": "mario.rossi@example.com", "phone": "+39061234567", "dateOfBirth": "1980-05-12", "documentNumber": "XH1234567"}
+  - Task: update customer
+    - Service ID: customer-mock
+    - Endpoint:   http://mock-server:8080/rest/Customer+API/1.0/customers/1
+    - Operation:  PUT
+    - Input:      {"firstName": "Pippo"}
+[96] SUCCESS
+[{'operation': 'GET', 'result': [{'dateOfBirth': '1980-05-12', 'documentNumber': 'XH1234567', 'email': 'mario.rossi@example.com', 'firstName': 'Mario', 'id': 1, 'lastName': 'Rossi', 'phone': '+39061234567'}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve all customers'}, {'operation': 'POST', 'result': {'dateOfBirth': '1980-05-12', 'documentNumber': 'XH1234567', 'email': 'mario.rossi@example.com', 'firstName': 'Mario', 'id': 1, 'lastName': 'Rossi', 'phone': '+39061234567'}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'register new customer'}, {'operation': 'PUT', 'result': {'dateOfBirth': '1980-05-12', 'documentNumber': 'XH1234567', 'email': 'mario.rossi@example.com', 'firstName': 'Mario', 'id': 1, 'lastName': 'Rossi', 'phone': '+39061234567'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update customer'}]
+====================================================================================================
+
+[97] Question: I am a cleaner and I want to create a new cleaning request with id: 1, roomId: 1, requestedBy: 'Reception Desk', notes: 'Please clean ASAP', then retrieve all cleaning requests, and get the requests specific to room with id: 1.
+[EXECUTION PLAN]
+  - Task: create cleaning request
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning
+    - Operation:  POST
+    - Input:      {'id': 1, 'notes': 'Please clean ASAP', 'requestedBy': 'Reception Desk', 'roomId': 1}
+  - Task: retrieve all cleaning requests
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning
+    - Operation:  GET
+    - Input:      
+  - Task: get cleaning requests for room 1
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning/room/1
+    - Operation:  GET
+    - Input:      
+[97] SUCCESS
+[{'operation': 'POST', 'result': {'createdAt': '2025-08-24T10:00:00Z', 'id': 1, 'notes': 'Please clean ASAP', 'requestedBy': 'Reception Desk', 'roomId': 1, 'status': 'pending'}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'create cleaning request'}, {'operation': 'GET', 'result': [{'createdAt': '2025-08-24T10:00:00Z', 'id': 100, 'notes': 'Please clean ASAP', 'requestedBy': 'Reception Desk', 'roomId': 1, 'status': 'pending'}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve all cleaning requests'}, {'operation': 'GET', 'result': [{'createdAt': '2025-08-24T10:00:00Z', 'id': 1, 'notes': 'Please clean ASAP', 'requestedBy': 'Reception Desk', 'roomId': 1, 'status': 'pending'}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'get cleaning requests for room 1'}]
+====================================================================================================
+
+[98] Question: I am a cleaner and I want to retrieve information about the cleaning request with id: 1, then update it to set status: completed, and delete it from the system.
+[EXECUTION PLAN]
+  - Task: retrieve cleaning request
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning/1
+    - Operation:  GET
+    - Input:      
+  - Task: update cleaning request
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning/1
+    - Operation:  PUT
+    - Input:      status=completed
+  - Task: delete cleaning request
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning/1
+    - Operation:  DELETE
+    - Input:      
+[98] SUCCESS
+[{'operation': 'GET', 'result': {'createdAt': '2025-08-24T10:00:00Z', 'id': 1, 'notes': 'Please clean ASAP', 'requestedBy': 'Reception Desk', 'roomId': 1, 'status': 'pending'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve cleaning request'}, {'operation': 'PUT', 'result': {'httpCode': 200, 'message': 'Status updated successfully', 'status': 'success'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update cleaning request'}, {'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'delete cleaning request'}]
+====================================================================================================
+
+[99] Question: I am a cleaner and I want to retrieve the list of all cleaning requests, then create a new one with id: 1, roomId: 1, requestedBy: 'Reception Desk', notes: 'Please clean ASAP', and update it to set status: completed.
+[EXECUTION PLAN]
+  - Task: retrieve cleaning requests
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning
+    - Operation:  GET
+    - Input:      
+  - Task: create new cleaning request
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning
+    - Operation:  POST
+    - Input:      {'id': 1, 'notes': 'Please clean ASAP', 'requestedBy': 'Reception Desk', 'roomId': 1}
+  - Task: update cleaning request status
+    - Service ID: cleaing-mock
+    - Endpoint:   http://mock-server:8080/rest/Cleaning+API/1.0/cleaning/1
+    - Operation:  PUT
+    - Input:      {'status': 'completed'}
+[99] SUCCESS
+[{'operation': 'GET', 'result': [{'createdAt': '2025-08-24T10:00:00Z', 'id': 100, 'notes': 'Please clean ASAP', 'requestedBy': 'Reception Desk', 'roomId': 1, 'status': 'pending'}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve cleaning requests'}, {'operation': 'POST', 'result': {'createdAt': '2025-08-24T10:00:00Z', 'id': 1, 'notes': 'Please clean ASAP', 'requestedBy': 'Reception Desk', 'roomId': 1, 'status': 'pending'}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'create new cleaning request'}, {'operation': 'PUT', 'result': {'httpCode': 200, 'message': 'Status updated successfully', 'status': 'success'}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update cleaning request status'}]
+====================================================================================================
+
+[100] Question: I am a bartender and I want to register a new bar in the system with id: 1, name: Pool Bar, available: true, reserved: false, vip: false, price: 30.0, then retrieve the list of all bars, and retrieve information about the bar with id: 1.
+[EXECUTION PLAN]
+  - Task: register new bar
+    - Service ID: bar-mock
+    - Endpoint:   http://mock-server:8080/rest/Bar+API/1.0/bar
+    - Operation:  POST
+    - Input:      {'available': True, 'id': 1, 'name': 'Pool Bar', 'price': 30.0, 'reserved': False, 'vip': False}
+  - Task: retrieve all bars
+    - Service ID: bar-mock
+    - Endpoint:   http://mock-server:8080/rest/Bar+API/1.0/bar
+    - Operation:  GET
+    - Input:      
+  - Task: retrieve bar by id
+    - Service ID: bar-mock
+    - Endpoint:   http://mock-server:8080/rest/Bar+API/1.0/bar/1
+    - Operation:  GET
+    - Input:      
+[100] SUCCESS
+[{'operation': 'POST', 'result': {'available': True, 'id': 3, 'name': 'Pool Bar', 'price': 30.0, 'reserved': False, 'vip': False}, 'status': 'SUCCESS', 'status_code': 201, 'task_name': 'register new bar'}, {'operation': 'GET', 'result': [{'available': True, 'id': 1, 'name': 'Sky Lounge', 'price': 45.0, 'reserved': False, 'vip': True}, {'available': False, 'id': 2, 'name': 'Main Bar', 'price': 25.0, 'reserved': True, 'vip': False}], 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve all bars'}, {'operation': 'GET', 'result': {'available': True, 'id': 1, 'name': 'Sky Lounge', 'price': 45.0, 'reserved': False, 'vip': True}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve bar by id'}]
+====================================================================================================
+
+[101] Question: I am a bartender and I want to retrieve information about the bar with id: 1, then update it with name: Sky Lounge, available: false, reserved: true, vip: true, price: 50.0, and delete it from the system.
+[EXECUTION PLAN]
+  - Task: retrieve bar info
+    - Service ID: bar-mock
+    - Endpoint:   http://mock-server:8080/rest/Bar+API/1.0/bar/1
+    - Operation:  GET
+    - Input:      
+  - Task: update bar info
+    - Service ID: bar-mock
+    - Endpoint:   http://mock-server:8080/rest/Bar+API/1.0/bar/1
+    - Operation:  PUT
+    - Input:      {"name": "Sky Lounge", "available": false, "reserved": true, "vip": true, "price": 50.0}
+  - Task: delete bar info
+    - Service ID: bar-mock
+    - Endpoint:   http://mock-server:8080/rest/Bar+API/1.0/bar/1
+    - Operation:  DELETE
+    - Input:      
+[101] SUCCESS
+[{'operation': 'GET', 'result': {'available': True, 'id': 1, 'name': 'Sky Lounge', 'price': 45.0, 'reserved': False, 'vip': True}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'retrieve bar info'}, {'operation': 'PUT', 'result': {'available': False, 'id': 1, 'name': 'Sky Lounge', 'price': 50.0, 'reserved': True, 'vip': True}, 'status': 'SUCCESS', 'status_code': 200, 'task_name': 'update bar info'}, {'operation': 'DELETE', 'result': '', 'status': 'SUCCESS', 'status_code': 204, 'task_name': 'delete bar info'}]
+====================================================================================================
+
+FINAL STATISTICS
+============================================================
+Total questions: 101
+Questions fully successful: 101
+Questions with at least one failed/exception task: 0
+
+Task status counts:
+  SUCCESS: 183
+
+Most common tasks:
+  cancel_reservation: 6 total
+  create_reservation: 6 total
+  delete restaurant: 5 total
+  cancel reservation: 4 total
+  update rating: 4 total
+  retrieve all customers: 4 total
+  update customer: 4 total
+  delete customer: 4 total
+  create cleaning request: 4 total
+  retrieve cleaning request: 4 total
+
+Most failing tasks:
+
+PERCENTAGES
+============================================================
+Total tasks: 183
+  SUCCESS: 100.00%
+
+Failed task details saved to 'failed_tasks_log.csv'
+Execution plans saved to 'execution_plans.json'
+============================================================

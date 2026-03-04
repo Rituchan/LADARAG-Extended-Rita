@@ -1,0 +1,2343 @@
+[
+  {
+    "question_index":1,
+    "question":"I am an administrator and I want to register a new room in the system with id: 10, hotel: President, reserved: false, cleaned: true, price: 125",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Room+API\/1.0\/room",
+          "input":{
+            "cleaned":true,
+            "hotel":"President",
+            "id":10,
+            "price":125,
+            "reserved":false
+          },
+          "operation":"POST",
+          "service_id":"room-mock",
+          "task_name":"register room"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":2,
+    "question":"I am an administrator and I wanto to retrieve the list of all rooms in the system",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Room+API\/1.0\/room",
+          "input":"",
+          "operation":"GET",
+          "service_id":"room-mock",
+          "task_name":"retrieve all rooms"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":3,
+    "question":"I am an administrator and I want to retrieve information about the room with id: 1",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Room+API\/1.0\/room\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"room-mock",
+          "task_name":"retrieve room info"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":4,
+    "question":"I am an administrator and I want to update the room with id: 1, hotel: Grand Hotel, rating: 5, reserved: false, cleaned: true, price: 130.0 to set reserved: true",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Room+API\/1.0\/room\/1",
+          "input":{
+            "cleaned":true,
+            "hotel":"Grand Hotel",
+            "price":130.0,
+            "rating":5,
+            "reserved":true
+          },
+          "operation":"PUT",
+          "service_id":"room-mock",
+          "task_name":"update room"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":5,
+    "question":"I am an administrator and I want to delete the room with id: 1 from the system",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Room+API\/1.0\/room\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"room-mock",
+          "task_name":"delete room"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":6,
+    "question":"I am a waiter and I want to retrieve the list of all restaurants in the system",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant",
+          "input":"",
+          "operation":"GET",
+          "service_id":"restaurant-mock",
+          "task_name":"retrieve list of all restaurants"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":7,
+    "question":"I am a waiter and I want to register a new restaurant in the system with name: 'Garden Table', seats: 2, reserved: false, available: true, price: 15.0",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant",
+          "input":{
+            "available":true,
+            "name":"Garden Table",
+            "price":15.0,
+            "reserved":false,
+            "seats":2
+          },
+          "operation":"POST",
+          "service_id":"restaurant-mock",
+          "task_name":"register new restaurant"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":8,
+    "question":"I am a waiter and I want to retrieve information about the restaurant with id: 1",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"restaurant-mock",
+          "task_name":"retrieve restaurant info"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":9,
+    "question":"I am a waiter and I want to update the restaurant with id: 1, name: 'VIP Room', seats: 10, reserved: true, available: false, price: 120.0 to set reserved: false and available: true",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant\/1",
+          "input":{
+            "available":true,
+            "name":"VIP Room",
+            "price":120.0,
+            "reserved":false,
+            "seats":10
+          },
+          "operation":"PUT",
+          "service_id":"restaurant-mock",
+          "task_name":"update restaurant"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":10,
+    "question":"I am a waiter and I want to delete the restaurant with id: 1 from the system",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"restaurant-mock",
+          "task_name":"delete restaurant"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":11,
+    "question":"I am a guest and I want to get the list of all reservations in the system",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reservation+API\/1.0\/reservation",
+          "input":"",
+          "operation":"GET",
+          "service_id":"reservation-mock",
+          "task_name":"get_all_reservations"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":12,
+    "question":"I am a guest and I want to make a new reservation with the following details: id: 1, customerId: 30, customerName: Charlie, type: bar, referenceId: 301, date: '2025-09-05T21:00:00Z', paid: false",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reservation+API\/1.0\/reservation",
+          "input":{
+            "customerId":30,
+            "customerName":"Charlie",
+            "date":"2025-09-05T21:00:00Z",
+            "id":1,
+            "paid":false,
+            "referenceId":301,
+            "type":"bar"
+          },
+          "operation":"POST",
+          "service_id":"reservation-mock",
+          "task_name":"create reservation"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":13,
+    "question":"I am a guest and I want to retrieve information about the reservation with id: 1",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reservation+API\/1.0\/reservation\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"reservation-mock",
+          "task_name":"retrieve reservation"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":14,
+    "question":"I am a guest and I want to update the reservation with id: 1, customerId: 10, customerName: Alice, type: room, referenceId: 102, date: '2025-09-02T10:00:00Z', paid: true to set paid: false",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reservation+API\/1.0\/reservation\/1",
+          "input":{
+            "customerId":10,
+            "customerName":"Alice",
+            "date":"2025-09-02T10:00:00Z",
+            "paid":false,
+            "referenceId":102,
+            "type":"room"
+          },
+          "operation":"PUT",
+          "service_id":"reservation-mock",
+          "task_name":"update_reservation"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":15,
+    "question":"I am a guest and I want to cancel the reservation with id: 1",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reservation+API\/1.0\/reservation\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"reservation-mock",
+          "task_name":"cancel_reservation"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":16,
+    "question":"I am a receptionist and I want to retrieve the list of all reservations across Room, Restaurant, and Bar",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/reservations",
+          "input":"",
+          "operation":"GET",
+          "service_id":"reception-mock",
+          "task_name":"retrieve reservations"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":17,
+    "question":"I am a receptionist and I want to create a new reservation from the reception with the following details: id: 1, type: room, referenceId: 1, startDate: '2025-09-10T15:00:00Z', endDate: '2025-09-13T11:00:00Z'",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/reservations",
+          "input":{
+            "endDate":"2025-09-13T11:00:00Z",
+            "id":1,
+            "referenceId":1,
+            "startDate":"2025-09-10T15:00:00Z",
+            "type":"room"
+          },
+          "operation":"POST",
+          "service_id":"reception-mock",
+          "task_name":"create_reservation"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":18,
+    "question":"I am a receptionist and I want to retrieve information about the reservation from the reception with id: 1",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/reservations\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"reception-mock",
+          "task_name":"retrieve reservation info"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":19,
+    "question":"I am a receptionist and I want to cancel the reservation from the reception with id: 1",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/reservations\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"reception-mock",
+          "task_name":"cancel reservation"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":20,
+    "question":"I am a receptionist and I want to request room cleaning service from the reception for the room with roomId: 2, requestedBy: 'Reception Desk', notes: 'Guest requested cleaning at 15:00'",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/cleaning",
+          "input":{
+            "notes":"Guest requested cleaning at 15:00",
+            "requestedBy":"Reception Desk",
+            "roomId":2
+          },
+          "operation":"POST",
+          "service_id":"reception-mock",
+          "task_name":"request room cleaning"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":21,
+    "question":"I am a customer and I want to know the all the ratings of the hotels available in the system",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings",
+          "input":"",
+          "operation":"GET",
+          "service_id":"rating-mock",
+          "task_name":"retrieve all ratings"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":22,
+    "question":"I am a customer and I want to create a rating for a room with id: 3, roomId: 101, customerId: 10, score: 5, comment: 'Loved the stay!', date: '2025-08-22T09:00:00Z'",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings",
+          "input":{
+            "comment":"Loved the stay!",
+            "customerId":10,
+            "date":"2025-08-22T09:00:00Z",
+            "id":3,
+            "roomId":101,
+            "score":5
+          },
+          "operation":"POST",
+          "service_id":"rating-mock",
+          "task_name":"create rating"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":23,
+    "question":"I am a customer and I want to retrieve the rating with id: 1",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"rating-mock",
+          "task_name":"retrieve rating"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":24,
+    "question":"I am a customer and I want to update the rating with id:1, roomId: 101, customerId: 10, score: 4, comment: 'Good, but had some noise.', date: '2025-08-21T11:00:00Z'",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings\/1",
+          "input":{
+            "comment":"Good, but had some noise.",
+            "customerId":10,
+            "date":"2025-08-21T11:00:00Z",
+            "roomId":101,
+            "score":4
+          },
+          "operation":"PUT",
+          "service_id":"rating-mock",
+          "task_name":"update rating"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":25,
+    "question":"I am a customer and I want to delete the rating with id: 1",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"rating-mock",
+          "task_name":"delete rating"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":26,
+    "question":"I am a manager and I want to retrieve the list of all customers in the system",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Customer+API\/1.0\/customers",
+          "input":"",
+          "operation":"GET",
+          "service_id":"customer-mock",
+          "task_name":"retrieve all customers"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":27,
+    "question":"I am a manager and I want to register a new customer in the system with id: 1, firstName: Mario, lastName: Rossi, email: mario.rossi@example.com, phone: '+39061234567', dateOfBirth: '1980-05-12', documentNumber: 'XH1234567'",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Customer+API\/1.0\/customers",
+          "input":{
+            "dateOfBirth":"1980-05-12",
+            "documentNumber":"XH1234567",
+            "email":"mario.rossi@example.com",
+            "firstName":"Mario",
+            "id":1,
+            "lastName":"Rossi",
+            "phone":"+39061234567"
+          },
+          "operation":"POST",
+          "service_id":"customer-mock",
+          "task_name":"register customer"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":28,
+    "question":"I am a manager and I want to retrieve information about the customer with id: 1",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Customer+API\/1.0\/customers\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"customer-mock",
+          "task_name":"retrieve customer details"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":29,
+    "question":"I am a manager and I want to update the customer with id: 1, firstName: Mario, lastName: Rossi, email: mario.rossi@example.com, phone: '+39061234567', dateOfBirth: '1980-05-12', documentNumber: 'XH1234567'",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Customer+API\/1.0\/customers\/1",
+          "input":{
+            "dateOfBirth":"1980-05-12",
+            "documentNumber":"XH1234567",
+            "email":"mario.rossi@example.com",
+            "firstName":"Mario",
+            "lastName":"Rossi",
+            "phone":"+39061234567"
+          },
+          "operation":"PUT",
+          "service_id":"customer-mock",
+          "task_name":"update customer"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":30,
+    "question":"I am a manager and I want to delete the customer with id: 1 from the system",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Customer+API\/1.0\/customers\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"customer-mock",
+          "task_name":"delete customer"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":31,
+    "question":"I am a cleaner and I want to retrieve the list of all cleaning requests in the system",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning",
+          "input":"",
+          "operation":"GET",
+          "service_id":"cleaing-mock",
+          "task_name":"retrieve all cleaning requests"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":32,
+    "question":"I am a cleaner and I want to create a new cleaning request with the following details: roomId: 1, requestedBy: 'Reception Desk', notes: 'Please clean ASAP'",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning",
+          "input":{
+            "notes":"Please clean ASAP",
+            "requestedBy":"Reception Desk",
+            "roomId":1
+          },
+          "operation":"POST",
+          "service_id":"cleaing-mock",
+          "task_name":"create cleaning request"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":33,
+    "question":"I am a cleaner and I want to retrieve information about the cleaning request with id: 1",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"cleaing-mock",
+          "task_name":"retrieve cleaning request"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":34,
+    "question":"I am a cleaner and I want to update the cleaning request with id: 1 to set status: completed",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning\/1",
+          "input":{
+            "status":"completed"
+          },
+          "operation":"PUT",
+          "service_id":"cleaing-mock",
+          "task_name":"update cleaning request"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":35,
+    "question":"I am a cleaner and I want to delete the cleaning request with id: 1 from the system",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"cleaing-mock",
+          "task_name":"delete cleaning request"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":36,
+    "question":"I am a cleaner and I want to retrieve all cleaning requests of the room with id: 1",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning\/room\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"cleaing-mock",
+          "task_name":"retrieve cleaning requests"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":37,
+    "question":"I am a bartender and I want to retrieve the list of all bars in the system",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Bar+API\/1.0\/bar",
+          "input":"",
+          "operation":"GET",
+          "service_id":"bar-mock",
+          "task_name":"retrieve list of bars"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":38,
+    "question":"I am a bartender and I want to register a new bar in the system with name: Pool Bar, available: true, reserved: false, vip: false, price: 30.0",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Bar+API\/1.0\/bar",
+          "input":{
+            "available":true,
+            "name":"Pool Bar",
+            "price":30.0,
+            "reserved":false,
+            "vip":false
+          },
+          "operation":"POST",
+          "service_id":"bar-mock",
+          "task_name":"register new bar"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":39,
+    "question":"I am a bartender and I want to retrieve information about the bar with id: 1",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Bar+API\/1.0\/bar\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"bar-mock",
+          "task_name":"retrieve bar information"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":40,
+    "question":"I am a bartender and I want to update the bar with id: 1, name: Sky Lounge, available: false, reserved: true, vip: true, price: 50.0",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Bar+API\/1.0\/bar\/1",
+          "input":{
+            "available":false,
+            "id":1,
+            "name":"Sky Lounge",
+            "price":50.0,
+            "reserved":true,
+            "vip":true
+          },
+          "operation":"PUT",
+          "service_id":"bar-mock",
+          "task_name":"update bar"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":41,
+    "question":"I am a bartender and I want to delete the bar with id: 1 from the system",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Bar+API\/1.0\/bar\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"bar-mock",
+          "task_name":"delete bar"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":42,
+    "question":"I am an administrator and I want to register a new room in the system with id: 1, hotel: President, reserved: false, cleaned: true, price: 125 and retrieve the list of all rooms in the system",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Room+API\/1.0\/room",
+          "input":"{\"id\": 1, \"hotel\": \"President\", \"reserved\": false, \"cleaned\": true, \"price\": 125}",
+          "operation":"POST",
+          "service_id":"room-mock",
+          "task_name":"register new room"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Room+API\/1.0\/room",
+          "input":"",
+          "operation":"GET",
+          "service_id":"room-mock",
+          "task_name":"retrieve all rooms"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":43,
+    "question":"I am an administrator and I want to retrieve information about the room with id: 1, hotel: President, reserved: false, cleaned: true, price: 125 and update it with hotel: Grand Hotel, rating: 5, reserved: false, cleaned: true, price: 130.0 to set reserved: true",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Room+API\/1.0\/room\/1",
+          "input":{
+            "id":1
+          },
+          "operation":"GET",
+          "service_id":"room-mock",
+          "task_name":"retrieve room"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Room+API\/1.0\/room\/1",
+          "input":{
+            "cleaned":true,
+            "hotel":"Grand Hotel",
+            "price":130.0,
+            "reserved":true
+          },
+          "operation":"PUT",
+          "service_id":"room-mock",
+          "task_name":"update room details"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings",
+          "input":{
+            "rating":5,
+            "roomId":1
+          },
+          "operation":"POST",
+          "service_id":"rating-mock",
+          "task_name":"create room rating"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":44,
+    "question":"I am an administrator and I want to update the room with id: 1 to set reserved: true and then delete it from the system",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Room+API\/1.0\/room\/1",
+          "input":{
+            "reserved":true
+          },
+          "operation":"PUT",
+          "service_id":"room-mock",
+          "task_name":"update room"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Room+API\/1.0\/room\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"room-mock",
+          "task_name":"delete room"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":45,
+    "question":"I am an administrator and I want to register a new room in the system with id: 1, hotel: President, reserved: false, cleaned: true, price: 125 and then delete the room with id: 1 from the system",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Room+API\/1.0\/room",
+          "input":{
+            "cleaned":true,
+            "hotel":"President",
+            "id":1,
+            "price":125,
+            "reserved":false
+          },
+          "operation":"POST",
+          "service_id":"room-mock",
+          "task_name":"register room"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Room+API\/1.0\/room\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"room-mock",
+          "task_name":"delete room"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":46,
+    "question":"I am an administrator and I want to retrieve the list of all rooms in the system and get detailed information about the room with id: 1",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Room+API\/1.0\/room",
+          "input":"",
+          "operation":"GET",
+          "service_id":"room-mock",
+          "task_name":"retrieve all rooms"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Room+API\/1.0\/room\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"room-mock",
+          "task_name":"get detailed information about room with id 1"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":47,
+    "question":"I am a waiter and I want to register a new restaurant in the system with name: 'Garden Table', seats: 2, reserved: false, available: true, price: 15.0 and retrieve the list of all restaurants in the system. \"POST \/restaurant \\n GET \/restaurant \\n\"",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant",
+          "input":{
+            "available":true,
+            "name":"Garden Table",
+            "price":15.0,
+            "reserved":false,
+            "seats":2
+          },
+          "operation":"POST",
+          "service_id":"restaurant-mock",
+          "task_name":"register restaurant"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant",
+          "input":"",
+          "operation":"GET",
+          "service_id":"restaurant-mock",
+          "task_name":"retrieve restaurants list"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":48,
+    "question":"I am a waiter and I want to retrieve information about the restaurant with id: 1 and update it with name: 'VIP Room', seats: 10, reserved: true, available: false, price: 120.0 to set reserved: false and available: true.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"restaurant-mock",
+          "task_name":"retrieve restaurant info"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant\/1",
+          "input":"{\"name\": \"VIP Room\", \"seats\": 10, \"reserved\": false, \"available\": true, \"price\": 120.0}",
+          "operation":"PUT",
+          "service_id":"restaurant-mock",
+          "task_name":"update restaurant info"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":49,
+    "question":"I am a waiter and I want to update the restaurant with id: 1 to set reserved: false and available: true and then delete the restaurant with id: 1 from the system.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant\/1",
+          "input":{
+            "available":true,
+            "reserved":false
+          },
+          "operation":"PUT",
+          "service_id":"restaurant-mock",
+          "task_name":"update restaurant"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"restaurant-mock",
+          "task_name":"delete restaurant"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":50,
+    "question":"I am a waiter and I want to register a new restaurant withname: 'Garden Table', seats: 2, reserved: false, available: true, price: 15.0 and delete the restaurant with id: 1 from the system.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant",
+          "input":{
+            "available":true,
+            "name":"Garden Table",
+            "price":15.0,
+            "reserved":false,
+            "seats":2
+          },
+          "operation":"POST",
+          "service_id":"restaurant-mock",
+          "task_name":"register restaurant"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"restaurant-mock",
+          "task_name":"delete restaurant"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":51,
+    "question":"I am a waiter and I want to retrieve the list of all restaurants in the system and get detailed information about the restaurant with id: 1.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant",
+          "input":"",
+          "operation":"GET",
+          "service_id":"restaurant-mock",
+          "task_name":"retrieve all restaurants"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"restaurant-mock",
+          "task_name":"get restaurant details by id"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":52,
+    "question":"I am a guest and I want to make a new reservation with the following details: id: 1, customerId: 30, customerName: Charlie, type: bar, referenceId: 301, date: '2025-09-05T21:00:00Z', paid: false and retrieve the list of all reservations in the system.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/reservations",
+          "input":{
+            "customerId":30,
+            "customerName":"Charlie",
+            "date":"2025-09-05T21:00:00Z",
+            "id":1,
+            "paid":false,
+            "referenceId":301,
+            "type":"bar"
+          },
+          "operation":"POST",
+          "service_id":"reception-mock",
+          "task_name":"create reservation"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reservation+API\/1.0\/reservation",
+          "input":"",
+          "operation":"GET",
+          "service_id":"reservation-mock",
+          "task_name":"retrieve reservations"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":53,
+    "question":"I am a guest and I want to retrieve information about the reservation with id: 1 and update it with customerId: 10, customerName: Alice, type: room, referenceId: 102, date: '2025-09-02T10:00:00Z', paid: true to set paid: false.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reservation+API\/1.0\/reservation\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"reservation-mock",
+          "task_name":"retrieve reservation"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reservation+API\/1.0\/reservation\/1",
+          "input":"{\"customerId\":10,\"customerName\":\"Alice\",\"type\":\"room\",\"referenceId\":102,\"date\":\"2025-09-02T10:00:00Z\",\"paid\":false}",
+          "operation":"PUT",
+          "service_id":"reservation-mock",
+          "task_name":"update reservation"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":54,
+    "question":"I am a guest and I want to update the reservation with id:1, customerId: 10 to set paid: false and cancel the reservation with id: 1.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reservation+API\/1.0\/reservation\/1",
+          "input":{
+            "customerId":10,
+            "paid":false
+          },
+          "operation":"PUT",
+          "service_id":"reservation-mock",
+          "task_name":"update reservation"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/reservations\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"reception-mock",
+          "task_name":"cancel reservation"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":55,
+    "question":"I am a guest and I want to make a new reservation with id: 101 and cancel the reservation with id: 1.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reservation+API\/1.0\/reservation",
+          "input":"{\"id\":101}",
+          "operation":"POST",
+          "service_id":"reservation-mock",
+          "task_name":"create_reservation"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reservation+API\/1.0\/reservation\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"reservation-mock",
+          "task_name":"cancel_reservation"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":56,
+    "question":"I am a guest and I want to get the list of all reservations in the system and retrieve information about the reservation with id: 1.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reservation+API\/1.0\/reservation",
+          "input":"",
+          "operation":"GET",
+          "service_id":"reservation-mock",
+          "task_name":"get all reservations"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reservation+API\/1.0\/reservation\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"reservation-mock",
+          "task_name":"get reservation by id"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":57,
+    "question":"I am a receptionist and I want to create a new reservation from the reception with the following details: id: 99, type: room, referenceId: 1, startDate: '2025-09-10T15:00:00Z', endDate: '2025-09-13T11:00:00Z' and request room cleaning service for the room with roomId: 2, requestedBy: 'Reception Desk', notes: 'Guest requested cleaning at 15:00'.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/reservations",
+          "input":{
+            "endDate":"2025-09-13T11:00:00Z",
+            "id":99,
+            "referenceId":1,
+            "startDate":"2025-09-10T15:00:00Z",
+            "type":"room"
+          },
+          "operation":"POST",
+          "service_id":"reception-mock",
+          "task_name":"create reservation"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/cleaning",
+          "input":{
+            "notes":"Guest requested cleaning at 15:00",
+            "requestedBy":"Reception Desk",
+            "roomId":2
+          },
+          "operation":"POST",
+          "service_id":"reception-mock",
+          "task_name":"request room cleaning"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":58,
+    "question":"I am a receptionist and I want to retrieve the list of all reservations across Room, Restaurant, and Bar and retrieve from the reception information about the reservation with id: 1.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/reservations",
+          "input":"",
+          "operation":"GET",
+          "service_id":"reception-mock",
+          "task_name":"retrieve all reservations"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/reservations\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"reception-mock",
+          "task_name":"retrieve reservation details for id 1"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":59,
+    "question":"I am a receptionist and I want to cancel from the reception the reservation with id: 1 and request room cleaning service for the room with roomId: 2, requestedBy: 'Reception Desk', notes: 'Guest requested cleaning at 15:00'.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/reservations\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"reception-mock",
+          "task_name":"cancel_reservation"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/cleaning",
+          "input":"{\"roomId\": 2, \"requestedBy\": \"Reception Desk\", \"notes\": \"Guest requested cleaning at 15:00\"}",
+          "operation":"POST",
+          "service_id":"reception-mock",
+          "task_name":"request_room_cleaning"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":60,
+    "question":"I am a receptionist and I want to create from the reception a new reservation with id: 99 and cancel from the reception the reservation with id: 1.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/reservations",
+          "input":{
+            "id":99
+          },
+          "operation":"POST",
+          "service_id":"reception-mock",
+          "task_name":"create_reservation"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/reservations\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"reception-mock",
+          "task_name":"cancel_reservation"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":61,
+    "question":"I am a receptionist and I want to retrieve from the reception the list of all reservations and cancel the reservation with id: 1.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/reservations",
+          "input":"",
+          "operation":"GET",
+          "service_id":"reception-mock",
+          "task_name":"retrieve reservations"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/reservations\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"reception-mock",
+          "task_name":"cancel reservation with id 1"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":62,
+    "question":"I am a customer and I want to create a rating for a room with id: 3, roomId: 101, customerId: 10, score: 5, comment: 'Loved the stay!', date: '2025-08-22T09:00:00Z' and know all the ratings of the hotels available in the system.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings",
+          "input":{
+            "comment":"Loved the stay!",
+            "customerId":10,
+            "date":"2025-08-22T09:00:00Z",
+            "id":3,
+            "roomId":101,
+            "score":5
+          },
+          "operation":"POST",
+          "service_id":"rating-mock",
+          "task_name":"create rating"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings",
+          "input":"",
+          "operation":"GET",
+          "service_id":"rating-mock",
+          "task_name":"get ratings"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":63,
+    "question":"I am a customer and I want to retrieve the rating with id: 1 and update it with roomId: 101, customerId: 10, score: 4, comment: 'Good, but had some noise.', date: '2025-08-21T11:00:00Z'.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"rating-mock",
+          "task_name":"retrieve rating"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings\/1",
+          "input":"{\"roomId\":101, \"customerId\":10, \"score\":4, \"comment\":\"Good, but had some noise.\", \"date\":\"2025-08-21T11:00:00Z\"}",
+          "operation":"PUT",
+          "service_id":"rating-mock",
+          "task_name":"update rating"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":64,
+    "question":"I am a customer and I want to update the rating with id: 1 and delete it from the system.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings\/1",
+          "input":"",
+          "operation":"PUT",
+          "service_id":"rating-mock",
+          "task_name":"update rating"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"rating-mock",
+          "task_name":"delete rating"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":65,
+    "question":"I am a customer and I want to create a rating for a room with id: 3 and delete the rating with id: 1 from the system.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings",
+          "input":{
+            "roomId":3
+          },
+          "operation":"POST",
+          "service_id":"rating-mock",
+          "task_name":"create rating for room id 3"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"rating-mock",
+          "task_name":"delete rating with id 1"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":66,
+    "question":"I am a customer and I want to know all the ratings of the hotels available in the system and retrieve the rating with id: 1.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings",
+          "input":"",
+          "operation":"GET",
+          "service_id":"rating-mock",
+          "task_name":"retrieve all ratings"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"rating-mock",
+          "task_name":"retrieve rating by id"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":67,
+    "question":"I am a manager and I want to register a new customer in the system with id: 1, firstName: Mario, lastName: Rossi, email: mario.rossi@example.com, phone: '+39061234567', dateOfBirth: '1980-05-12', documentNumber: 'XH1234567' and retrieve the list of all customers in the system.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Customer+API\/1.0\/customers",
+          "input":{
+            "dateOfBirth":"1980-05-12",
+            "documentNumber":"XH1234567",
+            "email":"mario.rossi@example.com",
+            "firstName":"Mario",
+            "id":1,
+            "lastName":"Rossi",
+            "phone":"+39061234567"
+          },
+          "operation":"POST",
+          "service_id":"customer-mock",
+          "task_name":"register customer"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Customer+API\/1.0\/customers",
+          "input":"",
+          "operation":"GET",
+          "service_id":"customer-mock",
+          "task_name":"retrieve customers"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":68,
+    "question":"I am a manager and I want to retrieve information about the customer with id: 1 and update the customer with id: 1 using the same data.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Customer+API\/1.0\/customers\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"customer-mock",
+          "task_name":"retrieve customer info"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Customer+API\/1.0\/customers\/1",
+          "input":"data retrieved from GET \/customers\/1",
+          "operation":"PUT",
+          "service_id":"customer-mock",
+          "task_name":"update customer info"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":69,
+    "question":"I am a manager and I want to update the customer with id: 1 and then delete the customer from the system.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Customer+API\/1.0\/customers\/1",
+          "input":"",
+          "operation":"PUT",
+          "service_id":"customer-mock",
+          "task_name":"update customer"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Customer+API\/1.0\/customers\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"customer-mock",
+          "task_name":"delete customer"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":70,
+    "question":"I am a manager and I want to register a new customer with id: 1 and delete the customer with id: 1 from the system.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Customer+API\/1.0\/customers",
+          "input":{
+            "id":1
+          },
+          "operation":"POST",
+          "service_id":"customer-mock",
+          "task_name":"register customer"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Customer+API\/1.0\/customers\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"customer-mock",
+          "task_name":"delete customer"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":71,
+    "question":"I am a manager and I want to retrieve the list of all customers and retrieve information about the customer with id: 1.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Customer+API\/1.0\/customers",
+          "input":"",
+          "operation":"GET",
+          "service_id":"customer-mock",
+          "task_name":"retrieve all customers"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Customer+API\/1.0\/customers\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"customer-mock",
+          "task_name":"get customer details by id"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":72,
+    "question":"I am a cleaner and I want to retrieve the list of all cleaning requests in the system and retrieve all cleaning requests of the room with id: 1.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning",
+          "input":"",
+          "operation":"GET",
+          "service_id":"cleaing-mock",
+          "task_name":"retrieve all cleaning requests"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning\/room\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"cleaing-mock",
+          "task_name":"retrieve cleaning requests for room id 1"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":73,
+    "question":"I am a cleaner and I want to create a new cleaning request with the following details: roomId: 1, requestedBy: 'Reception Desk', notes: 'Please clean ASAP' and retrieve information about the cleaning request with id: 1.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning",
+          "input":{
+            "notes":"Please clean ASAP",
+            "requestedBy":"Reception Desk",
+            "roomId":1
+          },
+          "operation":"POST",
+          "service_id":"cleaing-mock",
+          "task_name":"create cleaning request"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"cleaing-mock",
+          "task_name":"retrieve cleaning request"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":74,
+    "question":"I am a cleaner and I want to update the cleaning request with id: 1 to set status: completed and then delete it from the system.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning\/1",
+          "input":{
+            "status":"completed"
+          },
+          "operation":"PUT",
+          "service_id":"cleaing-mock",
+          "task_name":"update cleaning request"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"cleaing-mock",
+          "task_name":"delete cleaning request"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":75,
+    "question":"I am a cleaner and I want to create a new cleaning request for roomId: 1 and update it to set status: completed.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning",
+          "input":"{\"roomId\": 1}",
+          "operation":"POST",
+          "service_id":"cleaing-mock",
+          "task_name":"create cleaning request"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning\/1",
+          "input":"{\"status\": \"completed\"}",
+          "operation":"PUT",
+          "service_id":"cleaing-mock",
+          "task_name":"update cleaning request status"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":76,
+    "question":"I am a cleaner and I want to retrieve information about the cleaning request with id: 1 and update it to set status: completed. \"GET \/cleaning\/1 \\n PUT \/cleaning\/1 \\n\"",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"cleaing-mock",
+          "task_name":"retrieve cleaning request"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning\/1",
+          "input":"{\"status\": \"completed\"}",
+          "operation":"PUT",
+          "service_id":"cleaing-mock",
+          "task_name":"update cleaning request status to completed"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":77,
+    "question":"I am a bartender and I want to register a new bar in the system with id: 1, name: Pool Bar, available: true, reserved: false, vip: false, price: 30.0 and retrieve the list of all bars in the system.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Bar+API\/1.0\/bar",
+          "input":{
+            "available":true,
+            "id":1,
+            "name":"Pool Bar",
+            "price":30.0,
+            "reserved":false,
+            "vip":false
+          },
+          "operation":"POST",
+          "service_id":"bar-mock",
+          "task_name":"register new bar"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Bar+API\/1.0\/bar",
+          "input":"",
+          "operation":"GET",
+          "service_id":"bar-mock",
+          "task_name":"retrieve list of bars"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":78,
+    "question":"I am a bartender and I want to retrieve information about the bar with id: 1 and update it with name: Sky Lounge, available: false, reserved: true, vip: true, price: 50.0.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Bar+API\/1.0\/bar\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"bar-mock",
+          "task_name":"retrieve bar"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Bar+API\/1.0\/bar\/1",
+          "input":{
+            "available":false,
+            "name":"Sky Lounge",
+            "price":50.0,
+            "reserved":true,
+            "vip":true
+          },
+          "operation":"PUT",
+          "service_id":"bar-mock",
+          "task_name":"update bar"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":79,
+    "question":"I am a bartender and I want to update the bar with id: 1 and then delete it from the system.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Bar+API\/1.0\/bar\/1",
+          "input":"",
+          "operation":"PUT",
+          "service_id":"bar-mock",
+          "task_name":"update bar"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Bar+API\/1.0\/bar\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"bar-mock",
+          "task_name":"delete bar"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":80,
+    "question":"I am a bartender and I want to register a new bar in the system with id: 1, name: Pool Bar, available: true, reserved: false, vip: false, price: 30.0 and delete the bar with id: 1 from the system.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Bar+API\/1.0\/bar",
+          "input":{
+            "available":true,
+            "id":1,
+            "name":"Pool Bar",
+            "price":30.0,
+            "reserved":false,
+            "vip":false
+          },
+          "operation":"POST",
+          "service_id":"bar-mock",
+          "task_name":"create bar"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Bar+API\/1.0\/bar\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"bar-mock",
+          "task_name":"delete bar"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":81,
+    "question":"I am a bartender and I want to retrieve the list of all bars in the system and get detailed information about the bar with id: 1.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Bar+API\/1.0\/bar",
+          "input":"",
+          "operation":"GET",
+          "service_id":"bar-mock",
+          "task_name":"retrieve list of bars"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Bar+API\/1.0\/bar\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"bar-mock",
+          "task_name":"get bar details"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":82,
+    "question":"I am a waiter and I want to register a new restaurant in the system with id: 1, name: 'Garden Table', seats: 2, reserved: false, available: true, price: 15.0, then retrieve the list of all restaurants, and retrieve information about the restaurant with id: 1.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant",
+          "input":{
+            "available":true,
+            "id":1,
+            "name":"Garden Table",
+            "price":15.0,
+            "reserved":false,
+            "seats":2
+          },
+          "operation":"POST",
+          "service_id":"restaurant-mock",
+          "task_name":"register restaurant"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant",
+          "input":"",
+          "operation":"GET",
+          "service_id":"restaurant-mock",
+          "task_name":"retrieve restaurants list"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"restaurant-mock",
+          "task_name":"get restaurant details"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":83,
+    "question":"I am a waiter and I want to retrieve information about the restaurant with id: 1, then update it with name: 'VIP Room', seats: 10, reserved: true, available: false, price: 120.0 to set reserved: false and available: true, and delete it from the system.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"restaurant-mock",
+          "task_name":"retrieve restaurant info"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant\/1",
+          "input":"{\"name\": \"VIP Room\", \"seats\": 10, \"reserved\": true, \"available\": false, \"price\": 120.0}",
+          "operation":"PUT",
+          "service_id":"restaurant-mock",
+          "task_name":"update restaurant details"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant\/1",
+          "input":"{\"reserved\": false, \"available\": true}",
+          "operation":"PUT",
+          "service_id":"restaurant-mock",
+          "task_name":"update restaurant reservation status"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"restaurant-mock",
+          "task_name":"delete restaurant"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":84,
+    "question":"I am a waiter and I want to retrieve the list of all restaurants, then register a new restaurant with id: 1, name: 'Garden Table', seats: 2, reserved: false, available: true, price: 15.0 and delete the restaurant with id: 1 from the system.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant",
+          "input":"",
+          "operation":"GET",
+          "service_id":"restaurant-mock",
+          "task_name":"retrieve restaurants"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant",
+          "input":"{\"id\": 1, \"name\": \"Garden Table\", \"seats\": 2, \"reserved\": false, \"available\": true, \"price\": 15.0}",
+          "operation":"POST",
+          "service_id":"restaurant-mock",
+          "task_name":"register restaurant"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Restaurant+API\/1.0\/restaurant\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"restaurant-mock",
+          "task_name":"delete restaurant"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":85,
+    "question":"I am a guest and I want to make a new reservation with id: 1, customerId: 30, customerName: Charlie, type: bar, referenceId: 301, date: '2025-09-05T21:00:00Z', paid: false, then retrieve the list of all reservations, and get information about the reservation with id: 1.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reservation+API\/1.0\/reservation",
+          "input":{
+            "customerId":30,
+            "customerName":"Charlie",
+            "date":"2025-09-05T21:00:00Z",
+            "id":1,
+            "paid":false,
+            "referenceId":301,
+            "type":"bar"
+          },
+          "operation":"POST",
+          "service_id":"reservation-mock",
+          "task_name":"create new reservation"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reservation+API\/1.0\/reservation",
+          "input":"",
+          "operation":"GET",
+          "service_id":"reservation-mock",
+          "task_name":"retrieve all reservations"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reservation+API\/1.0\/reservation\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"reservation-mock",
+          "task_name":"get reservation details"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":86,
+    "question":"I am a guest and I want to retrieve information about the reservation with id: 1, then update it with customerId: 10 to set paid: false, and cancel the reservation.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reservation+API\/1.0\/reservation\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"reservation-mock",
+          "task_name":"retrieve reservation"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reservation+API\/1.0\/reservation\/1",
+          "input":{
+            "customerId":10,
+            "paid":false
+          },
+          "operation":"PUT",
+          "service_id":"reservation-mock",
+          "task_name":"update reservation"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reservation+API\/1.0\/reservation\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"reservation-mock",
+          "task_name":"cancel reservation"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":87,
+    "question":"I am a guest and I want to make a new reservation with id: 1, customerId: 30, customerName: Charlie, type: bar, referenceId: 301, date: '2025-09-05T21:00:00Z', paid: false, then update the reservation with id: 1 to set paid: false, and cancel it right after.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reservation+API\/1.0\/reservation",
+          "input":{
+            "customerId":30,
+            "customerName":"Charlie",
+            "date":"2025-09-05T21:00:00Z",
+            "id":1,
+            "paid":false,
+            "referenceId":301,
+            "type":"bar"
+          },
+          "operation":"POST",
+          "service_id":"reservation-mock",
+          "task_name":"create_reservation"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reservation+API\/1.0\/reservation\/1",
+          "input":{
+            "paid":false
+          },
+          "operation":"PUT",
+          "service_id":"reservation-mock",
+          "task_name":"update_reservation"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reservation+API\/1.0\/reservation\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"reservation-mock",
+          "task_name":"cancel_reservation"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":88,
+    "question":"I am a receptionist and I want to create from the reception a new reservation with id: 99, type: room, referenceId: 1, startDate: '2025-09-10T15:00:00Z', endDate: '2025-09-13T11:00:00Z', then retrieve from the reception information about the reservation with id: 1, and cancel it.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/reservations",
+          "input":"{\"id\":99, \"type\":\"room\", \"referenceId\":1, \"startDate\":\"2025-09-10T15:00:00Z\", \"endDate\":\"2025-09-13T11:00:00Z\"}",
+          "operation":"POST",
+          "service_id":"reception-mock",
+          "task_name":"create_reservation"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/reservations\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"reception-mock",
+          "task_name":"retrieve_reservation_info"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/reservations\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"reception-mock",
+          "task_name":"cancel_reservation"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":89,
+    "question":"I am a receptionist and I want to retrieve all reservations across Room, Restaurant, and Bar, then create a new reservation with id: 99, type: room, referenceId: 1, startDate: '2025-09-10T15:00:00Z', endDate: '2025-09-13T11:00:00Z', and request room cleaning service for the room with roomId: 2, requestedBy: 'Reception Desk', notes: 'Guest requested cleaning at 15:00'.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/reservations",
+          "input":"",
+          "operation":"GET",
+          "service_id":"reception-mock",
+          "task_name":"retrieve_reservations"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/reservations",
+          "input":"{\"id\": 99, \"type\": \"room\", \"referenceId\": 1, \"startDate\": \"2025-09-10T15:00:00Z\", \"endDate\": \"2025-09-13T11:00:00Z\"}",
+          "operation":"POST",
+          "service_id":"reception-mock",
+          "task_name":"create_reservation"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/cleaning",
+          "input":"{\"roomId\": 2, \"requestedBy\": \"Reception Desk\", \"notes\": \"Guest requested cleaning at 15:00\"}",
+          "operation":"POST",
+          "service_id":"reception-mock",
+          "task_name":"request_cleaning"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":90,
+    "question":"I am a receptionist and I want to cancel from the reception the reservation with id: 1, then request room cleaning for roomId: 2, requestedBy: 'Reception Desk', notes: 'Guest requested cleaning at 15:00' and retrieve information about that reservation afterward.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/reservations\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"reception-mock",
+          "task_name":"cancel reservation"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/cleaning",
+          "input":"{\"roomId\": 2, \"requestedBy\": \"Reception Desk\", \"notes\": \"Guest requested cleaning at 15:00\"}",
+          "operation":"POST",
+          "service_id":"reception-mock",
+          "task_name":"request room cleaning"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Reception+API\/1.0\/reception\/reservations\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"reception-mock",
+          "task_name":"retrieve reservation info"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":91,
+    "question":"I am a customer and I want to create a rating for a room with id: 3, roomId: 101, customerId: 10, score: 5, comment: 'Loved the stay!', date: '2025-08-22T09:00:00Z', then retrieve all the ratings, and get the rating with id: 1.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings",
+          "input":"{\"id\":3, \"roomId\":101, \"customerId\":10, \"score\":5, \"comment\":\"Loved the stay!\", \"date\":\"2025-08-22T09:00:00Z\"}",
+          "operation":"POST",
+          "service_id":"rating-mock",
+          "task_name":"create rating"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings",
+          "input":"",
+          "operation":"GET",
+          "service_id":"rating-mock",
+          "task_name":"retrieve all ratings"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"rating-mock",
+          "task_name":"get rating by id"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":92,
+    "question":"I am a customer and I want to retrieve the rating with id: 1, then update it to change the score and comment, and finally delete it from the system.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"rating-mock",
+          "task_name":"retrieve rating"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings\/1",
+          "input":"{\"score\": 5, \"comment\": \"Updated rating\"}",
+          "operation":"PUT",
+          "service_id":"rating-mock",
+          "task_name":"update rating"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"rating-mock",
+          "task_name":"delete rating"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":93,
+    "question":"I am a customer and I want to retrieve all hotel ratings, then create a new rating for a room with id: 3, roomId: 101, customerId: 10, score: 5, comment: 'Loved the stay!', date: '2025-08-22T09:00:00Z', and update the rating with id: 1 with comment: 'Enjoyed the service'.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings",
+          "input":"",
+          "operation":"GET",
+          "service_id":"rating-mock",
+          "task_name":"retrieve all hotel ratings"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings",
+          "input":"{\"id\": 3, \"roomId\": 101, \"customerId\": 10, \"score\": 5, \"comment\": \"Loved the stay!\", \"date\": \"2025-08-22T09:00:00Z\"}",
+          "operation":"POST",
+          "service_id":"rating-mock",
+          "task_name":"create new rating for room"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Rating+API\/1.0\/ratings\/1",
+          "input":"{\"comment\": \"Enjoyed the service\"}",
+          "operation":"PUT",
+          "service_id":"rating-mock",
+          "task_name":"update rating with id: 1"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":94,
+    "question":"I am a manager and I want to register a new customer in the system with id: 1, firstName: Mario, lastName: Rossi, email: mario.rossi@example.com, phone: '+39061234567', dateOfBirth: '1980-05-12', documentNumber: 'XH1234567', then retrieve the list of all customers, and retrieve information about the customer with id: 1.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Customer+API\/1.0\/customers",
+          "input":{
+            "dateOfBirth":"1980-05-12",
+            "documentNumber":"XH1234567",
+            "email":"mario.rossi@example.com",
+            "firstName":"Mario",
+            "id":1,
+            "lastName":"Rossi",
+            "phone":"+39061234567"
+          },
+          "operation":"POST",
+          "service_id":"customer-mock",
+          "task_name":"register new customer"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Customer+API\/1.0\/customers",
+          "input":"",
+          "operation":"GET",
+          "service_id":"customer-mock",
+          "task_name":"retrieve all customers"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Customer+API\/1.0\/customers\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"customer-mock",
+          "task_name":"retrieve customer by id"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":95,
+    "question":"I am a manager and I want to retrieve information about the customer with id: 1, then update that customer\u2019s details, and delete the customer from the system.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Customer+API\/1.0\/customers\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"customer-mock",
+          "task_name":"retrieve customer"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Customer+API\/1.0\/customers\/1",
+          "input":"",
+          "operation":"PUT",
+          "service_id":"customer-mock",
+          "task_name":"update customer"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Customer+API\/1.0\/customers\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"customer-mock",
+          "task_name":"delete customer"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":96,
+    "question":"I am a manager and I want to retrieve all customers, then register a new one with id: 1, firstName: Mario, lastName: Rossi, email: mario.rossi@example.com, phone: '+39061234567', dateOfBirth: '1980-05-12', documentNumber: 'XH1234567', and immediately update the customer with id: 1 to set firstName: Pippo.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Customer+API\/1.0\/customers",
+          "input":"",
+          "operation":"GET",
+          "service_id":"customer-mock",
+          "task_name":"retrieve all customers"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Customer+API\/1.0\/customers",
+          "input":"{\"id\": 1, \"firstName\": \"Mario\", \"lastName\": \"Rossi\", \"email\": \"mario.rossi@example.com\", \"phone\": \"+39061234567\", \"dateOfBirth\": \"1980-05-12\", \"documentNumber\": \"XH1234567\"}",
+          "operation":"POST",
+          "service_id":"customer-mock",
+          "task_name":"register new customer"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Customer+API\/1.0\/customers\/1",
+          "input":"{\"firstName\": \"Pippo\"}",
+          "operation":"PUT",
+          "service_id":"customer-mock",
+          "task_name":"update customer"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":97,
+    "question":"I am a cleaner and I want to create a new cleaning request with id: 1, roomId: 1, requestedBy: 'Reception Desk', notes: 'Please clean ASAP', then retrieve all cleaning requests, and get the requests specific to room with id: 1.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning",
+          "input":{
+            "id":1,
+            "notes":"Please clean ASAP",
+            "requestedBy":"Reception Desk",
+            "roomId":1
+          },
+          "operation":"POST",
+          "service_id":"cleaing-mock",
+          "task_name":"create cleaning request"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning",
+          "input":"",
+          "operation":"GET",
+          "service_id":"cleaing-mock",
+          "task_name":"retrieve all cleaning requests"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning\/room\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"cleaing-mock",
+          "task_name":"get cleaning requests for room 1"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":98,
+    "question":"I am a cleaner and I want to retrieve information about the cleaning request with id: 1, then update it to set status: completed, and delete it from the system.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"cleaing-mock",
+          "task_name":"retrieve cleaning request"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning\/1",
+          "input":"status=completed",
+          "operation":"PUT",
+          "service_id":"cleaing-mock",
+          "task_name":"update cleaning request"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"cleaing-mock",
+          "task_name":"delete cleaning request"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":99,
+    "question":"I am a cleaner and I want to retrieve the list of all cleaning requests, then create a new one with id: 1, roomId: 1, requestedBy: 'Reception Desk', notes: 'Please clean ASAP', and update it to set status: completed.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning",
+          "input":"",
+          "operation":"GET",
+          "service_id":"cleaing-mock",
+          "task_name":"retrieve cleaning requests"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning",
+          "input":{
+            "id":1,
+            "notes":"Please clean ASAP",
+            "requestedBy":"Reception Desk",
+            "roomId":1
+          },
+          "operation":"POST",
+          "service_id":"cleaing-mock",
+          "task_name":"create new cleaning request"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Cleaning+API\/1.0\/cleaning\/1",
+          "input":{
+            "status":"completed"
+          },
+          "operation":"PUT",
+          "service_id":"cleaing-mock",
+          "task_name":"update cleaning request status"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":100,
+    "question":"I am a bartender and I want to register a new bar in the system with id: 1, name: Pool Bar, available: true, reserved: false, vip: false, price: 30.0, then retrieve the list of all bars, and retrieve information about the bar with id: 1.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Bar+API\/1.0\/bar",
+          "input":{
+            "available":true,
+            "id":1,
+            "name":"Pool Bar",
+            "price":30.0,
+            "reserved":false,
+            "vip":false
+          },
+          "operation":"POST",
+          "service_id":"bar-mock",
+          "task_name":"register new bar"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Bar+API\/1.0\/bar",
+          "input":"",
+          "operation":"GET",
+          "service_id":"bar-mock",
+          "task_name":"retrieve all bars"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Bar+API\/1.0\/bar\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"bar-mock",
+          "task_name":"retrieve bar by id"
+        }
+      ]
+    }
+  },
+  {
+    "question_index":101,
+    "question":"I am a bartender and I want to retrieve information about the bar with id: 1, then update it with name: Sky Lounge, available: false, reserved: true, vip: true, price: 50.0, and delete it from the system.",
+    "execution_plan":{
+      "tasks":[
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Bar+API\/1.0\/bar\/1",
+          "input":"",
+          "operation":"GET",
+          "service_id":"bar-mock",
+          "task_name":"retrieve bar info"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Bar+API\/1.0\/bar\/1",
+          "input":"{\"name\": \"Sky Lounge\", \"available\": false, \"reserved\": true, \"vip\": true, \"price\": 50.0}",
+          "operation":"PUT",
+          "service_id":"bar-mock",
+          "task_name":"update bar info"
+        },
+        {
+          "endpoint":"http:\/\/mock-server:8080\/rest\/Bar+API\/1.0\/bar\/1",
+          "input":"",
+          "operation":"DELETE",
+          "service_id":"bar-mock",
+          "task_name":"delete bar info"
+        }
+      ]
+    }
+  }
+]

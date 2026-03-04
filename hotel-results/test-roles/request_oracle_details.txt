@@ -1,0 +1,879 @@
+--- Question #1 ---
+Q: I am an administrator and I want to register a new room in the system with id: 10, hotel: President, reserved: false, cleaned: true, price: 125
+Matches:
+  - Task:   POST /rest/Room+API/1.0/room
+    Oracle: POST /room
+Status: CORRECT
+
+--- Question #2 ---
+Q: I am an administrator and I wanto to retrieve the list of all rooms in the system
+Matches:
+  - Task:   GET /rest/Room+API/1.0/room
+    Oracle: GET /room
+Status: CORRECT
+
+--- Question #3 ---
+Q: I am an administrator and I want to retrieve information about the room with id: 1
+Matches:
+  - Task:   GET /rest/Room+API/1.0/room/1
+    Oracle: GET /room/1
+Status: CORRECT
+
+--- Question #4 ---
+Q: I am an administrator and I want to update the room with id: 1, hotel: Grand Hotel, rating: 5, reserved: false, cleaned: true, price: 130.0 to set reserved: true
+Matches:
+  - Task:   PUT /rest/Room+API/1.0/room/1
+    Oracle: PUT /room/1
+Status: CORRECT
+
+--- Question #5 ---
+Q: I am an administrator and I want to delete the room with id: 1 from the system
+Matches:
+  - Task:   DELETE /rest/Room+API/1.0/room/1
+    Oracle: DELETE /room/1
+Status: CORRECT
+
+--- Question #6 ---
+Q: I am a waiter and I want to retrieve the list of all restaurants in the system
+Matches:
+  - Task:   GET /rest/Restaurant+API/1.0/restaurant
+    Oracle: GET /restaurant
+Status: CORRECT
+
+--- Question #7 ---
+Q: I am a waiter and I want to register a new restaurant in the system with name: 'Garden Table', seats: 2, reserved: false, available: true, price: 15.0
+Matches:
+  - Task:   POST /rest/Restaurant+API/1.0/restaurant
+    Oracle: POST /restaurant
+Status: CORRECT
+
+--- Question #8 ---
+Q: I am a waiter and I want to retrieve information about the restaurant with id: 1
+Matches:
+  - Task:   GET /rest/Restaurant+API/1.0/restaurant/1
+    Oracle: GET /restaurant/1
+Status: CORRECT
+
+--- Question #9 ---
+Q: I am a waiter and I want to update the restaurant with id: 1, name: 'VIP Room', seats: 10, reserved: true, available: false, price: 120.0 to set reserved: false and available: true
+Matches:
+  - Task:   PUT /rest/Restaurant+API/1.0/restaurant/1
+    Oracle: PUT /restaurant/1
+Status: CORRECT
+
+--- Question #10 ---
+Q: I am a waiter and I want to delete the restaurant with id: 1 from the system
+Matches:
+  - Task:   DELETE /rest/Restaurant+API/1.0/restaurant/1
+    Oracle: DELETE /restaurant/1
+Status: CORRECT
+
+--- Question #11 ---
+Q: I am a guest and I want to get the list of all reservations in the system
+Matches:
+  - Task:   GET /rest/Reservation+API/1.0/reservation
+    Oracle: GET /reservation
+Status: CORRECT
+
+--- Question #12 ---
+Q: I am a guest and I want to make a new reservation with the following details: id: 1, customerId: 30, customerName: Charlie, type: bar, referenceId: 301, date: '2025-09-05T21:00:00Z', paid: false
+Matches:
+  - Task:   POST /rest/Reservation+API/1.0/reservation
+    Oracle: POST /reservation
+Status: CORRECT
+
+--- Question #13 ---
+Q: I am a guest and I want to retrieve information about the reservation with id: 1
+Matches:
+  - Task:   GET /rest/Reservation+API/1.0/reservation/1
+    Oracle: GET /reservation/1
+Status: CORRECT
+
+--- Question #14 ---
+Q: I am a guest and I want to update the reservation with id: 1, customerId: 10, customerName: Alice, type: room, referenceId: 102, date: '2025-09-02T10:00:00Z', paid: true to set paid: false
+Matches:
+  - Task:   PUT /rest/Reservation+API/1.0/reservation/1
+    Oracle: PUT /reservation/1
+Status: CORRECT
+
+--- Question #15 ---
+Q: I am a guest and I want to cancel the reservation with id: 1
+Matches:
+  - Task:   DELETE /rest/Reservation+API/1.0/reservation/1
+    Oracle: DELETE /reservation/1
+Status: CORRECT
+
+--- Question #16 ---
+Q: I am a receptionist and I want to retrieve the list of all reservations across Room, Restaurant, and Bar
+Matches:
+  - Task:   GET /rest/Reception+API/1.0/reception/reservations
+    Oracle: GET /reception/reservations
+Status: CORRECT
+
+--- Question #17 ---
+Q: I am a receptionist and I want to create a new reservation from the reception with the following details: id: 1, type: room, referenceId: 1, startDate: '2025-09-10T15:00:00Z', endDate: '2025-09-13T11:00:00Z'
+Matches:
+  - Task:   POST /rest/Reception+API/1.0/reception/reservations
+    Oracle: POST /reception/reservations
+Status: CORRECT
+
+--- Question #18 ---
+Q: I am a receptionist and I want to retrieve information about the reservation from the reception with id: 1
+Matches:
+  - Task:   GET /rest/Reception+API/1.0/reception/reservations/1
+    Oracle: GET /reception/reservations/1
+Status: CORRECT
+
+--- Question #19 ---
+Q: I am a receptionist and I want to cancel the reservation from the reception with id: 1
+Matches:
+  - Task:   DELETE /rest/Reception+API/1.0/reception/reservations/1
+    Oracle: DELETE /reception/reservations/1
+Status: CORRECT
+
+--- Question #20 ---
+Q: I am a receptionist and I want to request room cleaning service from the reception for the room with roomId: 2, requestedBy: 'Reception Desk', notes: 'Guest requested cleaning at 15:00'
+Matches:
+  - Task:   POST /rest/Reception+API/1.0/reception/cleaning
+    Oracle: POST /reception/cleaning
+Status: CORRECT
+
+--- Question #21 ---
+Q: I am a customer and I want to know the all the ratings of the hotels available in the system
+Matches:
+  - Task:   GET /rest/Rating+API/1.0/ratings
+    Oracle: GET /ratings
+Status: CORRECT
+
+--- Question #22 ---
+Q: I am a customer and I want to create a rating for a room with id: 3, roomId: 101, customerId: 10, score: 5, comment: 'Loved the stay!', date: '2025-08-22T09:00:00Z'
+Matches:
+  - Task:   POST /rest/Rating+API/1.0/ratings
+    Oracle: POST /ratings
+Status: CORRECT
+
+--- Question #23 ---
+Q: I am a customer and I want to retrieve the rating with id: 1
+Matches:
+  - Task:   GET /rest/Rating+API/1.0/ratings/1
+    Oracle: GET /ratings/1
+Status: CORRECT
+
+--- Question #24 ---
+Q: I am a customer and I want to update the rating with id:1, roomId: 101, customerId: 10, score: 4, comment: 'Good, but had some noise.', date: '2025-08-21T11:00:00Z'
+Matches:
+  - Task:   PUT /rest/Rating+API/1.0/ratings/1
+    Oracle: PUT /ratings/1
+Status: CORRECT
+
+--- Question #25 ---
+Q: I am a customer and I want to delete the rating with id: 1
+Matches:
+  - Task:   DELETE /rest/Rating+API/1.0/ratings/1
+    Oracle: DELETE /ratings/1
+Status: CORRECT
+
+--- Question #26 ---
+Q: I am a manager and I want to retrieve the list of all customers in the system
+Matches:
+  - Task:   GET /rest/Customer+API/1.0/customers
+    Oracle: GET /customers
+Status: CORRECT
+
+--- Question #27 ---
+Q: I am a manager and I want to register a new customer in the system with id: 1, firstName: Mario, lastName: Rossi, email: mario.rossi@example.com, phone: '+39061234567', dateOfBirth: '1980-05-12', documentNumber: 'XH1234567'
+Matches:
+  - Task:   POST /rest/Customer+API/1.0/customers
+    Oracle: POST /customers
+Status: CORRECT
+
+--- Question #28 ---
+Q: I am a manager and I want to retrieve information about the customer with id: 1
+Matches:
+  - Task:   GET /rest/Customer+API/1.0/customers/1
+    Oracle: GET /customers/1
+Status: CORRECT
+
+--- Question #29 ---
+Q: I am a manager and I want to update the customer with id: 1, firstName: Mario, lastName: Rossi, email: mario.rossi@example.com, phone: '+39061234567', dateOfBirth: '1980-05-12', documentNumber: 'XH1234567'
+Matches:
+  - Task:   PUT /rest/Customer+API/1.0/customers/1
+    Oracle: PUT /customers/1
+Status: CORRECT
+
+--- Question #30 ---
+Q: I am a manager and I want to delete the customer with id: 1 from the system
+Matches:
+  - Task:   DELETE /rest/Customer+API/1.0/customers/1
+    Oracle: DELETE /customers/1
+Status: CORRECT
+
+--- Question #31 ---
+Q: I am a cleaner and I want to retrieve the list of all cleaning requests in the system
+Matches:
+  - Task:   GET /rest/Cleaning+API/1.0/cleaning
+    Oracle: GET /cleaning
+Status: CORRECT
+
+--- Question #32 ---
+Q: I am a cleaner and I want to create a new cleaning request with the following details: roomId: 1, requestedBy: 'Reception Desk', notes: 'Please clean ASAP'
+Matches:
+  - Task:   POST /rest/Cleaning+API/1.0/cleaning
+    Oracle: POST /cleaning
+Status: CORRECT
+
+--- Question #33 ---
+Q: I am a cleaner and I want to retrieve information about the cleaning request with id: 1
+Matches:
+  - Task:   GET /rest/Cleaning+API/1.0/cleaning/1
+    Oracle: GET /cleaning/1
+Status: CORRECT
+
+--- Question #34 ---
+Q: I am a cleaner and I want to update the cleaning request with id: 1 to set status: completed
+Matches:
+  - Task:   PUT /rest/Cleaning+API/1.0/cleaning/1
+    Oracle: PUT /cleaning/1
+Status: CORRECT
+
+--- Question #35 ---
+Q: I am a cleaner and I want to delete the cleaning request with id: 1 from the system
+Matches:
+  - Task:   DELETE /rest/Cleaning+API/1.0/cleaning/1
+    Oracle: DELETE /cleaning/1
+Status: CORRECT
+
+--- Question #36 ---
+Q: I am a cleaner and I want to retrieve all cleaning requests of the room with id: 1
+Matches:
+  - Task:   GET /rest/Cleaning+API/1.0/cleaning/room/1
+    Oracle: GET /cleaning/room/1
+Status: CORRECT
+
+--- Question #37 ---
+Q: I am a bartender and I want to retrieve the list of all bars in the system
+Matches:
+  - Task:   GET /rest/Bar+API/1.0/bar
+    Oracle: GET /bar
+Status: CORRECT
+
+--- Question #38 ---
+Q: I am a bartender and I want to register a new bar in the system with name: Pool Bar, available: true, reserved: false, vip: false, price: 30.0
+Matches:
+  - Task:   POST /rest/Bar+API/1.0/bar
+    Oracle: POST /bar
+Status: CORRECT
+
+--- Question #39 ---
+Q: I am a bartender and I want to retrieve information about the bar with id: 1
+Matches:
+  - Task:   GET /rest/Bar+API/1.0/bar/1
+    Oracle: GET /bar/1
+Status: CORRECT
+
+--- Question #40 ---
+Q: I am a bartender and I want to update the bar with id: 1, name: Sky Lounge, available: false, reserved: true, vip: true, price: 50.0
+Matches:
+  - Task:   PUT /rest/Bar+API/1.0/bar/1
+    Oracle: PUT /bar/1
+Status: CORRECT
+
+--- Question #41 ---
+Q: I am a bartender and I want to delete the bar with id: 1 from the system
+Matches:
+  - Task:   DELETE /rest/Bar+API/1.0/bar/1
+    Oracle: DELETE /bar/1
+Status: CORRECT
+
+--- Question #42 ---
+Q: I am an administrator and I want to register a new room in the system with id: 1, hotel: President, reserved: false, cleaned: true, price: 125 and retrieve the list of all rooms in the system
+Matches:
+  - Task:   POST /rest/Room+API/1.0/room
+    Oracle: POST /room
+  - Task:   GET /rest/Room+API/1.0/room
+    Oracle: GET /room
+Status: CORRECT
+
+--- Question #43 ---
+Q: I am an administrator and I want to retrieve information about the room with id: 1, hotel: President, reserved: false, cleaned: true, price: 125 and update it with hotel: Grand Hotel, rating: 5, reserved: false, cleaned: true, price: 130.0 to set reserved: true
+Matches:
+  - Task:   GET /rest/Room+API/1.0/room/1
+    Oracle: GET /room/1
+  - Task:   PUT /rest/Room+API/1.0/room/1
+    Oracle: PUT /room/1
+Mismatches:
+  - Task:   POST /rest/Rating+API/1.0/ratings
+    Oracle: None
+Oracle has fewer steps than tasks
+Status: PARTIAL
+
+--- Question #44 ---
+Q: I am an administrator and I want to update the room with id: 1 to set reserved: true and then delete it from the system
+Matches:
+  - Task:   PUT /rest/Room+API/1.0/room/1
+    Oracle: PUT /room/1
+  - Task:   DELETE /rest/Room+API/1.0/room/1
+    Oracle: DELETE /room/1
+Status: CORRECT
+
+--- Question #45 ---
+Q: I am an administrator and I want to register a new room in the system with id: 1, hotel: President, reserved: false, cleaned: true, price: 125 and then delete the room with id: 1 from the system
+Matches:
+  - Task:   POST /rest/Room+API/1.0/room
+    Oracle: POST /room
+  - Task:   DELETE /rest/Room+API/1.0/room/1
+    Oracle: DELETE /room/1
+Status: CORRECT
+
+--- Question #46 ---
+Q: I am an administrator and I want to retrieve the list of all rooms in the system and get detailed information about the room with id: 1
+Matches:
+  - Task:   GET /rest/Room+API/1.0/room
+    Oracle: GET /room
+  - Task:   GET /rest/Room+API/1.0/room/1
+    Oracle: GET /room/1
+Status: CORRECT
+
+--- Question #47 ---
+Q: I am a waiter and I want to register a new restaurant in the system with name: 'Garden Table', seats: 2, reserved: false, available: true, price: 15.0 and retrieve the list of all restaurants in the system. "POST /restaurant \n GET /restaurant \n"
+Mismatches:
+  - Task:   POST /rest/Restaurant+API/1.0/restaurant
+    Oracle: None
+  - Task:   GET /rest/Restaurant+API/1.0/restaurant
+    Oracle: None
+Oracle has fewer steps than tasks
+Status: INCORRECT
+
+--- Question #48 ---
+Q: I am a waiter and I want to retrieve information about the restaurant with id: 1 and update it with name: 'VIP Room', seats: 10, reserved: true, available: false, price: 120.0 to set reserved: false and available: true.
+Matches:
+  - Task:   GET /rest/Restaurant+API/1.0/restaurant/1
+    Oracle: GET /restaurant/1
+  - Task:   PUT /rest/Restaurant+API/1.0/restaurant/1
+    Oracle: PUT /restaurant/1
+Status: CORRECT
+
+--- Question #49 ---
+Q: I am a waiter and I want to update the restaurant with id: 1 to set reserved: false and available: true and then delete the restaurant with id: 1 from the system.
+Matches:
+  - Task:   PUT /rest/Restaurant+API/1.0/restaurant/1
+    Oracle: PUT /restaurant/1
+  - Task:   DELETE /rest/Restaurant+API/1.0/restaurant/1
+    Oracle: DELETE /restaurant/1
+Status: CORRECT
+
+--- Question #50 ---
+Q: I am a waiter and I want to register a new restaurant withname: 'Garden Table', seats: 2, reserved: false, available: true, price: 15.0 and delete the restaurant with id: 1 from the system.
+Matches:
+  - Task:   POST /rest/Restaurant+API/1.0/restaurant
+    Oracle: POST /restaurant
+  - Task:   DELETE /rest/Restaurant+API/1.0/restaurant/1
+    Oracle: DELETE /restaurant/1
+Status: CORRECT
+
+--- Question #51 ---
+Q: I am a waiter and I want to retrieve the list of all restaurants in the system and get detailed information about the restaurant with id: 1.
+Matches:
+  - Task:   GET /rest/Restaurant+API/1.0/restaurant
+    Oracle: GET /restaurant
+  - Task:   GET /rest/Restaurant+API/1.0/restaurant/1
+    Oracle: GET /restaurant/1
+Status: CORRECT
+
+--- Question #52 ---
+Q: I am a guest and I want to make a new reservation with the following details: id: 1, customerId: 30, customerName: Charlie, type: bar, referenceId: 301, date: '2025-09-05T21:00:00Z', paid: false and retrieve the list of all reservations in the system.
+Matches:
+  - Task:   GET /rest/Reservation+API/1.0/reservation
+    Oracle: GET /reservation
+Mismatches:
+  - Task:   POST /rest/Reception+API/1.0/reception/reservations
+    Oracle: None
+Status: PARTIAL
+
+--- Question #53 ---
+Q: I am a guest and I want to retrieve information about the reservation with id: 1 and update it with customerId: 10, customerName: Alice, type: room, referenceId: 102, date: '2025-09-02T10:00:00Z', paid: true to set paid: false.
+Matches:
+  - Task:   GET /rest/Reservation+API/1.0/reservation/1
+    Oracle: GET /reservation/1
+  - Task:   PUT /rest/Reservation+API/1.0/reservation/1
+    Oracle: PUT /reservation/1
+Status: CORRECT
+
+--- Question #54 ---
+Q: I am a guest and I want to update the reservation with id:1, customerId: 10 to set paid: false and cancel the reservation with id: 1.
+Matches:
+  - Task:   PUT /rest/Reservation+API/1.0/reservation/1
+    Oracle: PUT /reservation/1
+Mismatches:
+  - Task:   DELETE /rest/Reception+API/1.0/reception/reservations/1
+    Oracle: None
+Status: PARTIAL
+
+--- Question #55 ---
+Q: I am a guest and I want to make a new reservation with id: 101 and cancel the reservation with id: 1.
+Matches:
+  - Task:   POST /rest/Reservation+API/1.0/reservation
+    Oracle: POST /reservation
+  - Task:   DELETE /rest/Reservation+API/1.0/reservation/1
+    Oracle: DELETE /reservation/1
+Status: CORRECT
+
+--- Question #56 ---
+Q: I am a guest and I want to get the list of all reservations in the system and retrieve information about the reservation with id: 1.
+Matches:
+  - Task:   GET /rest/Reservation+API/1.0/reservation
+    Oracle: GET /reservation
+  - Task:   GET /rest/Reservation+API/1.0/reservation/1
+    Oracle: GET /reservation/1
+Status: CORRECT
+
+--- Question #57 ---
+Q: I am a receptionist and I want to create a new reservation from the reception with the following details: id: 99, type: room, referenceId: 1, startDate: '2025-09-10T15:00:00Z', endDate: '2025-09-13T11:00:00Z' and request room cleaning service for the room with roomId: 2, requestedBy: 'Reception Desk', notes: 'Guest requested cleaning at 15:00'.
+Matches:
+  - Task:   POST /rest/Reception+API/1.0/reception/reservations
+    Oracle: POST /reception/reservations
+  - Task:   POST /rest/Reception+API/1.0/reception/cleaning
+    Oracle: POST /reception/cleaning
+Status: CORRECT
+
+--- Question #58 ---
+Q: I am a receptionist and I want to retrieve the list of all reservations across Room, Restaurant, and Bar and retrieve from the reception information about the reservation with id: 1.
+Matches:
+  - Task:   GET /rest/Reception+API/1.0/reception/reservations
+    Oracle: GET /reception/reservations
+  - Task:   GET /rest/Reception+API/1.0/reception/reservations/1
+    Oracle: GET /reception/reservations/1
+Status: CORRECT
+
+--- Question #59 ---
+Q: I am a receptionist and I want to cancel from the reception the reservation with id: 1 and request room cleaning service for the room with roomId: 2, requestedBy: 'Reception Desk', notes: 'Guest requested cleaning at 15:00'.
+Matches:
+  - Task:   DELETE /rest/Reception+API/1.0/reception/reservations/1
+    Oracle: DELETE /reception/reservations/1
+  - Task:   POST /rest/Reception+API/1.0/reception/cleaning
+    Oracle: POST /reception/cleaning
+Status: CORRECT
+
+--- Question #60 ---
+Q: I am a receptionist and I want to create from the reception a new reservation with id: 99 and cancel from the reception the reservation with id: 1.
+Matches:
+  - Task:   POST /rest/Reception+API/1.0/reception/reservations
+    Oracle: POST /reception/reservations
+  - Task:   DELETE /rest/Reception+API/1.0/reception/reservations/1
+    Oracle: DELETE /reception/reservations/1
+Status: CORRECT
+
+--- Question #61 ---
+Q: I am a receptionist and I want to retrieve from the reception the list of all reservations and cancel the reservation with id: 1.
+Matches:
+  - Task:   GET /rest/Reception+API/1.0/reception/reservations
+    Oracle: GET /reception/reservations
+  - Task:   DELETE /rest/Reception+API/1.0/reception/reservations/1
+    Oracle: DELETE /reception/reservations/1
+Status: CORRECT
+
+--- Question #62 ---
+Q: I am a customer and I want to create a rating for a room with id: 3, roomId: 101, customerId: 10, score: 5, comment: 'Loved the stay!', date: '2025-08-22T09:00:00Z' and know all the ratings of the hotels available in the system.
+Matches:
+  - Task:   POST /rest/Rating+API/1.0/ratings
+    Oracle: POST /ratings
+  - Task:   GET /rest/Rating+API/1.0/ratings
+    Oracle: GET /ratings
+Status: CORRECT
+
+--- Question #63 ---
+Q: I am a customer and I want to retrieve the rating with id: 1 and update it with roomId: 101, customerId: 10, score: 4, comment: 'Good, but had some noise.', date: '2025-08-21T11:00:00Z'.
+Matches:
+  - Task:   GET /rest/Rating+API/1.0/ratings/1
+    Oracle: GET /ratings/1
+  - Task:   PUT /rest/Rating+API/1.0/ratings/1
+    Oracle: PUT /ratings/1
+Status: CORRECT
+
+--- Question #64 ---
+Q: I am a customer and I want to update the rating with id: 1 and delete it from the system.
+Matches:
+  - Task:   PUT /rest/Rating+API/1.0/ratings/1
+    Oracle: PUT /ratings/1
+  - Task:   DELETE /rest/Rating+API/1.0/ratings/1
+    Oracle: DELETE /ratings/1
+Status: CORRECT
+
+--- Question #65 ---
+Q: I am a customer and I want to create a rating for a room with id: 3 and delete the rating with id: 1 from the system.
+Matches:
+  - Task:   POST /rest/Rating+API/1.0/ratings
+    Oracle: POST /ratings
+  - Task:   DELETE /rest/Rating+API/1.0/ratings/1
+    Oracle: DELETE /ratings/1
+Status: CORRECT
+
+--- Question #66 ---
+Q: I am a customer and I want to know all the ratings of the hotels available in the system and retrieve the rating with id: 1.
+Matches:
+  - Task:   GET /rest/Rating+API/1.0/ratings
+    Oracle: GET /ratings
+  - Task:   GET /rest/Rating+API/1.0/ratings/1
+    Oracle: GET /ratings/1
+Status: CORRECT
+
+--- Question #67 ---
+Q: I am a manager and I want to register a new customer in the system with id: 1, firstName: Mario, lastName: Rossi, email: mario.rossi@example.com, phone: '+39061234567', dateOfBirth: '1980-05-12', documentNumber: 'XH1234567' and retrieve the list of all customers in the system.
+Matches:
+  - Task:   POST /rest/Customer+API/1.0/customers
+    Oracle: POST /customers
+  - Task:   GET /rest/Customer+API/1.0/customers
+    Oracle: GET /customers
+Status: CORRECT
+
+--- Question #68 ---
+Q: I am a manager and I want to retrieve information about the customer with id: 1 and update the customer with id: 1 using the same data.
+Matches:
+  - Task:   GET /rest/Customer+API/1.0/customers/1
+    Oracle: GET /customers/1
+  - Task:   PUT /rest/Customer+API/1.0/customers/1
+    Oracle: PUT /customers/1
+Status: CORRECT
+
+--- Question #69 ---
+Q: I am a manager and I want to update the customer with id: 1 and then delete the customer from the system.
+Matches:
+  - Task:   PUT /rest/Customer+API/1.0/customers/1
+    Oracle: PUT /customers/1
+  - Task:   DELETE /rest/Customer+API/1.0/customers/1
+    Oracle: DELETE /customers/1
+Status: CORRECT
+
+--- Question #70 ---
+Q: I am a manager and I want to register a new customer with id: 1 and delete the customer with id: 1 from the system.
+Matches:
+  - Task:   POST /rest/Customer+API/1.0/customers
+    Oracle: POST /customers
+  - Task:   DELETE /rest/Customer+API/1.0/customers/1
+    Oracle: DELETE /customers/1
+Status: CORRECT
+
+--- Question #71 ---
+Q: I am a manager and I want to retrieve the list of all customers and retrieve information about the customer with id: 1.
+Matches:
+  - Task:   GET /rest/Customer+API/1.0/customers
+    Oracle: GET /customers
+  - Task:   GET /rest/Customer+API/1.0/customers/1
+    Oracle: GET /customers/1
+Status: CORRECT
+
+--- Question #72 ---
+Q: I am a cleaner and I want to retrieve the list of all cleaning requests in the system and retrieve all cleaning requests of the room with id: 1.
+Matches:
+  - Task:   GET /rest/Cleaning+API/1.0/cleaning
+    Oracle: GET /cleaning
+  - Task:   GET /rest/Cleaning+API/1.0/cleaning/room/1
+    Oracle: GET /cleaning/room/1
+Status: CORRECT
+
+--- Question #73 ---
+Q: I am a cleaner and I want to create a new cleaning request with the following details: roomId: 1, requestedBy: 'Reception Desk', notes: 'Please clean ASAP' and retrieve information about the cleaning request with id: 1.
+Matches:
+  - Task:   POST /rest/Cleaning+API/1.0/cleaning
+    Oracle: POST /cleaning
+  - Task:   GET /rest/Cleaning+API/1.0/cleaning/1
+    Oracle: GET /cleaning/1
+Status: CORRECT
+
+--- Question #74 ---
+Q: I am a cleaner and I want to update the cleaning request with id: 1 to set status: completed and then delete it from the system.
+Matches:
+  - Task:   PUT /rest/Cleaning+API/1.0/cleaning/1
+    Oracle: PUT /cleaning/1
+  - Task:   DELETE /rest/Cleaning+API/1.0/cleaning/1
+    Oracle: DELETE /cleaning/1
+Status: CORRECT
+
+--- Question #75 ---
+Q: I am a cleaner and I want to create a new cleaning request for roomId: 1 and update it to set status: completed.
+Matches:
+  - Task:   POST /rest/Cleaning+API/1.0/cleaning
+    Oracle: POST /cleaning
+  - Task:   PUT /rest/Cleaning+API/1.0/cleaning/1
+    Oracle: PUT /cleaning/1
+Status: CORRECT
+
+--- Question #76 ---
+Q: I am a cleaner and I want to retrieve information about the cleaning request with id: 1 and update it to set status: completed. "GET /cleaning/1 \n PUT /cleaning/1 \n"
+Mismatches:
+  - Task:   GET /rest/Cleaning+API/1.0/cleaning/1
+    Oracle: None
+  - Task:   PUT /rest/Cleaning+API/1.0/cleaning/1
+    Oracle: None
+Oracle has fewer steps than tasks
+Status: INCORRECT
+
+--- Question #77 ---
+Q: I am a bartender and I want to register a new bar in the system with id: 1, name: Pool Bar, available: true, reserved: false, vip: false, price: 30.0 and retrieve the list of all bars in the system.
+Matches:
+  - Task:   POST /rest/Bar+API/1.0/bar
+    Oracle: POST /bar
+  - Task:   GET /rest/Bar+API/1.0/bar
+    Oracle: GET /bar
+Status: CORRECT
+
+--- Question #78 ---
+Q: I am a bartender and I want to retrieve information about the bar with id: 1 and update it with name: Sky Lounge, available: false, reserved: true, vip: true, price: 50.0.
+Matches:
+  - Task:   GET /rest/Bar+API/1.0/bar/1
+    Oracle: GET /bar/1
+  - Task:   PUT /rest/Bar+API/1.0/bar/1
+    Oracle: PUT /bar/1
+Status: CORRECT
+
+--- Question #79 ---
+Q: I am a bartender and I want to update the bar with id: 1 and then delete it from the system.
+Matches:
+  - Task:   PUT /rest/Bar+API/1.0/bar/1
+    Oracle: PUT /bar/1
+  - Task:   DELETE /rest/Bar+API/1.0/bar/1
+    Oracle: DELETE /bar/1
+Status: CORRECT
+
+--- Question #80 ---
+Q: I am a bartender and I want to register a new bar in the system with id: 1, name: Pool Bar, available: true, reserved: false, vip: false, price: 30.0 and delete the bar with id: 1 from the system.
+Matches:
+  - Task:   POST /rest/Bar+API/1.0/bar
+    Oracle: POST /bar
+  - Task:   DELETE /rest/Bar+API/1.0/bar/1
+    Oracle: DELETE /bar/1
+Status: CORRECT
+
+--- Question #81 ---
+Q: I am a bartender and I want to retrieve the list of all bars in the system and get detailed information about the bar with id: 1.
+Matches:
+  - Task:   GET /rest/Bar+API/1.0/bar
+    Oracle: GET /bar
+  - Task:   GET /rest/Bar+API/1.0/bar/1
+    Oracle: GET /bar/1
+Status: CORRECT
+
+--- Question #82 ---
+Q: I am a waiter and I want to register a new restaurant in the system with id: 1, name: 'Garden Table', seats: 2, reserved: false, available: true, price: 15.0, then retrieve the list of all restaurants, and retrieve information about the restaurant with id: 1.
+Matches:
+  - Task:   POST /rest/Restaurant+API/1.0/restaurant
+    Oracle: POST /restaurant
+  - Task:   GET /rest/Restaurant+API/1.0/restaurant
+    Oracle: GET /restaurant
+  - Task:   GET /rest/Restaurant+API/1.0/restaurant/1
+    Oracle: GET /restaurant/1
+Status: CORRECT
+
+--- Question #83 ---
+Q: I am a waiter and I want to retrieve information about the restaurant with id: 1, then update it with name: 'VIP Room', seats: 10, reserved: true, available: false, price: 120.0 to set reserved: false and available: true, and delete it from the system.
+Matches:
+  - Task:   GET /rest/Restaurant+API/1.0/restaurant/1
+    Oracle: GET /restaurant/1
+  - Task:   PUT /rest/Restaurant+API/1.0/restaurant/1
+    Oracle: PUT /restaurant/1
+  - Task:   DELETE /rest/Restaurant+API/1.0/restaurant/1
+    Oracle: DELETE /restaurant/1
+Mismatches:
+  - Task:   PUT /rest/Restaurant+API/1.0/restaurant/1
+    Oracle: None
+Oracle has fewer steps than tasks
+Status: PARTIAL
+
+--- Question #84 ---
+Q: I am a waiter and I want to retrieve the list of all restaurants, then register a new restaurant with id: 1, name: 'Garden Table', seats: 2, reserved: false, available: true, price: 15.0 and delete the restaurant with id: 1 from the system.
+Matches:
+  - Task:   GET /rest/Restaurant+API/1.0/restaurant
+    Oracle: GET /restaurant
+  - Task:   POST /rest/Restaurant+API/1.0/restaurant
+    Oracle: POST /restaurant
+  - Task:   DELETE /rest/Restaurant+API/1.0/restaurant/1
+    Oracle: DELETE /restaurant/1
+Status: CORRECT
+
+--- Question #85 ---
+Q: I am a guest and I want to make a new reservation with id: 1, customerId: 30, customerName: Charlie, type: bar, referenceId: 301, date: '2025-09-05T21:00:00Z', paid: false, then retrieve the list of all reservations, and get information about the reservation with id: 1.
+Matches:
+  - Task:   POST /rest/Reservation+API/1.0/reservation
+    Oracle: POST /reservation
+  - Task:   GET /rest/Reservation+API/1.0/reservation
+    Oracle: GET /reservation
+  - Task:   GET /rest/Reservation+API/1.0/reservation/1
+    Oracle: GET /reservation/1
+Status: CORRECT
+
+--- Question #86 ---
+Q: I am a guest and I want to retrieve information about the reservation with id: 1, then update it with customerId: 10 to set paid: false, and cancel the reservation.
+Matches:
+  - Task:   GET /rest/Reservation+API/1.0/reservation/1
+    Oracle: GET /reservation/1
+  - Task:   PUT /rest/Reservation+API/1.0/reservation/1
+    Oracle: PUT /reservation/1
+  - Task:   DELETE /rest/Reservation+API/1.0/reservation/1
+    Oracle: DELETE /reservation/1
+Status: CORRECT
+
+--- Question #87 ---
+Q: I am a guest and I want to make a new reservation with id: 1, customerId: 30, customerName: Charlie, type: bar, referenceId: 301, date: '2025-09-05T21:00:00Z', paid: false, then update the reservation with id: 1 to set paid: false, and cancel it right after.
+Matches:
+  - Task:   POST /rest/Reservation+API/1.0/reservation
+    Oracle: POST /reservation
+  - Task:   PUT /rest/Reservation+API/1.0/reservation/1
+    Oracle: PUT /reservation/1
+  - Task:   DELETE /rest/Reservation+API/1.0/reservation/1
+    Oracle: DELETE /reservation/1
+Status: CORRECT
+
+--- Question #88 ---
+Q: I am a receptionist and I want to create from the reception a new reservation with id: 99, type: room, referenceId: 1, startDate: '2025-09-10T15:00:00Z', endDate: '2025-09-13T11:00:00Z', then retrieve from the reception information about the reservation with id: 1, and cancel it.
+Matches:
+  - Task:   POST /rest/Reception+API/1.0/reception/reservations
+    Oracle: POST /reception/reservations
+  - Task:   GET /rest/Reception+API/1.0/reception/reservations/1
+    Oracle: GET /reception/reservations/1
+  - Task:   DELETE /rest/Reception+API/1.0/reception/reservations/1
+    Oracle: DELETE /reception/reservations/1
+Status: CORRECT
+
+--- Question #89 ---
+Q: I am a receptionist and I want to retrieve all reservations across Room, Restaurant, and Bar, then create a new reservation with id: 99, type: room, referenceId: 1, startDate: '2025-09-10T15:00:00Z', endDate: '2025-09-13T11:00:00Z', and request room cleaning service for the room with roomId: 2, requestedBy: 'Reception Desk', notes: 'Guest requested cleaning at 15:00'.
+Matches:
+  - Task:   GET /rest/Reception+API/1.0/reception/reservations
+    Oracle: GET /reception/reservations
+  - Task:   POST /rest/Reception+API/1.0/reception/reservations
+    Oracle: POST /reception/reservations
+  - Task:   POST /rest/Reception+API/1.0/reception/cleaning
+    Oracle: POST /reception/cleaning
+Status: CORRECT
+
+--- Question #90 ---
+Q: I am a receptionist and I want to cancel from the reception the reservation with id: 1, then request room cleaning for roomId: 2, requestedBy: 'Reception Desk', notes: 'Guest requested cleaning at 15:00' and retrieve information about that reservation afterward.
+Matches:
+  - Task:   DELETE /rest/Reception+API/1.0/reception/reservations/1
+    Oracle: DELETE /reception/reservations/1
+  - Task:   POST /rest/Reception+API/1.0/reception/cleaning
+    Oracle: POST /reception/cleaning
+  - Task:   GET /rest/Reception+API/1.0/reception/reservations/1
+    Oracle: GET /reception/reservations/1
+Status: CORRECT
+
+--- Question #91 ---
+Q: I am a customer and I want to create a rating for a room with id: 3, roomId: 101, customerId: 10, score: 5, comment: 'Loved the stay!', date: '2025-08-22T09:00:00Z', then retrieve all the ratings, and get the rating with id: 1.
+Matches:
+  - Task:   POST /rest/Rating+API/1.0/ratings
+    Oracle: POST /ratings
+  - Task:   GET /rest/Rating+API/1.0/ratings
+    Oracle: GET /ratings
+  - Task:   GET /rest/Rating+API/1.0/ratings/1
+    Oracle: GET /ratings/1
+Status: CORRECT
+
+--- Question #92 ---
+Q: I am a customer and I want to retrieve the rating with id: 1, then update it to change the score and comment, and finally delete it from the system.
+Matches:
+  - Task:   GET /rest/Rating+API/1.0/ratings/1
+    Oracle: GET /ratings/1
+  - Task:   PUT /rest/Rating+API/1.0/ratings/1
+    Oracle: PUT /ratings/1
+  - Task:   DELETE /rest/Rating+API/1.0/ratings/1
+    Oracle: DELETE /ratings/1
+Status: CORRECT
+
+--- Question #93 ---
+Q: I am a customer and I want to retrieve all hotel ratings, then create a new rating for a room with id: 3, roomId: 101, customerId: 10, score: 5, comment: 'Loved the stay!', date: '2025-08-22T09:00:00Z', and update the rating with id: 1 with comment: 'Enjoyed the service'.
+Matches:
+  - Task:   GET /rest/Rating+API/1.0/ratings
+    Oracle: GET /ratings
+  - Task:   POST /rest/Rating+API/1.0/ratings
+    Oracle: POST /ratings
+  - Task:   PUT /rest/Rating+API/1.0/ratings/1
+    Oracle: PUT /ratings/1
+Status: CORRECT
+
+--- Question #94 ---
+Q: I am a manager and I want to register a new customer in the system with id: 1, firstName: Mario, lastName: Rossi, email: mario.rossi@example.com, phone: '+39061234567', dateOfBirth: '1980-05-12', documentNumber: 'XH1234567', then retrieve the list of all customers, and retrieve information about the customer with id: 1.
+Matches:
+  - Task:   POST /rest/Customer+API/1.0/customers
+    Oracle: POST /customers
+  - Task:   GET /rest/Customer+API/1.0/customers
+    Oracle: GET /customers
+  - Task:   GET /rest/Customer+API/1.0/customers/1
+    Oracle: GET /customers/1
+Status: CORRECT
+
+--- Question #95 ---
+Q: I am a manager and I want to retrieve information about the customer with id: 1, then update that customer’s details, and delete the customer from the system.
+Matches:
+  - Task:   GET /rest/Customer+API/1.0/customers/1
+    Oracle: GET /customers/1
+  - Task:   PUT /rest/Customer+API/1.0/customers/1
+    Oracle: PUT /customers/1
+  - Task:   DELETE /rest/Customer+API/1.0/customers/1
+    Oracle: DELETE /customers/1
+Status: CORRECT
+
+--- Question #96 ---
+Q: I am a manager and I want to retrieve all customers, then register a new one with id: 1, firstName: Mario, lastName: Rossi, email: mario.rossi@example.com, phone: '+39061234567', dateOfBirth: '1980-05-12', documentNumber: 'XH1234567', and immediately update the customer with id: 1 to set firstName: Pippo.
+Matches:
+  - Task:   GET /rest/Customer+API/1.0/customers
+    Oracle: GET /customers
+  - Task:   POST /rest/Customer+API/1.0/customers
+    Oracle: POST /customers
+  - Task:   PUT /rest/Customer+API/1.0/customers/1
+    Oracle: PUT /customers/1
+Status: CORRECT
+
+--- Question #97 ---
+Q: I am a cleaner and I want to create a new cleaning request with id: 1, roomId: 1, requestedBy: 'Reception Desk', notes: 'Please clean ASAP', then retrieve all cleaning requests, and get the requests specific to room with id: 1.
+Matches:
+  - Task:   POST /rest/Cleaning+API/1.0/cleaning
+    Oracle: POST /cleaning
+  - Task:   GET /rest/Cleaning+API/1.0/cleaning
+    Oracle: GET /cleaning
+  - Task:   GET /rest/Cleaning+API/1.0/cleaning/room/1
+    Oracle: GET /cleaning/room/1
+Status: CORRECT
+
+--- Question #98 ---
+Q: I am a cleaner and I want to retrieve information about the cleaning request with id: 1, then update it to set status: completed, and delete it from the system.
+Matches:
+  - Task:   GET /rest/Cleaning+API/1.0/cleaning/1
+    Oracle: GET /cleaning/1
+  - Task:   PUT /rest/Cleaning+API/1.0/cleaning/1
+    Oracle: PUT /cleaning/1
+  - Task:   DELETE /rest/Cleaning+API/1.0/cleaning/1
+    Oracle: DELETE /cleaning/1
+Status: CORRECT
+
+--- Question #99 ---
+Q: I am a cleaner and I want to retrieve the list of all cleaning requests, then create a new one with id: 1, roomId: 1, requestedBy: 'Reception Desk', notes: 'Please clean ASAP', and update it to set status: completed.
+Matches:
+  - Task:   GET /rest/Cleaning+API/1.0/cleaning
+    Oracle: GET /cleaning
+  - Task:   POST /rest/Cleaning+API/1.0/cleaning
+    Oracle: POST /cleaning
+  - Task:   PUT /rest/Cleaning+API/1.0/cleaning/1
+    Oracle: PUT /cleaning/1
+Status: CORRECT
+
+--- Question #100 ---
+Q: I am a bartender and I want to register a new bar in the system with id: 1, name: Pool Bar, available: true, reserved: false, vip: false, price: 30.0, then retrieve the list of all bars, and retrieve information about the bar with id: 1.
+Matches:
+  - Task:   POST /rest/Bar+API/1.0/bar
+    Oracle: POST /bar
+  - Task:   GET /rest/Bar+API/1.0/bar
+    Oracle: GET /bar
+  - Task:   GET /rest/Bar+API/1.0/bar/1
+    Oracle: GET /bar/1
+Status: CORRECT
+
+--- Question #101 ---
+Q: I am a bartender and I want to retrieve information about the bar with id: 1, then update it with name: Sky Lounge, available: false, reserved: true, vip: true, price: 50.0, and delete it from the system.
+Matches:
+  - Task:   GET /rest/Bar+API/1.0/bar/1
+    Oracle: GET /bar/1
+  - Task:   PUT /rest/Bar+API/1.0/bar/1
+    Oracle: PUT /bar/1
+  - Task:   DELETE /rest/Bar+API/1.0/bar/1
+    Oracle: DELETE /bar/1
+Status: CORRECT
+

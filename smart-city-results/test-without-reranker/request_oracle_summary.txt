@@ -1,0 +1,15 @@
+Summary Report
+=================
+Total execution plans: 99
+Correct plans: 78
+Partially correct plans: 7
+Incorrect plans: 14
+
+Total endpoints in all plans: 139
+Matching endpoints: 130
+
+Percentages:
+- Correct: 78.79%
+- Partial: 7.07%
+- Incorrect: 14.14%
+- Endpoint match rate: 93.53%

@@ -1,0 +1,5 @@
+Total services: 682
+Total endpoints: 34873
+Embedding vecto max dim: 1024
+Max context block: 8192
+Reranked services max len: 7600

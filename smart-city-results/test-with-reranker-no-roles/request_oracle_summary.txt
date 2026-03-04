@@ -1,0 +1,31 @@
+Summary Report
+=================
+Total execution plans: 99
+Correct plans: 70
+Partially correct plans: 6
+Incorrect plans: 23
+
+Total endpoints in all plans: 136
+Matching endpoints: 122
+
+Percentages:
+- Correct: 70.71%
+- Partial: 6.06%
+- Incorrect: 23.23%
+- Endpoint match rate: 89.71%
+
+Global Metrics:
+Total TP: 122
+Total FP: 14
+Total FN: 40
+
+Micro Precision: 0.897
+Micro Recall:    0.753
+Micro F1:        0.819
+
+Macro Precision: 0.741
+Macro Recall:    0.746
+Macro F1:        0.742
+
+Global Accuracy: 0.693
+Global Jaccard:  0.693

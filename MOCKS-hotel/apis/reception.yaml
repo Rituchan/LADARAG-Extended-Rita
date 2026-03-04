@@ -1,0 +1,250 @@
+openapi: 3.0.2
+info:
+  title: Reception API
+  version: 1.0
+  description: |-
+    Reception API for managing client interactions. This API allows viewing and creating reservations
+    for rooms, restaurants, and bar services. Additionally, it allows requesting room cleaning services.
+  contact:
+    name: Francesco Cosimo Mazzitelli
+
+servers:
+  - url: http://localhost:8585/rest/Reception+API/1.0
+    description: Mock server for reception
+
+components:
+  schemas:
+    ResponseStatus:
+      type: object
+      properties:
+        status:
+          type: string
+        httpCode:
+          type: integer
+        message:
+          type: string
+      required:
+        - status
+        - httpCode
+        - message
+
+    Reservation:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: string
+          enum: [room, bar, restaurant]
+        referenceId:
+          type: integer
+          format: int64
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+      required:
+        - type
+        - referenceId
+        - startDate
+        - endDate
+
+    CleaningRequest:
+      type: object
+      properties:
+        roomId:
+          type: integer
+          format: int64
+        requestedBy:
+          type: string
+        notes:
+          type: string
+      required:
+        - roomId
+        - requestedBy
+
+paths:
+  /health:
+    get:
+      description: Health check
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                healthy:
+                  value: {}
+
+  /reception/reservations:
+    get:
+      description: Retrieve all reservations across Room, Restaurant, and Bar
+      responses:
+        "200":
+          description: List of all reservations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reservation'
+              examples:
+                example:
+                  value:
+                    - id: 1
+                      type: room
+                      referenceId: 101
+                      startDate: "2025-09-01T14:00:00Z"
+                      endDate: "2025-09-05T11:00:00Z"
+                    - id: 2
+                      type: restaurant
+                      referenceId: 302
+                      startDate: "2025-09-02T20:00:00Z"
+                      endDate: "2025-09-02T22:00:00Z"
+
+    post:
+      description: Create a new reservation (Room, Bar, Restaurant)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reservation'
+            examples:
+              new_reservation:
+                value:
+                  type: room
+                  referenceId: 1
+                  startDate: "2025-09-10T15:00:00Z"
+                  endDate: "2025-09-13T11:00:00Z"
+      responses:
+        "201":
+          description: Reservation created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reservation'
+              examples:
+                created:
+                  value:
+                    id: 99
+                    type: room
+                    referenceId: 1
+                    startDate: "2025-09-10T15:00:00Z"
+                    endDate: "2025-09-13T11:00:00Z"
+
+  /reception/reservations/{id}:
+    get:
+      description: Get a reservation by ID
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+          examples:
+            single_reservation:
+              value: 1
+          required: true
+          description: Reservation ID
+      responses:
+        "200":
+          description: Reservation details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reservation'
+              examples:
+                single_reservation:
+                  value:
+                    id: 1
+                    type: room
+                    referenceId: 101
+                    startDate: "2025-09-01T14:00:00Z"
+                    endDate: "2025-09-05T11:00:00Z"
+        "404":
+          description: Reservation not found
+
+    delete:
+      description: Cancel a reservation
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+          examples:
+            cancelled:
+              value: 1
+          required: true
+          description: Reservation ID
+      responses:
+        "204":
+          description: Reservation cancelled successfully
+          content:
+            text/plain:
+              examples:
+                cancelled:
+                  value: "Reservation cancelled successfully"
+        "404":
+          description: Reservation not found
+
+  /reception/cleaning:
+    post:
+      description: Request a room cleaning
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CleaningRequest'
+            examples:
+              cleaning_request:
+                value:
+                  roomId: 2
+                  requestedBy: "Reception Desk"
+                  notes: "Guest requested cleaning at 15:00"
+      responses:
+        "200":
+          description: Cleaning scheduled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseStatus'
+              examples:
+                success:
+                  value:
+                    status: success
+                    httpCode: 200
+                    message: "Cleaning service requested for room 2"
+
+  /register:
+    post:
+      responses:
+        "200":
+          description: Registration success response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseStatus'
+              examples:
+                success:
+                  value:
+                    status: "success"
+                    httpCode: 200
+                    message: "Service registered successfully"
+        "500":
+          description: Registration error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseStatus'
+              examples:
+                error:
+                  value:
+                    status: "error"
+                    httpCode: 500
+                    message: "Failed to register to Consul"

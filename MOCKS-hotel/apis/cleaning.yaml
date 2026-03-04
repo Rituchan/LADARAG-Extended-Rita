@@ -1,0 +1,304 @@
+openapi: 3.0.2
+info:
+  title: Cleaning API
+  version: 1.0
+  description: |-
+    API to manage room cleaning requests.
+    The service receives requests from the Reception and interacts with the Room API to identify rooms.
+  contact:
+    name: Francesco Cosimo Mazzitelli
+
+servers:
+  - url: http://localhost:8585/rest/Cleaning+API/1.0
+    description: Mock server for cleaning service
+
+components:
+  schemas:
+    ResponseStatus:
+      type: object
+      properties:
+        status:
+          type: string
+        httpCode:
+          type: integer
+        message:
+          type: string
+      required:
+        - status
+        - httpCode
+        - message
+
+    CleaningStatus:
+      type: string
+      enum: [pending, in_progress, done]
+
+    CleaningRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Unique ID for the cleaning request
+        roomId:
+          type: integer
+          format: int64
+          description: ID of the room to be cleaned
+        requestedBy:
+          type: string
+          description: Who submitted the request (e.g. "Reception Desk")
+        notes:
+          type: string
+          description: Optional notes for cleaning staff
+        status:
+          $ref: '#/components/schemas/CleaningStatus'
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp of when the request was created
+      required:
+        - roomId
+        - requestedBy
+        - status
+        - createdAt
+
+    NewCleaningRequest:
+      type: object
+      properties:
+        roomId:
+          type: integer
+          format: int64
+          description: ID of the room to be cleaned
+        requestedBy:
+          type: string
+          description: Who submitted the request
+        notes:
+          type: string
+          description: Optional notes
+      required:
+        - roomId
+        - requestedBy
+
+paths:
+  /health:
+    get:
+      description: Service health check
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                healthy:
+                  value: {}
+
+  /cleaning:
+    get:
+      description: Retrieve all cleaning requests
+      responses:
+        "200":
+          description: List of cleaning requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CleaningRequest'
+              examples:
+                list:
+                  value:
+                    - id: 100
+                      roomId: 1
+                      requestedBy: "Reception Desk"
+                      notes: "Please clean ASAP"
+                      status: "pending"
+                      createdAt: "2025-08-24T10:00:00Z"
+
+    post:
+      description: Create a new cleaning request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewCleaningRequest'
+            examples:
+              request:
+                value:
+                  roomId: 1
+                  requestedBy: "Reception Desk"
+                  notes: "Please clean ASAP"
+      responses:
+        "201":
+          description: Cleaning request created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CleaningRequest'
+              examples:
+                response:
+                  value:
+                    id: 1
+                    roomId: 1
+                    requestedBy: "Reception Desk"
+                    notes: "Please clean ASAP"
+                    status: "pending"
+                    createdAt: "2025-08-24T10:00:00Z"
+
+  /cleaning/{id}:
+    get:
+      description: Retrieve a cleaning request by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          examples:
+            cleaning_1:
+              value: 1
+      responses:
+        "200":
+          description: Cleaning request details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CleaningRequest'
+              examples:
+                cleaning_1:
+                  value:
+                    id: 1
+                    roomId: 1
+                    requestedBy: "Reception Desk"
+                    notes: "Please clean ASAP"
+                    status: "pending"
+                    createdAt: "2025-08-24T10:00:00Z"
+        "404":
+          description: Cleaning request not found
+
+    put:
+      description: Update the status of a cleaning request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          examples:
+            cleaning_update:
+              value: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  $ref: '#/components/schemas/CleaningStatus'
+              required:
+                - status
+            examples:
+              update:
+                value:
+                  status: done
+      responses:
+        "200":
+          description: Cleaning request status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseStatus'
+              examples:
+                cleaning_update:
+                  value:
+                    status: "success"
+                    httpCode: 200
+                    message: "Status updated successfully"
+        "404":
+          description: Cleaning request not found
+
+    delete:
+      description: Delete a cleaning request by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          examples:
+            cleaning_delete:
+              value: 1
+      responses:
+        "204":
+          description: Cleaning request deleted
+          content:
+            text/plain:
+              examples:
+                cleaning_delete:
+                  value: "Cleaning request deleted"
+        "404":
+          description: Cleaning request not found
+
+  /cleaning/room/{roomId}:
+    get:
+      description: Retrieve cleaning requests for a specific room
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: integer
+          examples:
+            room_requests:
+              value: 1
+      responses:
+        "200":
+          description: List of cleaning requests for the room
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CleaningRequest'
+              examples:
+                room_requests:
+                  value:
+                    - id: 1
+                      roomId: 1
+                      requestedBy: "Reception Desk"
+                      notes: "Please clean ASAP"
+                      status: "pending"
+                      createdAt: "2025-08-24T10:00:00Z"
+        "404":
+          description: Room not found or no cleaning requests
+
+  /register:
+    post:
+      description: Register this service to the discovery system
+      responses:
+        "200":
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseStatus'
+              examples:
+                success:
+                  value:
+                    status: "success"
+                    httpCode: 200
+                    message: "Service registered successfully"
+        "500":
+          description: Registration failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseStatus'
+              examples:
+                error:
+                  value:
+                    status: "error"
+                    httpCode: 500
+                    message: "Failed to register to Consul"
