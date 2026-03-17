@@ -1,7 +1,7 @@
 openapi: 3.0.2
 info:
   title: Smart Traffic Monitoring API
-  version: 1.0
+  version: '1.0'
   description: 'Smart Traffic Monitoring API for managing traffic sensors and monitoring
     points across the city. Compatible with the City Traffic Control System, this
     service allows interaction with traffic sensor references.
@@ -88,6 +88,7 @@ paths:
       summary: Health check endpoint
       responses:
         '200':
+          description: Successful health check response
           content:
             application/json:
               schema:
@@ -95,6 +96,7 @@ paths:
               examples:
                 healthy:
                   value: {}
+                  
   /traffic-sensor:
     get:
       description: Retrieve all traffic sensors deployed across the city, including

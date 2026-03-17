@@ -1,7 +1,6 @@
 #!/bin/sh
 set -e
 
-
 echo "Debug: PATH is '$PATH'"
 
 # Verifica presenza comandi critici
@@ -17,6 +16,7 @@ APIS_DIR="/apis"
 SCRIPTS_DIR="/scripts"
 MICROCKS_URL="${MICROCKS_URL:-http://mock-server:8080/api}"
 TOKEN="${TOKEN:-dummy}"
+API_IMPORTER_URL="${API_IMPORTER_URL:-http://api-importer:7500}"
 
 echo "| Starting automatic import of APIs and dispatcher patching..."
 
@@ -43,37 +43,56 @@ for api_file in "$APIS_DIR"/*.yaml; do
   if [ -f "$groovy_script" ]; then
     echo "| Patching dispatcher for service: $service_name"
 
-    echo "Debug: Fetching service ID..."
-    service_id=$(curl -s "${MICROCKS_URL}/services" \
-      -H "Authorization: Bearer $TOKEN" | \
-      /tmp/jq -r --arg name "$service_name" '.[] | select(.name == $name) | .id')
-    echo "Debug: service_id='$service_id'"
+    # --- INIZIO LOGICA DI POLLING INTELLIGENTE (FIXED) ---
+    MAX_RETRIES=15     # Massimo 15 tentativi
+    RETRY_COUNT=0
+    operation_id=""
+    service_id=""
 
-    if [ -z "$service_id" ] || [ "$service_id" = "null" ]; then
-      echo "⚠️  Service ID not found for $service_name — skipping."
-      continue
-    fi
+    # Normalizziamo il base_name togliendo i trattini per la ricerca fuzzy case-insensitive
+    SEARCH_TERM=$(echo "$base_name" | tr '-' ' ')
 
-    echo "| Service ID: $service_id"
+    # Cicla finché non esaurisce i tentativi
+    while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+      # 1. Cerca il service_id facendo un match case-insensitive parziale
+      service_id=$(curl -s "${MICROCKS_URL}/services" \
+        -H "Authorization: Bearer $TOKEN" | \
+        /tmp/jq -r --arg term "$SEARCH_TERM" '.[] | select((.name | ascii_downcase) | contains($term | ascii_downcase)) | .id' | head -n 1)
 
-    echo "Debug: Fetching operation ID for POST /register..."
-    operation_id=$(curl -s "${MICROCKS_URL}/services/$service_id" \
-      -H "Authorization: Bearer $TOKEN" | \
-      /tmp/jq -r '.messagesMap | ."POST /register"[0].request | .id')
-    echo "Debug: operation_id='$operation_id'"
+      if [ -n "$service_id" ] && [ "$service_id" != "null" ]; then
+        # 2. Cerca l'operation_id in modo flessibile ("POST /register" o simili)
+        operation_id=$(curl -s "${MICROCKS_URL}/services/$service_id" \
+          -H "Authorization: Bearer $TOKEN" | \
+          /tmp/jq -r '.messagesMap | to_entries | .[] | select(.key | startswith("POST /register")) | .value[0].request.id' | head -n 1)
 
+        # 3. Se ha trovato anche l'operazione, esci dal ciclo! (Successo)
+        if [ -n "$operation_id" ] && [ "$operation_id" != "null" ]; then
+          break
+        fi
+      fi
+
+      echo "⏳ Waiting for Microcks DB to process API... (Attempt $((RETRY_COUNT+1))/$MAX_RETRIES)"
+      sleep 2
+      RETRY_COUNT=$((RETRY_COUNT+1))
+    done
+
+    # Se dopo tutti i tentativi è ancora vuoto, salta l'API
     if [ -z "$operation_id" ] || [ "$operation_id" = "null" ]; then
-      echo "⚠️  Operation ID not found for POST /register — skipping."
+      echo "⚠️ Operation ID not found for POST /register after $MAX_RETRIES attempts — skipping."
       continue
     fi
-
+    
+    echo "| Service ID: $service_id"
     echo "| Operation ID: $operation_id"
+    # --- FINE LOGICA DI POLLING INTELLIGENTE ---
 
     echo "| Preparing Groovy script payload..."
 
-    DISPATCHER_SCRIPT=$(/tmp/jq -Rs . < "$groovy_script")
-    echo "Debug: Dispatcher script loaded, length=$(printf '%s' "$DISPATCHER_SCRIPT" | wc -c)"
+    # Legge il testo grezzo del file groovy. 
+    # 'jq --arg' si occuperà automaticamente di encodare le virgolette e gli a capo nel JSON!
+    DISPATCHER_SCRIPT=$(cat "$groovy_script")
 
+    # Costruisci un payload compatibile con Microcks "SCRIPT" dispatcher
     PAYLOAD=$(/tmp/jq -n \
       --arg name "POST /register" \
       --arg method "POST" \
@@ -86,14 +105,11 @@ for api_file in "$APIS_DIR"/*.yaml; do
         name: $name,
         method: $method,
         dispatcher: $dispatcher,
-        dispatcherRules: ($dispatcherRules | fromjson),
+        dispatcherRules: $dispatcherRules,
         defaultDelay: $defaultDelay,
         resourcePaths: $resourcePaths,
         parameterConstraints: $parameterConstraints
       }')
-    echo "Debug: Payload prepared, length=$(printf '%s' "$PAYLOAD" | wc -c)"
-
-    echo "| Sending PUT request..."
 
     curl -s -X PUT "${MICROCKS_URL}/services/${service_id}/operation?operationName=POST%20/register" \
       -H "Authorization: Bearer $TOKEN" \

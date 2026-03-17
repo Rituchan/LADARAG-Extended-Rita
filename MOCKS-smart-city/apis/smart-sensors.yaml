@@ -1,7 +1,7 @@
 openapi: 3.0.2
 info:
   title: Smart Sensors API
-  version: 1.0
+  version: '1.0'
   description: 'Smart Sensors API for managing environmental sensor devices across
     the city. Compatible with the City Monitoring System, this service allows interaction
     with sensor references.
@@ -62,7 +62,7 @@ components:
         readingUnit:
           type: string
           enum:
-          - °C
+          - 'Celsius'
           - '%'
           - AQI
           - dB
@@ -78,7 +78,7 @@ components:
           type: integer
           minimum: 0
           maximum: 100
-          description: Battery level of the sensor device (0–100%)
+          description: Battery level of the sensor device (0-100)
         lastUpdated:
           type: string
           format: date-time
@@ -108,6 +108,7 @@ paths:
       summary: Health check
       responses:
         '200':
+          description: Successful health check response
           content:
             application/json:
               schema:
@@ -115,6 +116,7 @@ paths:
               examples:
                 healthy:
                   value: {}
+                  
   /sensor:
     get:
       description: Retrieve all environmental sensors deployed across the city, including
@@ -137,7 +139,7 @@ paths:
                     location: Duomo di Benevento, Piazza Duomo, Benevento
                     sensorType: temperature
                     lastReading: 24.2
-                    readingUnit: °C
+                    readingUnit: 'Celsius'
                     threshold: 38.0
                     batteryLevel: 90
                     lastUpdated: '2025-09-25T10:00:00Z'

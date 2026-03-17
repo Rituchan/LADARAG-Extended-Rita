@@ -1,7 +1,7 @@
 openapi: 3.0.2
 info:
   title: Smart Parking API
-  version: 1.0
+  version: '1.0'
   description: 'Smart Parking API for managing parking spots and lots across the city.
     Compatible with the City Mobility System, this service allows interaction with
     parking spot references.
@@ -86,6 +86,7 @@ paths:
       summary: Health check endpoint
       responses:
         '200':
+          description: Successful health check response
           content:
             application/json:
               schema:
@@ -93,6 +94,7 @@ paths:
               examples:
                 healthy:
                   value: {}
+                  
   /parking-spot:
     get:
       description: Retrieve all parking spots registered in the city, including availability,

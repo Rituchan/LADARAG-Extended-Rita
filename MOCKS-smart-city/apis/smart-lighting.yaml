@@ -1,7 +1,7 @@
 openapi: 3.0.2
 info:
   title: Smart Lighting API
-  version: 1.0
+  version: '1.0'
   description: |-
     Smart Lighting API for managing, monitoring, and controlling the urban street lighting infrastructure. Compatible with the Benevento Smart Infrastructure platform, this service allows interaction with individual light poles and lighting grids.
     
@@ -73,7 +73,8 @@ paths:
       description: Performs a shallow health check to verify that the Smart Lighting microservice is reachable and responsive.
       summary: Health check endpoint
       responses:
-        "200":
+        '200':
+          description: Successful health check response
           content:
             application/json:
               schema:
@@ -81,7 +82,6 @@ paths:
               examples:
                 healthy:
                   value: {}
-
   /light:
     get:
       description: Retrieves a comprehensive list of all smart street lights deployed in the city, including their current telemetry, brightness, and operational status.

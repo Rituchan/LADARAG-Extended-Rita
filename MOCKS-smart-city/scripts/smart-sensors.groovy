@@ -160,4 +160,8 @@ try {
     responseMap.error    = e.message
 }
 
-return responseMap
+if (responseMap.status == "success") {
+    return "ok"  // Restituisce il nome dell'esempio di successo nel YAML
+} else {
+    return "fail" // Restituisce il nome dell'esempio di errore nel YAML
+}

@@ -1,7 +1,7 @@
 openapi: 3.0.2
 info:
   title: Smart Citizens Reports API
-  version: 1.0
+  version: '1.0'
   description: |-
     Smart Citizens Reports API empowering residents of Benevento to actively participate in urban maintenance and safety. This API facilitates the submission, categorization, and lifecycle tracking of civic issues.
     
@@ -77,7 +77,8 @@ paths:
       description: Performs a lightweight health check to verify that the Citizen Reports microservice is operational.
       summary: Health check
       responses:
-        "200":
+        '200':
+          description: Successful health check response
           content:
             application/json:
               schema:

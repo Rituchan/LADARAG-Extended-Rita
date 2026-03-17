@@ -160,4 +160,8 @@ try {
     responseMap.error    = e.message
 }
 
-return responseMap
+if (responseMap.status == "success") {
+    return "ok"  // Restituisce la stringa che punta all'esempio 'ok' nel YAML
+} else {
+    return "fail" // Restituisce la stringa che punta all'esempio 'fail' nel YAML
+}

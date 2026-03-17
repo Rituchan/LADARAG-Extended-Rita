@@ -1,7 +1,7 @@
 openapi: 3.0.2
 info:
   title: Smart Public Transport API
-  version: 1.0
+  version: '1.0'
   description: 'Smart Public Transport API for managing public transport vehicles
     and routes across the city. Compatible with the City Transit System, this service
     allows interaction with vehicle references.
@@ -89,6 +89,7 @@ paths:
       summary: Health check endpoint
       responses:
         '200':
+          description: Successful health check response
           content:
             application/json:
               schema:

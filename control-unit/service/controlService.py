@@ -1,19 +1,54 @@
 from service.discoveryService import Discovery
+from flask import Response
 import json
 import requests
 import re
 import aiohttp
 import asyncio
 import os
+import mimetypes
+import shutil
+import time
 
 class Controller:
 
     def __init__(self):
         self.model_name = "phi4-reasoning:14b"
-     
-    def query_ollama(self, prompt: str) -> str:
+        os.makedirs("Files", exist_ok=True)
+
+    def analyze_files(self, files: list):
+        analyzed = []
+        if files:
+            for f in files:
+                filename = f.filename
+                content_type = f.mimetype or mimetypes.guess_type(filename)[0]
+                size = f.content_length
+                path = os.path.join("Files", filename)
+                f.save(path)
+
+                file_info = {
+                    "filename": filename,
+                    "content_type": content_type,
+                    "size": size,
+                    "path": path
+                }
+
+                if content_type == "application/pdf":
+                    file_info["category"] = "document"
+                elif content_type and content_type.startswith("image/"):
+                    file_info["category"] = "image"
+                elif content_type in ["text/csv", "application/vnd.ms-excel"]:
+                    file_info["category"] = "tabular"
+                else:
+                    file_info["category"] = "unknown"
+
+                analyzed.append(file_info)
+        return analyzed
+
+    def query_ollama(self, prompt: str) -> tuple[str, float]:
         url = os.environ.get("OLLAMA_API_URL", "http://localhost:11434")
         try:
+            start_time = time.perf_counter()
             response = requests.post(
                 f"{url}/api/generate",
                 json={
@@ -24,37 +59,47 @@ class Controller:
                         "max_tokens": 4096,
                         "num_ctx": 8192,
                     },
-                    
                     "stream": False
                 }
             )
             response.raise_for_status()
+            end_time = time.perf_counter()
+
+            latency = end_time - start_time
             data = response.json()
-            return data.get("response", "").strip()
+            return data.get("response", "").strip(), latency
 
         except requests.exceptions.RequestException as e:
             raise RuntimeError(f"[HTTP ERROR] Errore nella richiesta a Ollama: {e}")
         except ValueError:
-            raise RuntimeError(f"[PARSE ERROR] Risposta non JSON valida da Ollama: {response.text}")
+            raise RuntimeError(f"[PARSE ERROR] Risposta non JSON valida da Ollama")
 
-
-    def decompose_task(self, discovered_services, discovered_capabilities, discovered_endpoints, query):
-
+    def decompose_task(self, discovered_services, discovered_capabilities, discovered_endpoints, discovered_schemas, query, input_files=None):
         example = {
         "tasks": [
             {
-            "task_name": "analyze text",
-            "service_id": "svc-001",
-            "endpoint": "service endpoint",
-            "input": "text to analyze",
-            "operation": "POST"
-            },
-            {
-            "task_name": "retrieve report",
-            "service_id": "svc-002",
+            "task_name": "get_incident_info",
+            "service_id": "svc-emergency",
             "endpoint": "service endpoint",
             "input": "",
             "operation": "GET"
+            },
+            {
+            "task_name": "dispatch_ambulance",
+            "service_id": "svc-ambulance",
+            "endpoint": "service endpoint",
+            "input": {
+                "incident_id": "{{get_incident_info.id}}",
+                "location": "{{get_incident_info.location}}"
+            },
+            "operation": "POST"
+            },
+            {
+            "task_name": "analyze_report",
+            "service_id": "svc-analysis",
+            "endpoint": "service endpoint",
+            "input": "[FILE]report_img.png[/FILE]",
+            "operation": "POST"
             }
           ]
         }
@@ -66,26 +111,35 @@ class Controller:
             - services
             - capabilities
             - endpoints
+            - response schemas (field names of the JSON response for each endpoint)
+            - optional user-provided files
 
             You will receive a query in natural language and must:
             1. Decompose it into atomic tasks.
-            2. Associate each task with one or more compatible services based on their capabilities and endpoints.
-            3. Return an execution plan.
+            2. Associate each task with one or more compatible services based on their capabilities, endpoints, and file types.
+            3. Order the tasks sequentially. If a task depends on the output of a previous task, it MUST appear after it.
+            4. Return an execution plan.
 
             REPLY ONLY with a valid JSON, WITHOUT any introductory text or comments.
 
-            Example of the JSON Response (Make sure to fille the fields with data provided by user):
             TEMPLATE:
             {example_str}
 
             RULES:
-            - Use only the data provided. Do not make assumptions or invent services or invent endpoints.
-            - Be careful with endpoints names and HTTP operations, they must match date provided in ENDPOINTS section.
-            - Endpoints may contain path parameters placeholders in curly brackets
-            - You MUST replace these placeholders with actual values extracted from the user query.
-            - NEVER return an endpoint containing unresolved placeholders.
-            - You have to understand, given the endpoint, if there is a path parameter or a query parameter.
-            - Think about the best way to decompose the query and assign tasks to services. 
+            - Use only the data provided. Do not make assumptions or invent services or endpoints.
+            - To chain services, you can pass the output of a previous task as input using {{{{task_name.field_name}}}}.
+            - IMPORTANT: If a previous task returns an array and you need to filter it, DO NOT guess numeric indices. Use the FIND syntax: {{{{task_name.FIND(key=value).field_name}}}}.
+              Example: {{{{get_sensors.FIND(sensorType=temperature).id}}}}
+            - Use RESPONSE SCHEMAS to know the exact field names returned by each endpoint.
+              Always prefer field names from RESPONSE SCHEMAS over guessing.
+              Example: if RESPONSE SCHEMAS shows "{{{{id, roomId, status}}}}", use {{{{task.roomId}}}}, NOT {{{{task.room_id}}}} or {{{{task.id}}}}.
+            - If files are provided by the user, you can upload them as input by writing strictly: [FILE]filename.ext[/FILE]
+            - Use [TEXT]...[/TEXT] to explicitly mark text/json payloads only if necessary to disambiguate from files.
+            - CRITICAL FOR PATH PARAMETERS: If an endpoint contains a placeholder like {{id}} or {{vehicleId}} (e.g., /api/vehicle/{{id}}), you MUST inject the chaining syntax DIRECTLY into the endpoint URL string.
+            - Example WRONG: endpoint: "/api/vehicle/{{id}}", input: {{"id": "{{{{task_1.FIND(route=Linea 1).id}}}}"}}
+            - Example RIGHT: endpoint: "/api/vehicle/{{{{task_1.FIND(route=Linea 1).id}}}}", input: ""
+            - NEVER return an endpoint containing unresolved placeholders like {{id}}. The final URL must only contain the {{{{task_name...}}}} syntax or the actual extracted value.
+            - If files are images, prefer OCR/image-processing services. If PDFs, prefer document-analysis services.
             <|end|>
             <|user|>
             SERVICES:
@@ -97,16 +151,22 @@ class Controller:
             ENDPOINTS:
             {discovered_endpoints}
 
+            RESPONSE SCHEMAS (field names only — use these to build chaining expressions):
+            {discovered_schemas}
+
+            FILES:
+            {input_files}
+
             QUERY:
             {query}
             <|end|>
             <|assistant|>
         """
 
-        response = self.query_ollama(prompt)
+        response, plan_latency = self.query_ollama(prompt)
         print(f"[LLM RESPONSE] {response}")
         print("="*100)
-        return response
+        return response, plan_latency
 
     def extract_agents(self, agents_json):
         plan = {}
@@ -130,127 +190,223 @@ class Controller:
             print(f"[DECODE ERROR] Errors in JSON parsing: {e}\nExtracted content:\n{json_str}")
         return plan
 
+    def resolve_placeholders(self, data, context):
+        if isinstance(data, str):
+            matches = re.findall(r'\{\{(.*?)\}\}', data)
 
+            # CASO 1: L'intera stringa è ESATTAMENTE un solo placeholder
+            if len(matches) == 1 and data.strip() == f"{{{{{matches[0]}}}}}":
+                match = matches[0]
+                parts = match.split('.')
+                task_name = parts[0]
+
+                val = context.get(task_name, {})
+                for part in parts[1:]:
+                    if part.startswith("FIND(") and part.endswith(")"):
+                        condition = part[5:-1]
+                        if "=" in condition and isinstance(val, list):
+                            key, expected_val = condition.split("=", 1)
+                            key = key.strip()
+                            expected_val = expected_val.strip().lower()
+
+                            # 1. TENTATIVO STANDARD (Ricerca per Sottostringa sulla chiave indicata)
+                            found = next((item for item in val if isinstance(item, dict) and expected_val in str(item.get(key, "")).lower()), None)
+
+                            # 2. AUTO-CORREZIONE INTELLIGENTE (Omni-Search Fallback)
+                            if not found:
+                                print(f"[AUTO-CORREZIONE] Chiave '{key}' non trovata o nessun match per '{expected_val}'. Ricerca globale in corso...")
+                                for item in val:
+                                    if isinstance(item, dict):
+                                        if any(expected_val in str(v).lower() for k, v in item.items() if v is not None):
+                                            found = item
+                                            print(f"[AUTO-CORREZIONE] Match trovato in un campo alternativo: {found}")
+                                            break
+
+                            val = found if found else ""
+                        else:
+                            val = ""
+                    elif isinstance(val, dict):
+                        val = val.get(part, "")
+                    elif isinstance(val, list) and part.isdigit():
+                        idx = int(part)
+                        val = val[idx] if 0 <= idx < len(val) else ""
+                    else:
+                        val = ""
+                return val
+
+            # CASO 2: Placeholder mescolati con URL o testo
+            for match in matches:
+                parts = match.split('.')
+                task_name = parts[0]
+
+                val = context.get(task_name, {})
+                for part in parts[1:]:
+                    if part.startswith("FIND(") and part.endswith(")"):
+                        condition = part[5:-1]
+                        if "=" in condition and isinstance(val, list):
+                            key, expected_val = condition.split("=", 1)
+                            key = key.strip()
+                            expected_val = expected_val.strip().lower()
+
+                            # 1. TENTATIVO STANDARD
+                            found = next((item for item in val if isinstance(item, dict) and expected_val in str(item.get(key, "")).lower()), None)
+
+                            # 2. AUTO-CORREZIONE INTELLIGENTE
+                            if not found:
+                                print(f"[AUTO-CORREZIONE] Chiave '{key}' non trovata o nessun match per '{expected_val}'. Ricerca globale in corso...")
+                                for item in val:
+                                    if isinstance(item, dict):
+                                        if any(expected_val in str(v).lower() for k, v in item.items() if v is not None):
+                                            found = item
+                                            print(f"[AUTO-CORREZIONE] Match trovato in un campo alternativo: {found}")
+                                            break
+
+                            val = found if found else ""
+                        else:
+                            val = ""
+                    elif isinstance(val, dict):
+                        val = val.get(part, "")
+                    elif isinstance(val, list) and part.isdigit():
+                        idx = int(part)
+                        val = val[idx] if 0 <= idx < len(val) else ""
+                    else:
+                        val = ""
+
+                if isinstance(val, (dict, list)):
+                    val = json.dumps(val)
+
+                data = data.replace(f"{{{{{match}}}}}", str(val))
+            return data
+
+        elif isinstance(data, dict):
+            return {k: self.resolve_placeholders(v, context) for k, v in data.items()}
+        elif isinstance(data, list):
+            return [self.resolve_placeholders(item, context) for item in data]
+        return data
 
     async def call_agent(self, session, task, discovered_services):
         task_name = task.get("task_name")
-        service_id = task.get("service_id")
         endpoint = task.get("endpoint")
-        input_data = task.get("input")
-        operation = task.get("operation").upper()
+        input_data = task.get("input", "")
+        operation = task.get("operation", "").upper()
 
-        response_result = {}
-        response_result['operation'] = operation
+        response_result = {
+            "task_name": task_name,
+            "operation": operation
+        }
 
-        match operation:
-            case "POST":
-                try:
-                    async with session.post(endpoint, json=input_data, timeout=5) as resp:
-                        if resp.status == 200 or resp.status == 201 or resp.status == 204:
-                            result = await resp.json()
-                            print(f"[SUCCESS] Task '{task_name}' completed: {result}")
-                            response_result["status"] = "SUCCESS"
-                            response_result["status_code"] = resp.status
-                            response_result["task_name"] = task_name
-                            response_result["result"] = result
+        # Gestione Tag Multi-modali (File vs Testo)
+        tag_pattern = r"\[(\w+)\](.*?)\[/\1\]"
+        payload = input_data
+        is_file = False
+        file_path = None
+        filename = None
 
-                        else:
-                            error_text = await resp.text()
-                            print(f"[ERROR] Task '{task_name}' failed with status {resp.status}: {error_text}")
-                            response_result["status"] = "ERROR"
-                            response_result["status_code"] = resp.status
-                            response_result["task_name"] = task_name
-                            response_result["result"] = error_text
-                except Exception as e:
-                    print(f"[EXCEPTION] Error in task: '{task_name}' → {e}")
-                    response_result["status"] = "EXCEPTION"
-                    response_result["status_code"] = 500
-                    response_result["task_name"] = task_name
-                    response_result["result"] = str(e)
-            case "GET":
-                try:
-                    async with session.get(endpoint, timeout=5) as resp:
-                        if resp.status == 200:
-                            result = await resp.json()
-                            print(f"[SUCCESS] Task '{task_name}' completed: {result}")
-                            response_result["status"] = "SUCCESS"
-                            response_result["status_code"] = resp.status
-                            response_result["task_name"] = task_name
-                            response_result["result"] = result
-                        else:
-                            error_text = await resp.text()
-                            print(f"[ERROR] Task '{task_name}' failed with status {resp.status}: {error_text}")
-                            response_result["status"] = "ERROR"
-                            response_result["status_code"] = resp.status
-                            response_result["task_name"] = task_name
-                            response_result["result"] = error_text
-                except Exception as e:
-                    print(f"[EXCEPTION] Error in task: '{task_name}' → {e}")
-                    response_result["status"] = "EXCEPTION"
-                    response_result["status_code"] = 500
-                    response_result["task_name"] = task_name
-                    response_result["result"] = str(e)
-            case "DELETE":
-                try:
-                    async with session.delete(endpoint, timeout=5) as resp:
-                        if resp.status == 200 or resp.status == 201 or resp.status == 204:
-                            result = await resp.text()
-                            print(f"[SUCCESS] Task '{task_name}' completed: {result}")
-                            response_result["status"] = "SUCCESS"
-                            response_result["status_code"] = resp.status
-                            response_result["task_name"] = task_name
-                            response_result["result"] = result
-                        else:
-                            error_text = await resp.text()
-                            print(f"[ERROR] Task '{task_name}' failed with status {resp.status}: {error_text}")
-                            response_result["status"] = "ERROR"
-                            response_result["status_code"] = resp.status
-                            response_result["task_name"] = task_name
-                            response_result["result"] = error_text
-                except Exception as e:
-                    print(f"[EXCEPTION] Error in task: '{task_name}' → {e}")
-                    response_result["status"] = "EXCEPTION"
-                    response_result["status_code"] = 500
-                    response_result["task_name"] = task_name
-                    response_result["result"] = str(e)
-            case "PUT":
-                try:
-                    async with session.put(endpoint, json=input_data, timeout=5) as resp:
-                        if resp.status == 200 or resp.status == 201 or resp.status == 204:
-                            result = await resp.json()
-                            print(f"[SUCCESS] Task '{task_name}' completed: {result}")
-                            response_result["status"] = "SUCCESS"
-                            response_result["status_code"] = resp.status
-                            response_result["task_name"] = task_name
-                            response_result["result"] = result
-                        else:
-                            error_text = await resp.text()
-                            print(f"[ERROR] Task '{task_name}' failed with status {resp.status}: {error_text}")
-                            response_result["status"] = "ERROR"
-                            response_result["status_code"] = resp.status
-                            response_result["task_name"] = task_name
-                            response_result["result"] = error_text
-                except Exception as e:
-                    print(f"[EXCEPTION] Error in task: '{task_name}' → {e}")
-                    response_result["status"] = "EXCEPTION"
-                    response_result["status_code"] = 500
-                    response_result["task_name"] = task_name
-                    response_result["result"] = str(e)
+        if isinstance(input_data, str):
+            match = re.search(tag_pattern, input_data, re.DOTALL)
+            if match:
+                tag = match.group(1)
+                content = match.group(2)
+                if tag == "TEXT":
+                    try:
+                        payload = json.loads(content)
+                    except:
+                        payload = content
+                elif tag == "FILE":
+                    filename = content
+                    file_path = os.path.join("Files", filename)
+                    if not os.path.exists(file_path):
+                        response_result.update({"status": "ERROR", "status_code": 404, "result": f"File '{filename}' non trovato"})
+                        return response_result
+                    is_file = True
+
+        try:
+            request_kwargs = {"timeout": 5}
+
+            if is_file:
+                form = aiohttp.FormData()
+                form.add_field("file", open(file_path, "rb"), filename=filename, content_type="application/octet-stream")
+                request_kwargs["data"] = form
+            else:
+                if payload is not None and payload != "":
+                    request_kwargs["json"] = payload
+
+            # Esecuzione dinamica della chiamata Async
+            if operation == "POST":
+                resp_ctx = session.post(endpoint, **request_kwargs)
+            elif operation == "PUT":
+                resp_ctx = session.put(endpoint, **request_kwargs)
+            elif operation == "GET":
+                resp_ctx = session.get(endpoint, timeout=5)
+            elif operation == "DELETE":
+                resp_ctx = session.delete(endpoint, timeout=5)
+            else:
+                raise ValueError(f"HTTP Operation non supportata: {operation}")
+
+            async with resp_ctx as resp:
+                status = resp.status
+                content_type = resp.headers.get("Content-Type", "")
+
+                if 200 <= status < 300:
+                    # Ritorno di File generati da servizi
+                    if content_type.startswith("application/pdf") or content_type.startswith("image/"):
+                        return {
+                            "status": "FILE",
+                            "status_code": status,
+                            "headers": dict(resp.headers),
+                            "body": await resp.read()
+                        }
+
+                    if "application/json" in content_type:
+                        result = await resp.json()
+                    else:
+                        result = await resp.text()
+
+                    print(f"[SUCCESS] Task '{task_name}' completed.")
+                    response_result.update({"status": "SUCCESS", "status_code": status, "result": result})
+                else:
+                    error_text = await resp.text()
+                    print(f"[ERROR] Task '{task_name}' failed with status {status}: {error_text}")
+                    response_result.update({"status": "ERROR", "status_code": status, "result": error_text})
+
+        except Exception as e:
+            print(f"[EXCEPTION] Task '{task_name}' fallito: → {e}")
+            response_result.update({"status": "EXCEPTION", "status_code": 500, "result": str(e)})
 
         return response_result
 
-        
     async def trigger_agents_async(self, agents: dict, discovered_services):
         tasks = agents.get("tasks", [])
+        results = []
+        execution_context = {}
+
         async with aiohttp.ClientSession() as session:
-            futures = [asyncio.create_task(self.call_agent(session, task, discovered_services)) for task in tasks]
-            results = await asyncio.gather(*futures)
+            for task in tasks:
+                # 1. Chaining dinamico: Risoluzione Placeholders e filtri prima dell'esecuzione
+                task["endpoint"] = self.resolve_placeholders(task.get("endpoint", ""), execution_context)
+                if task.get("input"):
+                    task["input"] = self.resolve_placeholders(task.get("input"), execution_context)
+
+                # 2. Esecuzione task Asincrona
+                result = await self.call_agent(session, task, discovered_services)
+
+                # Se il task ha generato un file, restituisci il blob binario direttamente
+                if result.get("status") == "FILE":
+                    return result
+
+                results.append(result)
+
+                # 3. Aggiorna Contesto (Chaining) o Interrompi (Short-circuit)
+                if result.get("status") == "SUCCESS":
+                    execution_context[task["task_name"]] = result.get("result", {})
+                else:
+                    print(f"[CHAIN BROKEN] Task '{task.get('task_name')}' fallito. Interruzione pipeline.")
+                    break
+
         return results
 
     def trigger_agents(self, agents: dict, discovered_services):
-        results = asyncio.run(self.trigger_agents_async(agents, discovered_services))
-        return results
-
+        return asyncio.run(self.trigger_agents_async(agents, discovered_services))
 
     def replace_endpoints(self, endpoints_list, mock_server_address):
         updated = []
@@ -265,8 +421,10 @@ class Controller:
             updated.append(new_dict)
         return updated
 
+    def control(self, query, files=None):
+        input_files = files or []
+        analyzed_files = self.analyze_files(input_files)
 
-    def control(self, query):
         catalog_url = os.environ.get("CATALOG_URL")
         registry = Discovery(os.environ.get("REGISTRY_URL"))
         mock_server_address = os.environ.get("MOCK_SERVER_URL")
@@ -274,51 +432,37 @@ class Controller:
         discovered_services = []
         discovered_capabilities = []
         discovered_endpoints = []
+        discovered_schemas = []
 
         services = registry.services()
-
         register_key = "POST /register"
         print("DISCOVERED SERVICES:")
 
-        input = {
-            "query": query
-        }
-        service_data = requests.post(f"{catalog_url}/index/search", json=input)
+        input_data = {"query": query}
+        service_data = requests.post(f"{catalog_url}/index/search", json=input_data)
         service_data = service_data.json()
         service_list = service_data["results"]
 
         if not service_list:
-            return {
-                "execution_plan": {},
-                "execution_results": [],
-                "error": "No services matched the query"
-            }
-        
+            return {"execution_plan": {}, "execution_results": [], "error": "No services matched the query"}
+
         registry_service_ids = set(s["id"] for s in services)
         filtered_service_list = [s for s in service_list if s["_id"] in registry_service_ids]
         orphaned_services = [s for s in service_list if s["_id"] not in registry_service_ids]
+
         if orphaned_services:
             print("[WARNING] Services found via semantic search but are no longer in the registry:")
             for s in orphaned_services:
                 print(f"- {s.get('_id')} : {s.get('name')}")
 
         if not filtered_service_list:
-            return {
-                "execution_plan": {},
-                "execution_results": [],
-                "error": "None of the discovered services are currently available in the registry"
-            }
-        
+            return {"execution_plan": {}, "execution_results": [], "error": "None of the discovered services are currently available in the registry"}
+
         for service in filtered_service_list:
             if isinstance(service.get("capabilities"), dict):
                 service["capabilities"].pop(register_key, None)
-
             if isinstance(service.get("endpoints"), dict):
                 service["endpoints"].pop(register_key, None)
-
-
-            print(service)
-            print("="*100)
 
             service_preamble = {
                 "_id": service.get("_id"),
@@ -328,13 +472,42 @@ class Controller:
             discovered_services.append(service_preamble)
             discovered_capabilities.append(service.get("capabilities", {}))
             discovered_endpoints.append(service.get("endpoints", {}))
-        
+            discovered_schemas.append(service.get("response_schemas", {}))
+
         discovered_endpoints = self.replace_endpoints(discovered_endpoints, mock_server_address)
-        plan_json = self.decompose_task(discovered_services, discovered_capabilities, discovered_endpoints, query)
+
+        # Generazione Piano
+        plan_json, plan_latency = self.decompose_task(
+            discovered_services,
+            discovered_capabilities,
+            discovered_endpoints,
+            discovered_schemas,
+            query,
+            analyzed_files
+        )
         plan = self.extract_agents(plan_json)
 
+        # Esecuzione
         results = self.trigger_agents(plan, discovered_services)
+
+        # Gestione Cleanup e File Return
+        if isinstance(results, dict) and results.get("status") == "FILE":
+            return Response(results["body"], status=results["status_code"], headers=results["headers"])
+
+        # Pulizia cartella Files temporanea
+        if os.path.exists('Files'):
+            for filename in os.listdir('Files'):
+                file_path = os.path.join('Files', filename)
+                try:
+                    if os.path.isfile(file_path) or os.path.islink(file_path):
+                        os.unlink(file_path)
+                    elif os.path.isdir(file_path):
+                        shutil.rmtree(file_path)
+                except Exception as e:
+                    print(f'Failed to delete {file_path}. Reason: {e}')
+
         return {
             "execution_plan": plan,
-            "execution_results": results
+            "execution_results": results,
+            "plan_generation_latency": plan_latency
         }

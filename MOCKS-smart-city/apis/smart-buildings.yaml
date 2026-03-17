@@ -1,7 +1,7 @@
 openapi: 3.0.2
 info:
   title: Smart Buildings API
-  version: 1.0
+  version: '1.0'
   description: 'Smart Buildings API for managing building data and facilities in the
     city. Compatible with the City Infrastructure System, this service allows interaction
     with building references.
@@ -100,6 +100,7 @@ paths:
       summary: Health check
       responses:
         '200':
+          description: Successful health check response
           content:
             application/json:
               schema:

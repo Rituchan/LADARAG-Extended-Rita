@@ -1,7 +1,7 @@
 openapi: 3.0.2
 info:
   title: Smart Emergency Services API
-  version: 1.0
+  version: '1.0'
   description: 'Smart Emergency Services API for managing emergency units and resources
     in the city. Compatible with the City Response System, this service allows interaction
     with emergency service references.
@@ -96,6 +96,7 @@ paths:
       summary: Health check
       responses:
         '200':
+          description: Successful health check response
           content:
             application/json:
               schema:

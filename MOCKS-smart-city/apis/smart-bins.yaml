@@ -1,7 +1,7 @@
 openapi: 3.0.2
 info:
   title: Smart Bins API
-  version: 1.0
+  version: '1.0'
   description: 'Smart Bins API for managing connected waste bins in urban areas. Compatible
     with the Smart Waste Management system, this service allows interaction with bin
     references.
@@ -48,7 +48,7 @@ components:
           type: integer
           minimum: 0
           maximum: 100
-          description: Current fill percentage (0–100)
+          description: Current fill percentage (0-100)
         lastEmptied:
           type: string
           format: date-time
@@ -70,7 +70,7 @@ components:
           type: integer
           minimum: 0
           maximum: 100
-          description: Battery level of the embedded IoT sensor (0–100%)
+          description: Battery level of the embedded IoT sensor (0-100%)
         status:
           type: string
           enum:
@@ -95,6 +95,7 @@ paths:
       summary: Health check 
       responses:
         '200':
+          description: Successful health check response
           content:
             application/json:
               schema:

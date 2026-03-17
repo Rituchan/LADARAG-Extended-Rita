@@ -1,7 +1,7 @@
 openapi: 3.0.2
 info:
   title: Smart Charging Stations API
-  version: 1.0
+  version: '1.0'
   description: 'Smart Charging Stations API for managing EV charging infrastructure
     across the city. Compatible with the City Mobility System, this service allows
     interaction with charging station references.
@@ -93,6 +93,7 @@ paths:
       summary: Health check
       responses:
         '200':
+          description: Successful health check response
           content:
             application/json:
               schema:
@@ -100,6 +101,7 @@ paths:
               examples:
                 healthy:
                   value: {}
+                  
   /charging-station:
     get:
       description: Retrieve all EV charging stations in the city, including availability,

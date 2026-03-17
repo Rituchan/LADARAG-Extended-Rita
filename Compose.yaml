@@ -32,40 +32,54 @@ services:
         condition: service_healthy
 
   mock-deployer:
-    image: quay.io/microcks/microcks-cli:latest
-    container_name: mock-deployer
-    depends_on:
-      mock-server:
-        condition: service_healthy
-      catalog-gateway:
-        condition: service_healthy
-    volumes:
-      - ./MOCKS-smart-city/apis:/apis
-      - ./MOCKS-smart-city/scripts:/scripts
-      - ./deploy.sh:/deploy.sh:ro
-      - ./register.sh:/register.sh:ro
-    entrypoint: sh
-    command:
-      - -c
-      - |
-        set -e
-        
-        export PATH="/tmp:$$PATH"
-        
-        echo "Downloading jq..."
-        curl -L -o /tmp/jq https://github.com/stedolan/jq/releases/latest/download/jq-linux64
-        chmod +x /tmp/jq
-        jq --version
-        echo "jq installed successfully"
-        /deploy.sh
-        echo "Waiting 15 seconds before running register.sh..."
-        sleep 15
-        /register.sh
-    environment:
-      - MICROCKS_HOST=mock-server
-      - MICROCKS_PORT=8080
-      - MICROCKS_USER=admin
-      - MICROCKS_PASS=admin
+      image: quay.io/microcks/microcks-cli:latest
+      container_name: mock-deployer
+      depends_on:
+        mock-server:
+          condition: service_healthy
+        catalog-gateway:
+          condition: service_healthy
+        api-importer:
+          condition: service_started
+      volumes:
+        - ./MOCKS-smart-city/apis:/apis
+        - ./MOCKS-smart-city/scripts:/scripts
+        - ./deploy.sh:/deploy.sh:ro
+        - ./register.sh:/register.sh:ro
+      entrypoint: sh
+      command:
+        - -c
+        - |
+          set -e
+          export PATH="/tmp:$$PATH"
+
+          echo "Downloading jq..."
+          curl -L -o /tmp/jq https://github.com/stedolan/jq/releases/latest/download/jq-linux64
+          chmod +x /tmp/jq
+          
+          /deploy.sh
+          
+          echo "Waiting 15 seconds before running register.sh..."
+          sleep 15
+          
+          /register.sh
+
+          echo "Triggering API schema enrichment..."
+          # Ciclo di retry: prova ogni 3 secondi finché api-importer non risponde con successo
+          until curl -s -f -X POST http://api-importer:7500/api/importer/enrich \
+              -H "Content-Type: application/json" \
+              -d '{"mock_server_url": "http://mock-server:8080"}'; do
+            echo "api-importer non ancora pronto, riprovo tra 3 secondi..."
+            sleep 3
+          done
+          
+          echo -e "\n✅ Enrichment triggered successfully!"
+      environment:
+        - MICROCKS_HOST=mock-server
+        - MICROCKS_PORT=8080
+        - MICROCKS_USER=admin
+        - MICROCKS_PASS=admin
+      stop_grace_period: 10s
 
   catalog-data:
     image: mongo:8.0.6
@@ -126,8 +140,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 15s
       timeout: 5s
-      retries: 10                                              # FIX: era 40 (600s) → ora ~150s max
-    stop_grace_period: 15s                                     # FIX: stop pulito entro 15s
+      retries: 40
+    stop_grace_period: 15s
     depends_on:
       - catalog-data
       - catalog-vector
@@ -140,13 +154,13 @@ services:
     ports:
       - "5500:5500"
     volumes:
-      - ./control-unit:/app   # DEV: bind mount, changes apply on container restart
+      - ./control-unit:/app                                    # DEV: bind mount
     environment:
       - REGISTRY_URL=http://registry:8500
       - CATALOG_URL=http://catalog-gateway:5000
       - OLLAMA_API_URL=http://192.168.250.40:15888
       - MOCK_SERVER_URL=http://mock-server:8080
-    stop_grace_period: 10s                                     # FIX: stop pulito entro 10s
+    stop_grace_period: 10s
     depends_on:
       mock-deployer:
         condition: service_completed_successfully
@@ -172,19 +186,17 @@ services:
       - "5600:5600"
     environment:
       - REDIS_URL=redis://healthcheck-catalog:6379
-    stop_grace_period: 10s                                     # FIX: stop pulito entro 10s
+    stop_grace_period: 10s
     depends_on:
       healthcheck-catalog:
         condition: service_started
       registry:
         condition: service_healthy
-      mock-deployer:
-        condition: service_completed_successfully
       mock-server:
         condition: service_healthy
       catalog-gateway:
         condition: service_started
-      
+
   api-importer:
     build:
       context: ./api-importer
@@ -193,7 +205,7 @@ services:
     ports:
       - "7500:7500"
     volumes:
-      - ./api-importer:/app   # DEV: bind mount, changes apply on container restart
+      - ./api-importer:/app                                    # DEV: bind mount
     environment:
       - CONSUL_HOST=registry
       - CONSUL_PORT=8500
@@ -201,7 +213,8 @@ services:
       - GATEWAY_PORT=5000
       - HEALTHCHECK_SERVICE_HOST=healthcheck-service
       - HEALTHCHECK_SERVICE_PORT=5600
-    stop_grace_period: 10s                                     # FIX: stop pulito entro 10s
+      - MOCK_SERVER_URL=http://mock-server:8080               # per schema enrichment
+    stop_grace_period: 10s
     depends_on:
       registry:
         condition: service_healthy
