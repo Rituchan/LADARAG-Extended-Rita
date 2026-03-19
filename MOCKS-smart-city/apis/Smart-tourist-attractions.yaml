@@ -2,10 +2,7 @@ openapi: 3.0.2
 info:
   title: Smart Tourist Attractions API
   version: '1.0'
-  description: |-
-    Smart Tourist Attractions API for managing, monitoring, and providing real-time data on city landmarks, museums, and historical sites. 
-    
-    Seamlessly integrated with the City Tourism Board, this service allows client applications (such as digital totems and tourist mobile apps) to track current visitor counts, enforce maximum capacity limits for heritage preservation, and broadcast estimated queue wait times. It ensures an optimized and safe cultural experience for visitors in Benevento.
+  description: "Smart Tourist Attractions API for managing, monitoring, and providing real-time data on city landmarks, museums, and historical sites. \n\nSeamlessly integrated with the City Tourism Board, this service allows client applications (such as digital totems and tourist mobile apps) to track current visitor counts, enforce maximum capacity limits for heritage preservation, and broadcast estimated queue wait times. It ensures an optimized and safe cultural experience for visitors in Benevento."
   contact:
     name: Smart City Development Team
 servers:

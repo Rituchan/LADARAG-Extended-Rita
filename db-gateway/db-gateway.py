@@ -12,7 +12,7 @@ import sys
 import logging
 import bson
 import json
-import signal, sys
+import signal
 
 from sentence_transformers import SentenceTransformer, CrossEncoder
 
@@ -152,6 +152,7 @@ def vector_search():
 
     services     = []
     rerank_texts = []
+
     for result in results:
         doc_id         = result.payload["mongo_id"]
         http_operation = result.payload["http_operation"]
@@ -166,13 +167,17 @@ def vector_search():
             endpoints    = retrieved.get("endpoints")
             endpoint     = endpoints.get(http_operation)
 
-            # Recupera lo schema di risposta per questo endpoint
+            # Response schema per questo endpoint
             response_schemas = retrieved.get("response_schemas", {})
-            schema           = response_schemas.get(http_operation)
+            resp_schema      = response_schemas.get(http_operation)
+
+            # Request schema per questo endpoint (solo POST/PUT avranno un valore)
+            request_schemas = retrieved.get("request_schemas", {})
+            req_schema      = request_schemas.get(http_operation)
 
             service = {
-                "_id": doc_id,
-                "name": name,
+                "_id":         doc_id,
+                "name":        name,
                 "description": description,
                 "capabilities": {
                     http_operation: capability
@@ -181,8 +186,11 @@ def vector_search():
                     http_operation: endpoint
                 },
                 "response_schemas": {
-                    http_operation: schema
-                }
+                    http_operation: resp_schema
+                },
+                "request_schemas": {
+                    http_operation: req_schema
+                },
             }
 
             rerank_texts.append(capability)
@@ -294,24 +302,39 @@ def delete_service(service_id):
 @app.route("/services/<string:service_id>/schemas", methods=["PATCH"])
 def update_service_schemas(service_id):
     """
-    Endpoint leggero per aggiornare response_schemas di un servizio.
+    Aggiorna response_schemas e/o request_schemas di un servizio.
     Chiamato dall'api-importer dopo aver estratto gli schema con prance.
 
-    Body: { "response_schemas": { "GET /path": "{id, name}", ... } }
+    Entrambi i campi sono opzionali, ma almeno uno deve essere presente.
+
+    Body:
+      {
+        "response_schemas": { "GET /path": "{id:int, ...}", ... },
+        "request_schemas":  { "POST /path": "{field:type*, ...}", ... }
+      }
     """
     data = request.get_json()
-    if not data or "response_schemas" not in data:
-        return jsonify({"error": "Missing 'response_schemas' field"}), 400
+    if not data:
+        return jsonify({"error": "Empty request body"}), 400
+
+    update_fields = {}
+    if "response_schemas" in data:
+        update_fields["response_schemas"] = data["response_schemas"]
+    if "request_schemas" in data:
+        update_fields["request_schemas"] = data["request_schemas"]
+
+    if not update_fields:
+        return jsonify({"error": "No valid schema fields provided (expected 'response_schemas' and/or 'request_schemas')"}), 400
 
     result = collection.update_one(
         {"_id": service_id},
-        {"$set": {"response_schemas": data["response_schemas"]}}
+        {"$set": update_fields}
     )
 
     if result.matched_count == 0:
         return jsonify({"error": f"Service '{service_id}' not found"}), 404
 
-    logger.info(f"[SCHEMAS] Updated response_schemas for {service_id}")
+    logger.info(f"[SCHEMAS] Updated {list(update_fields.keys())} for {service_id}")
     return jsonify({"status": "ok", "id": service_id}), 200
 
 
