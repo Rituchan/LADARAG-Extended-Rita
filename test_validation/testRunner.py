@@ -1,5 +1,5 @@
 """
-test_runner.py  (v2)
+testRunner.py  (v2)
 ====================
 Test runner per LADARAG-Extended con oracle multi-dimensionale e multiple run.
 
@@ -22,12 +22,12 @@ Run per categoria (default adattivo):
   three-step                  → 3 run
 
 Uso:
-    python test_runner.py
-    python test_runner.py --csv smart_city_test_requests.csv
-    python test_runner.py --runs 5
-    python test_runner.py --only-categories chaining cross-service
-    python test_runner.py --fail-fast
-    python test_runner.py --control-url http://localhost:5500
+    python testRunner.py
+    python testRunner.py --csv smart_city_test_requests.csv
+    python testRunner.py --runs 5
+    python testRunner.py --only-categories chaining cross-service
+    python testRunner.py --fail-fast
+    python testRunner.py --control-url http://localhost:5500
 """
 
 import sys
@@ -52,7 +52,7 @@ from datetime import datetime
 
 DEFAULTS = {
     "control_url": "http://localhost:5500/api/control/invoke",
-    "csv_file":    "C:\\Universita\\Tesi\\LADARAG-Extended-Rita\\test_validation\\smart_city_robustness_tests.csv",
+    "csv_file":    "C:\\Universita\\Tesi\\LADARAG-Extended-Rita\\test_validation\\smart_city_test_requests.csv",
     "output_dir":  ".",
     "timeout":     90,
     "delay":       0.3,
@@ -110,6 +110,12 @@ def extract_from_task(task):
 def infer_category(oracle_steps, query):
     n       = len(oracle_steps)
     methods = [m for m, _ in oracle_steps]
+    paths   = [p for _, p in oracle_steps]
+    
+    # Se i path puntano a root diverse (es. /api e /v1), è sempre un cross-service!
+    resources = {p.split('/')[1] for p in paths if '/' in p and len(p.split('/')) > 1}
+    if len(resources) > 1:
+        return "cross-service"
 
     if n == 1:
         m = methods[0]
@@ -123,13 +129,8 @@ def infer_category(oracle_steps, query):
         if set(methods) in ({"GET", "PUT"}, {"GET", "DELETE"}):
             return "chaining-find-put"
         return "two-step"
-    if n >= 3:
-        paths     = [p for _, p in oracle_steps]
-        resources = {p.split('/')[1] for p in paths if '/' in p and len(p.split('/')) > 1}
-        if len(resources) > 1:
-            return "cross-service"
-        return "three-step"
-    return "unknown"
+    
+    return "three-step"
 
 
 def canonical_plan(plan):

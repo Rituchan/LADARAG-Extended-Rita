@@ -1,0 +1,1196 @@
+[
+  {
+    "question_index": 1,
+    "run": 1,
+    "question": "What is the weather forecast for the next public holiday in Italy in 2026?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_italy_country_code",
+          "url": "https://date.nager.at/api/v3/CountryInfo/IT"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_public_holidays_2026",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/IT"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_next_public_holiday",
+          "url": "https://date.nager.at/api/v3/NextPublicHolidays/IT"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=&longitude="
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 1,
+    "run": 2,
+    "question": "What is the weather forecast for the next public holiday in Italy in 2026?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_italy_country_code",
+          "url": "https://date.nager.at/api/v3/CountryInfo/IT"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_public_holidays_2026",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/IT"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_next_public_holiday",
+          "url": "https://date.nager.at/api/v3/NextPublicHolidays/IT"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=&longitude="
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 1,
+    "run": 3,
+    "question": "What is the weather forecast for the next public holiday in Italy in 2026?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_italy_country_code",
+          "url": "https://date.nager.at/api/v3/CountryInfo/IT"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_public_holidays_2026",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/IT"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_next_public_holiday",
+          "url": "https://date.nager.at/api/v3/NextPublicHolidays/IT"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=&longitude="
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 2,
+    "run": 1,
+    "question": "What is the weather forecast for the next public holiday in France in 2026?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_france_country_code",
+          "url": "https://date.nager.at/api/v3/CountryInfo/FR"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_public_holidays_2026",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/FR"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_next_public_holiday",
+          "url": "https://date.nager.at/api/v3/NextPublicHolidays/FR"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=&longitude="
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 2,
+    "run": 2,
+    "question": "What is the weather forecast for the next public holiday in France in 2026?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_france_country_code",
+          "url": "https://date.nager.at/api/v3/CountryInfo/FR"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_public_holidays_2026",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/FR"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_next_public_holiday",
+          "url": "https://date.nager.at/api/v3/NextPublicHolidays/FR"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=&longitude="
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 2,
+    "run": 3,
+    "question": "What is the weather forecast for the next public holiday in France in 2026?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_france_country_code",
+          "url": "https://date.nager.at/api/v3/CountryInfo/FR"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_public_holidays_2026",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/FR"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_next_public_holiday",
+          "url": "https://date.nager.at/api/v3/NextPublicHolidays/FR"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=&longitude="
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 3,
+    "run": 1,
+    "question": "What is the weather forecast for the next public holiday in Germany in 2026?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_germany_country_code",
+          "url": "https://date.nager.at/api/v3/CountryInfo/DE"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_public_holidays_2026_de",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/DE"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_next_public_holiday",
+          "url": "https://date.nager.at/api/v3/NextPublicHolidays/DE"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=&longitude="
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 3,
+    "run": 2,
+    "question": "What is the weather forecast for the next public holiday in Germany in 2026?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_germany_country_code",
+          "url": "https://date.nager.at/api/v3/CountryInfo/DE"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_public_holidays_2026_de",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/DE"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_next_public_holiday",
+          "url": "https://date.nager.at/api/v3/NextPublicHolidays/DE"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=&longitude="
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 3,
+    "run": 3,
+    "question": "What is the weather forecast for the next public holiday in Germany in 2026?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_germany_country_code",
+          "url": "https://date.nager.at/api/v3/CountryInfo/DE"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_public_holidays_2026_de",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/DE"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_next_public_holiday",
+          "url": "https://date.nager.at/api/v3/NextPublicHolidays/DE"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=&longitude="
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 4,
+    "run": 1,
+    "question": "What is the weather forecast for the next public holiday in Spain in 2026?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_spain_country_code",
+          "url": "http://mock-server:8080/rest/Smart+Tourist+Attractions+API/1.0/attraction"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_public_holidays_2026_spain",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_next_public_holiday_2026_spain",
+          "url": "https://date.nager.at/api/v3/NextPublicHolidays/{{find_spain_country_code.FIND(name=Spain).countryCode}}"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude={{get_public_holidays_2026_spain.0.latitude}}&longitude={{get_public_holidays_2026_spain.0.longitude}}"
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 4,
+    "run": 2,
+    "question": "What is the weather forecast for the next public holiday in Spain in 2026?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_spain_country_code",
+          "url": "http://mock-server:8080/rest/Smart+Tourist+Attractions+API/1.0/attraction"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_public_holidays_2026_spain",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_next_public_holiday_2026_spain",
+          "url": "https://date.nager.at/api/v3/NextPublicHolidays/{{find_spain_country_code.FIND(name=Spain).countryCode}}"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude={{get_public_holidays_2026_spain.0.latitude}}&longitude={{get_public_holidays_2026_spain.0.longitude}}"
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 4,
+    "run": 3,
+    "question": "What is the weather forecast for the next public holiday in Spain in 2026?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_spain_country_code",
+          "url": "http://mock-server:8080/rest/Smart+Tourist+Attractions+API/1.0/attraction"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_public_holidays_2026_spain",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_next_public_holiday_2026_spain",
+          "url": "https://date.nager.at/api/v3/NextPublicHolidays/{{find_spain_country_code.FIND(name=Spain).countryCode}}"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude={{get_public_holidays_2026_spain.0.latitude}}&longitude={{get_public_holidays_2026_spain.0.longitude}}"
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 5,
+    "run": 1,
+    "question": "What is the weather forecast for the next public holiday in Japan in 2026?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_japan_country_code",
+          "url": "https://date.nager.at/api/v3/CountryInfo/JP"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_public_holidays_2026_japan",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/JP"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_next_public_holiday",
+          "url": "https://date.nager.at/api/v3/NextPublicHolidaysWorldwide"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=&longitude="
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 5,
+    "run": 2,
+    "question": "What is the weather forecast for the next public holiday in Japan in 2026?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_japan_country_code",
+          "url": "https://date.nager.at/api/v3/CountryInfo/JP"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_public_holidays_2026_japan",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/JP"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_next_public_holiday",
+          "url": "https://date.nager.at/api/v3/NextPublicHolidaysWorldwide"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=&longitude="
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 5,
+    "run": 3,
+    "question": "What is the weather forecast for the next public holiday in Japan in 2026?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_japan_country_code",
+          "url": "https://date.nager.at/api/v3/CountryInfo/JP"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_public_holidays_2026_japan",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/JP"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_next_public_holiday",
+          "url": "https://date.nager.at/api/v3/NextPublicHolidaysWorldwide"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=&longitude="
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 6,
+    "run": 1,
+    "question": "What is the weather forecast for the next public holiday in Brazil in 2026?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_brazil_country_code",
+          "url": "https://date.nager.at/api/v3/CountryInfo/BR"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_public_holidays_2026_brazil",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/BR"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_next_public_holiday_2026_brazil",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/BR"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=&longitude="
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 6,
+    "run": 2,
+    "question": "What is the weather forecast for the next public holiday in Brazil in 2026?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_brazil_country_code",
+          "url": "https://date.nager.at/api/v3/CountryInfo/BR"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_public_holidays_2026_brazil",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/BR"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_next_public_holiday_2026_brazil",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/BR"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=&longitude="
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 6,
+    "run": 3,
+    "question": "What is the weather forecast for the next public holiday in Brazil in 2026?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_brazil_country_code",
+          "url": "https://date.nager.at/api/v3/CountryInfo/BR"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_public_holidays_2026_brazil",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/BR"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_next_public_holiday_2026_brazil",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/BR"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=&longitude="
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 7,
+    "run": 1,
+    "question": "What will the weather be like during the first long weekend in the United States in 2026?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_us_country_code",
+          "url": "https://date.nager.at/api/v3/CountryInfo/US"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_long_weekend_2026_us",
+          "url": "https://date.nager.at/api/v3/LongWeekend/2026/US"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=&longitude="
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 7,
+    "run": 2,
+    "question": "What will the weather be like during the first long weekend in the United States in 2026?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_us_country_code",
+          "url": "https://date.nager.at/api/v3/CountryInfo/US"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_long_weekend_2026_us",
+          "url": "https://date.nager.at/api/v3/LongWeekend/2026/US"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=&longitude="
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 7,
+    "run": 3,
+    "question": "What will the weather be like during the first long weekend in the United States in 2026?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_us_country_code",
+          "url": "https://date.nager.at/api/v3/CountryInfo/US"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_long_weekend_2026_us",
+          "url": "https://date.nager.at/api/v3/LongWeekend/2026/US"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=&longitude="
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 8,
+    "run": 1,
+    "question": "Is today a public holiday in Canada and what is the current weather forecast?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_canada",
+          "url": "https://date.nager.at/api/v3/IsTodayPublicHoliday/{{get_available_countries.FIND(countryCode=CA).id}}"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude={{get_weather_forecast.latitude}}&longitude={{get_weather_forecast.longitude}}"
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 8,
+    "run": 2,
+    "question": "Is today a public holiday in Canada and what is the current weather forecast?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_canada",
+          "url": "https://date.nager.at/api/v3/IsTodayPublicHoliday/{{get_available_countries.FIND(countryCode=CA).id}}"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude={{get_weather_forecast.latitude}}&longitude={{get_weather_forecast.longitude}}"
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 8,
+    "run": 3,
+    "question": "Is today a public holiday in Canada and what is the current weather forecast?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_canada",
+          "url": "https://date.nager.at/api/v3/IsTodayPublicHoliday/{{get_available_countries.FIND(countryCode=CA).id}}"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude={{get_weather_forecast.latitude}}&longitude={{get_weather_forecast.longitude}}"
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 9,
+    "run": 1,
+    "question": "Tell me the weather forecast for the next worldwide public holiday.",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_next_public_holidays_worldwide",
+          "url": "https://date.nager.at/api/v3/NextPublicHolidaysWorldwide"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=&longitude="
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 9,
+    "run": 2,
+    "question": "Tell me the weather forecast for the next worldwide public holiday.",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_next_public_holidays_worldwide",
+          "url": "https://date.nager.at/api/v3/NextPublicHolidaysWorldwide"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=&longitude="
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 9,
+    "run": 3,
+    "question": "Tell me the weather forecast for the next worldwide public holiday.",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_next_public_holidays_worldwide",
+          "url": "https://date.nager.at/api/v3/NextPublicHolidaysWorldwide"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "open-meteo",
+          "task_name": "get_weather_forecast",
+          "url": "https://api.open-meteo.com/v1/forecast?latitude=&longitude="
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 10,
+    "run": 1,
+    "question": "I need to plan a trip to Australia. What is the weather for their next long weekend in 2026?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_australia_country_code",
+          "url": "https://date.nager.at/api/v3/CountryInfo/AU"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_public_holidays_2026_AU",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/AU"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_long_weekend",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/AU"
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 10,
+    "run": 2,
+    "question": "I need to plan a trip to Australia. What is the weather for their next long weekend in 2026?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_australia_country_code",
+          "url": "https://date.nager.at/api/v3/CountryInfo/AU"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_public_holidays_2026_AU",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/AU"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_long_weekend",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/AU"
+        }
+      ]
+    }
+  },
+  {
+    "question_index": 10,
+    "run": 3,
+    "question": "I need to plan a trip to Australia. What is the weather for their next long weekend in 2026?",
+    "execution_plan": {
+      "tasks": [
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_available_countries",
+          "url": "https://date.nager.at/api/v3/AvailableCountries"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_australia_country_code",
+          "url": "https://date.nager.at/api/v3/CountryInfo/AU"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "get_public_holidays_2026_AU",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/AU"
+        },
+        {
+          "input": "",
+          "operation": "GET",
+          "service_id": "nager-date",
+          "task_name": "find_long_weekend",
+          "url": "https://date.nager.at/api/v3/PublicHolidays/2026/AU"
+        }
+      ]
+    }
+  }
+]

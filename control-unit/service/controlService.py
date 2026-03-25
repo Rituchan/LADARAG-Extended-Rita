@@ -391,7 +391,7 @@ QUERY:
             pass
 
         # Livello 2: dopo </think> (phi4-reasoning e modelli CoT)
-        think_match = re.search(r'</think>', agents_json, flags=re.IGNORECASE)
+        think_match = re.search(r'</think>', agents_json, flags=re.IGNORECASE) 
         if think_match:
             after_think = agents_json[think_match.end():].strip()
             result, _ = try_parse_json_block(after_think)
@@ -422,7 +422,7 @@ QUERY:
         {{task.N.field}} con i valori reali dal contesto di esecuzione.
         """
         if isinstance(data, str):
-            matches = re.findall(r'\{\{(.*?)\}\}', data)
+            matches = re.findall(r'\{\{(.*?)\}\}', data) # trova tutti i placeholder {{...}} nella stringa
 
             # CASO 1: la stringa è esattamente un placeholder → preserva il tipo originale
             if len(matches) == 1 and data.strip() == f"{{{{{matches[0]}}}}}":

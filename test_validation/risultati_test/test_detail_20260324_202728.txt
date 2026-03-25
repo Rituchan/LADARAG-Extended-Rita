@@ -1,0 +1,393 @@
+--- Query #1 [cross-service] ---
+Q: What is the weather forecast for the next public holiday in Italy in 2026?
+Oracle: [('GET', '/api/v3/AvailableCountries'), ('GET', '/api/v3/CountryInfo/{countryCode}'), ('GET', '/api/v3/PublicHolidays/{year}/{countryCode}'), ('GET', '/api/v3/NextPublicHolidays/{countryCode}'), ('GET', '/v1/forecast')]
+Aggregato: PARTIAL  Pass@1=False  Pass@K=False  Consistency=100%
+
+  Run 1:
+    Final: PARTIAL  TP=2 FP=3 FN=3 F1=0.400
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/CountryInfo/IT')}
+      - {'task': ('GET', '/api/v3/PublicHolidays/2026/IT')}
+      - {'task': ('GET', '/api/v3/NextPublicHolidays/IT')}
+    L2_execution: PASS
+    L3_chaining: PASS
+    L4_schema: PASS
+    Latency: 8.06s
+
+  Run 2:
+    Final: PARTIAL  TP=2 FP=3 FN=3 F1=0.400
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/CountryInfo/IT')}
+      - {'task': ('GET', '/api/v3/PublicHolidays/2026/IT')}
+      - {'task': ('GET', '/api/v3/NextPublicHolidays/IT')}
+    L2_execution: PASS
+    L3_chaining: PASS
+    L4_schema: PASS
+    Latency: 7.85s
+
+  Run 3:
+    Final: PARTIAL  TP=2 FP=3 FN=3 F1=0.400
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/CountryInfo/IT')}
+      - {'task': ('GET', '/api/v3/PublicHolidays/2026/IT')}
+      - {'task': ('GET', '/api/v3/NextPublicHolidays/IT')}
+    L2_execution: PASS
+    L3_chaining: PASS
+    L4_schema: PASS
+    Latency: 7.89s
+
+--- Query #2 [cross-service] ---
+Q: What is the weather forecast for the next public holiday in France in 2026?
+Oracle: [('GET', '/api/v3/AvailableCountries'), ('GET', '/api/v3/CountryInfo/{countryCode}'), ('GET', '/api/v3/PublicHolidays/{year}/{countryCode}'), ('GET', '/api/v3/NextPublicHolidays/{countryCode}'), ('GET', '/v1/forecast')]
+Aggregato: PARTIAL  Pass@1=False  Pass@K=False  Consistency=100%
+
+  Run 1:
+    Final: PARTIAL  TP=2 FP=4 FN=3 F1=0.364
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/CountryInfo/FR')}
+      - {'task': ('GET', '/api/v3/PublicHolidays/2026/FR')}
+      - {'task': ('GET', '/api/v3/NextPublicHolidaysWorldwide')}
+      - {'task': ('GET', '/api/v3/NextPublicHolidaysWorldwide')}
+    L2_execution: SKIP
+    L3_chaining: FAIL
+      - weather_forecast: placeholder non risolto in URL
+    L4_schema: PASS
+    Latency: 12.15s
+
+  Run 2:
+    Final: PARTIAL  TP=2 FP=4 FN=3 F1=0.364
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/CountryInfo/FR')}
+      - {'task': ('GET', '/api/v3/PublicHolidays/2026/FR')}
+      - {'task': ('GET', '/api/v3/NextPublicHolidaysWorldwide')}
+      - {'task': ('GET', '/api/v3/NextPublicHolidaysWorldwide')}
+    L2_execution: SKIP
+    L3_chaining: FAIL
+      - weather_forecast: placeholder non risolto in URL
+    L4_schema: PASS
+    Latency: 10.48s
+
+  Run 3:
+    Final: PARTIAL  TP=2 FP=4 FN=3 F1=0.364
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/CountryInfo/FR')}
+      - {'task': ('GET', '/api/v3/PublicHolidays/2026/FR')}
+      - {'task': ('GET', '/api/v3/NextPublicHolidaysWorldwide')}
+      - {'task': ('GET', '/api/v3/NextPublicHolidaysWorldwide')}
+    L2_execution: SKIP
+    L3_chaining: FAIL
+      - weather_forecast: placeholder non risolto in URL
+    L4_schema: PASS
+    Latency: 10.53s
+
+--- Query #3 [cross-service] ---
+Q: What is the weather forecast for the next public holiday in Germany in 2026?
+Oracle: [('GET', '/api/v3/AvailableCountries'), ('GET', '/api/v3/CountryInfo/{countryCode}'), ('GET', '/api/v3/PublicHolidays/{year}/{countryCode}'), ('GET', '/api/v3/NextPublicHolidays/{countryCode}'), ('GET', '/v1/forecast')]
+Aggregato: PARTIAL  Pass@1=False  Pass@K=False  Consistency=67%
+
+  Run 1:
+    Final: PARTIAL  TP=2 FP=3 FN=3 F1=0.400
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/CountryInfo/DE')}
+      - {'task': ('GET', '/api/v3/PublicHolidays/2026/DE')}
+      - {'task': ('GET', '/api/v3/NextPublicHolidays/DE')}
+    L2_execution: PASS
+    L3_chaining: PASS
+    L4_schema: PASS
+    Latency: 10.38s
+
+  Run 2:
+    Final: PARTIAL  TP=1 FP=1 FN=4 F1=0.286
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/PublicHolidays/2026/DE')}
+    L2_execution: PASS
+    L3_chaining: PASS
+    L4_schema: PASS
+    Latency: 4.65s
+
+  Run 3:
+    Final: PARTIAL  TP=1 FP=1 FN=4 F1=0.286
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/PublicHolidays/2026/DE')}
+    L2_execution: PASS
+    L3_chaining: PASS
+    L4_schema: PASS
+    Latency: 4.53s
+
+--- Query #4 [cross-service] ---
+Q: What is the weather forecast for the next public holiday in Spain in 2026?
+Oracle: [('GET', '/api/v3/AvailableCountries'), ('GET', '/api/v3/CountryInfo/{countryCode}'), ('GET', '/api/v3/PublicHolidays/{year}/{countryCode}'), ('GET', '/api/v3/NextPublicHolidays/{countryCode}'), ('GET', '/v1/forecast')]
+Aggregato: PARTIAL  Pass@1=False  Pass@K=False  Consistency=100%
+
+  Run 1:
+    Final: PARTIAL  TP=2 FP=3 FN=3 F1=0.400
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/CountryInfo/ES')}
+      - {'task': ('GET', '/api/v3/PublicHolidays/2026/ES')}
+      - {'task': ('GET', '/api/v3/NextPublicHolidays/ES')}
+    L2_execution: PASS
+    L3_chaining: PASS
+    L4_schema: PASS
+    Latency: 9.78s
+
+  Run 2:
+    Final: PARTIAL  TP=2 FP=3 FN=3 F1=0.400
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/CountryInfo/ES')}
+      - {'task': ('GET', '/api/v3/PublicHolidays/2026/ES')}
+      - {'task': ('GET', '/api/v3/NextPublicHolidays/ES')}
+    L2_execution: PASS
+    L3_chaining: PASS
+    L4_schema: PASS
+    Latency: 8.24s
+
+  Run 3:
+    Final: PARTIAL  TP=2 FP=3 FN=3 F1=0.400
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/CountryInfo/ES')}
+      - {'task': ('GET', '/api/v3/PublicHolidays/2026/ES')}
+      - {'task': ('GET', '/api/v3/NextPublicHolidays/ES')}
+    L2_execution: PASS
+    L3_chaining: PASS
+    L4_schema: PASS
+    Latency: 7.90s
+
+--- Query #5 [cross-service] ---
+Q: What is the weather forecast for the next public holiday in Japan in 2026?
+Oracle: [('GET', '/api/v3/AvailableCountries'), ('GET', '/api/v3/CountryInfo/{countryCode}'), ('GET', '/api/v3/PublicHolidays/{year}/{countryCode}'), ('GET', '/api/v3/NextPublicHolidays/{countryCode}'), ('GET', '/v1/forecast')]
+Aggregato: PARTIAL  Pass@1=False  Pass@K=False  Consistency=100%
+
+  Run 1:
+    Final: PARTIAL  TP=2 FP=3 FN=3 F1=0.400
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/CountryInfo/JP')}
+      - {'task': ('GET', '/api/v3/PublicHolidays/2026/JP')}
+      - {'task': ('GET', '/api/v3/NextPublicHolidays/JP')}
+    L2_execution: PASS
+    L3_chaining: PASS
+    L4_schema: PASS
+    Latency: 9.58s
+
+  Run 2:
+    Final: PARTIAL  TP=2 FP=3 FN=3 F1=0.400
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/CountryInfo/JP')}
+      - {'task': ('GET', '/api/v3/PublicHolidays/2026/JP')}
+      - {'task': ('GET', '/api/v3/NextPublicHolidays/JP')}
+    L2_execution: PASS
+    L3_chaining: PASS
+    L4_schema: PASS
+    Latency: 8.24s
+
+  Run 3:
+    Final: PARTIAL  TP=2 FP=3 FN=3 F1=0.400
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/CountryInfo/JP')}
+      - {'task': ('GET', '/api/v3/PublicHolidays/2026/JP')}
+      - {'task': ('GET', '/api/v3/NextPublicHolidays/JP')}
+    L2_execution: PASS
+    L3_chaining: PASS
+    L4_schema: PASS
+    Latency: 8.02s
+
+--- Query #6 [cross-service] ---
+Q: What is the weather forecast for the next public holiday in Brazil in 2026?
+Oracle: [('GET', '/api/v3/AvailableCountries'), ('GET', '/api/v3/CountryInfo/{countryCode}'), ('GET', '/api/v3/PublicHolidays/{year}/{countryCode}'), ('GET', '/api/v3/NextPublicHolidaysWorldwide'), ('GET', '/v1/forecast')]
+Aggregato: PARTIAL  Pass@1=False  Pass@K=False  Consistency=100%
+
+  Run 1:
+    Final: PARTIAL  TP=3 FP=3 FN=2 F1=0.545
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/CountryInfo/BR')}
+      - {'task': ('GET', '/api/v3/PublicHolidays/2026/BR')}
+      - {'task': ('GET', '/api/v3/PublicHolidays/2026/BR')}
+    L2_execution: PASS
+    L3_chaining: PASS
+    L4_schema: PASS
+    Latency: 11.51s
+
+  Run 2:
+    Final: PARTIAL  TP=3 FP=3 FN=2 F1=0.545
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/CountryInfo/BR')}
+      - {'task': ('GET', '/api/v3/PublicHolidays/2026/BR')}
+      - {'task': ('GET', '/api/v3/PublicHolidays/2026/BR')}
+    L2_execution: PASS
+    L3_chaining: PASS
+    L4_schema: PASS
+    Latency: 8.77s
+
+  Run 3:
+    Final: PARTIAL  TP=3 FP=3 FN=2 F1=0.545
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/CountryInfo/BR')}
+      - {'task': ('GET', '/api/v3/PublicHolidays/2026/BR')}
+      - {'task': ('GET', '/api/v3/PublicHolidays/2026/BR')}
+    L2_execution: PASS
+    L3_chaining: PASS
+    L4_schema: PASS
+    Latency: 8.66s
+
+--- Query #7 [cross-service] ---
+Q: What will the weather be like during the first long weekend in the United States in 2026?
+Oracle: [('GET', '/api/v3/AvailableCountries'), ('GET', '/api/v3/CountryInfo/{countryCode}'), ('GET', '/api/v3/LongWeekend/{year}/{countryCode}'), ('GET', '/v1/forecast')]
+Aggregato: PARTIAL  Pass@1=False  Pass@K=False  Consistency=100%
+
+  Run 1:
+    Final: PARTIAL  TP=2 FP=3 FN=2 F1=0.444
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/CountryInfo/{{get_available_countries.FIND(name=United States).countryCode}}')}
+      - {'task': ('GET', '/api/v3/LongWeekend/2026/{{find_us_country_code.countryCode}}')}
+      - {'task': ('', '')}
+    L2_execution: SKIP
+    L3_chaining: FAIL
+      - find_us_country_code: placeholder non risolto in URL
+      - get_long_weekends_us_2026: placeholder non risolto in URL
+      - get_weather_forecast: placeholder non risolto in URL
+    L4_schema: PASS
+    Latency: 9.08s
+
+  Run 2:
+    Final: PARTIAL  TP=2 FP=3 FN=2 F1=0.444
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/CountryInfo/{{get_available_countries.FIND(name=United States).countryCode}}')}
+      - {'task': ('GET', '/api/v3/LongWeekend/2026/{{find_us_country_code.countryCode}}')}
+      - {'task': ('', '')}
+    L2_execution: SKIP
+    L3_chaining: FAIL
+      - find_us_country_code: placeholder non risolto in URL
+      - get_long_weekends_us_2026: placeholder non risolto in URL
+      - get_weather_forecast: placeholder non risolto in URL
+    L4_schema: PASS
+    Latency: 7.28s
+
+  Run 3:
+    Final: PARTIAL  TP=2 FP=3 FN=2 F1=0.444
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/CountryInfo/{{get_available_countries.FIND(name=United States).countryCode}}')}
+      - {'task': ('GET', '/api/v3/LongWeekend/2026/{{find_us_country_code.countryCode}}')}
+      - {'task': ('', '')}
+    L2_execution: SKIP
+    L3_chaining: FAIL
+      - find_us_country_code: placeholder non risolto in URL
+      - get_long_weekends_us_2026: placeholder non risolto in URL
+      - get_weather_forecast: placeholder non risolto in URL
+    L4_schema: PASS
+    Latency: 7.25s
+
+--- Query #8 [cross-service] ---
+Q: Is today a public holiday in Canada and what is the current weather forecast?
+Oracle: [('GET', '/api/v3/AvailableCountries'), ('GET', '/api/v3/IsTodayPublicHoliday/{countryCode}'), ('GET', '/v1/forecast')]
+Aggregato: PARTIAL  Pass@1=False  Pass@K=False  Consistency=100%
+
+  Run 1:
+    Final: PARTIAL  TP=1 FP=1 FN=2 F1=0.400
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/IsTodayPublicHoliday/CA')}
+    L2_execution: PASS
+    L3_chaining: PASS
+    L4_schema: PASS
+    Latency: 6.27s
+
+  Run 2:
+    Final: PARTIAL  TP=1 FP=1 FN=2 F1=0.400
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/IsTodayPublicHoliday/CA')}
+    L2_execution: PASS
+    L3_chaining: PASS
+    L4_schema: PASS
+    Latency: 4.19s
+
+  Run 3:
+    Final: PARTIAL  TP=1 FP=1 FN=2 F1=0.400
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/IsTodayPublicHoliday/CA')}
+    L2_execution: PASS
+    L3_chaining: PASS
+    L4_schema: PASS
+    Latency: 4.20s
+
+--- Query #9 [cross-service] ---
+Q: Tell me the weather forecast for the next worldwide public holiday.
+Oracle: [('GET', '/api/v3/NextPublicHolidaysWorldwide'), ('GET', '/v1/forecast')]
+Aggregato: PARTIAL  Pass@1=False  Pass@K=False  Consistency=67%
+
+  Run 1:
+    Final: PARTIAL  TP=2 FP=2 FN=0 F1=0.667
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/AvailableCountries')}
+      - {'task': ('FIND', '')}
+    L2_execution: SKIP
+    L3_chaining: FAIL
+      - get_weather_forecast_for_holiday_location: placeholder non risolto in URL
+    L4_schema: PASS
+    Latency: 7.73s
+
+  Run 2:
+    Final: PARTIAL  TP=2 FP=2 FN=0 F1=0.667
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/AvailableCountries')}
+      - {'task': ('GET', '/api/v3/NextPublicHolidays/{{get_next_public_holidays_worldwide.0.countryCode}}')}
+    L2_execution: SKIP
+    L3_chaining: FAIL
+      - find_first_upcoming_holiday: placeholder non risolto in URL
+      - get_weather_forecast_for_holiday_location: placeholder non risolto in URL
+    L4_schema: PASS
+    Latency: 6.45s
+
+  Run 3:
+    Final: PARTIAL  TP=2 FP=2 FN=0 F1=0.667
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/api/v3/AvailableCountries')}
+      - {'task': ('GET', '/api/v3/NextPublicHolidays/{{get_next_public_holidays_worldwide.0.countryCode}}')}
+    L2_execution: SKIP
+    L3_chaining: FAIL
+      - find_first_upcoming_holiday: placeholder non risolto in URL
+      - get_weather_forecast_for_holiday_location: placeholder non risolto in URL
+    L4_schema: PASS
+    Latency: 6.39s
+
+--- Query #10 [cross-service] ---
+Q: I need to plan a trip to Australia. What is the weather for their next long weekend in 2026?
+Oracle: [('GET', '/api/v3/AvailableCountries'), ('GET', '/api/v3/CountryInfo/{countryCode}'), ('GET', '/api/v3/LongWeekend/{year}/{countryCode}'), ('GET', '/v1/forecast')]
+Aggregato: PARTIAL  Pass@1=False  Pass@K=False  Consistency=100%
+
+  Run 1:
+    Final: PARTIAL  TP=2 FP=2 FN=2 F1=0.500
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/rest/Smart+Tourist+Attractions+API/1.0/attraction/AU')}
+      - {'task': ('GET', '/api/v3/NextPublicHolidays/{{find_australia_code.countryCode}}')}
+    L2_execution: FAIL
+      - find_australia_code: ERROR HTTP 400
+    L3_chaining: FAIL
+      - get_next_public_holidays_australia: placeholder non risolto in URL
+      - get_weather_for_long_weekend: placeholder non risolto in URL
+    L4_schema: PASS
+    Latency: 8.92s
+
+  Run 2:
+    Final: PARTIAL  TP=2 FP=2 FN=2 F1=0.500
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/rest/Smart+Tourist+Attractions+API/1.0/attraction/AU')}
+      - {'task': ('GET', '/api/v3/NextPublicHolidays/{{find_australia_code.countryCode}}')}
+    L2_execution: FAIL
+      - find_australia_code: ERROR HTTP 400
+    L3_chaining: FAIL
+      - get_next_public_holidays_australia: placeholder non risolto in URL
+      - get_weather_forecast: placeholder non risolto in URL
+    L4_schema: PASS
+    Latency: 6.90s
+
+  Run 3:
+    Final: PARTIAL  TP=2 FP=2 FN=2 F1=0.500
+    L1_plan: PARTIAL
+      - {'task': ('GET', '/rest/Smart+Tourist+Attractions+API/1.0/attraction/AU')}
+      - {'task': ('GET', '/api/v3/NextPublicHolidays/{{find_australia_code.countryCode}}')}
+    L2_execution: FAIL
+      - find_australia_code: ERROR HTTP 400
+    L3_chaining: FAIL
+      - get_next_public_holidays_australia: placeholder non risolto in URL
+      - get_weather_forecast: placeholder non risolto in URL
+    L4_schema: PASS
+    Latency: 7.10s
+

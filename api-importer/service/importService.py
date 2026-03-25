@@ -182,12 +182,16 @@ class Service:
             )
 
             if has_object_items:
-                # array di oggetti: NON espande con dotted keys perché sarebbe
-                # fuorviante per l'LLM (non sa che c'è un livello array intermedio)
-                # rappresenta semplicemente come "arr"
                 field_name = prefix.rstrip(".")
                 if field_name:
+                    # CASO 1: Array annidato dentro un altro oggetto -> lo marchiamo come "arr"
                     result[field_name] = "arr"
+                else:
+                    # CASO 2: Array alla ROOT (la risposta API è una lista di oggetti).
+                    # Dobbiamo scendere dentro 'items' ed estrarre i campi!
+                    sub = self._flatten_dotted(items, prefix)
+                    if sub:
+                        result.update(sub)
             else:
                 # array di scalari (es. availableLanguages: ["it", "en"])
                 sub = self._flatten_dotted(items, prefix)
@@ -605,7 +609,7 @@ class Service:
     # anche capabilities, endpoints e swagger_url nel payload di ritorno
     # -----------------------------------------------------------------------
 
-    def parse_swagger(self, service, swagger_url):
+    def parse_swagger(self, service, swagger_url, fallback_base_url=None):
         """
         Analizza uno YAML OpenAPI e costruisce il documento completo
         da salvare in MongoDB per un servizio.
@@ -633,7 +637,7 @@ class Service:
             paths        = swagger.get("paths", {})
             servers      = swagger.get("servers")
 
-            # costruisce l'URL base: OpenAPI 3.0 usa servers[], Swagger 2.0 usa host+basePath
+            # --- LOGICA ORIGINALE ---
             if servers and isinstance(servers, list) and len(servers) > 0 and isinstance(servers[0], dict):
                 host_url = servers[0].get("url", "http://localhost")
             else:
@@ -642,6 +646,17 @@ class Service:
                 base_path = swagger.get("basePath", "")
                 scheme    = schemes[0] if isinstance(schemes, list) and schemes else "http"
                 host_url  = f"{scheme}://{host}{base_path}"
+
+            # --- NUOVA LOGICA DI FALLBACK (LA MAGIA) ---
+            # Se dopo i controlli standard siamo ancora bloccati su localhost...
+            if host_url.startswith("http://localhost"):
+                # 1. Priorità al parametro manuale (se fornito)
+                if fallback_base_url:
+                    host_url = fallback_base_url.rstrip('/')
+                # 2. Altrimenti deducilo dall'URL di download (se è un link remoto)
+                elif swagger_url.startswith("http"):
+                    parsed = urlparse(swagger_url)
+                    host_url = f"{parsed.scheme}://{parsed.netloc}"
 
         except Exception as e:
             print(f"Failed to get information from parsed swagger: {e}")
