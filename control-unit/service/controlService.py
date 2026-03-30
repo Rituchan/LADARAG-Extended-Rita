@@ -17,15 +17,20 @@ import time
 
 class PlanValidator:
 
+    '''Valida il piano di esecuzione generato dal modello rispetto a un insieme di regole predefinite, 
+    restituendo un booleano di validità e una lista di errori se non valido.'''
+
     VALID_OPERATIONS = {"GET", "POST", "PUT", "DELETE"}
 
     @staticmethod
     def validate(plan: dict, available_service_ids: list) -> tuple[bool, list[str]]:
         errors = []
 
+        # Regola 1: il piano deve essere un dizionario con chiave "tasks" che contiene una lista non vuota di task
         if not isinstance(plan, dict) or "tasks" not in plan:
             return False, ["Missing or invalid 'tasks' array"]
-
+        
+        # Regola 2: ogni task deve essere un dizionario con i campi richiesti e validi, e i placeholder devono referenziare task già definiti
         tasks = plan["tasks"]
         if not isinstance(tasks, list) or len(tasks) == 0:
             return False, ["Empty tasks array"]
@@ -39,7 +44,7 @@ class PlanValidator:
             if not isinstance(task, dict):
                 errors.append(f"{prefix}: not a dictionary")
                 continue
-
+            
             for field in ("task_name", "service_id", "url", "operation", "input"):
                 if field not in task:
                     errors.append(f"{prefix}: missing required field '{field}'")
@@ -81,7 +86,7 @@ class PlanValidator:
 class Controller:
 
     def __init__(self):
-        self.model_name = os.environ.get("LLM_MODEL", "phi4:14b")
+        self.model_name = os.environ.get("LLM_MODEL", "phi4-reasoning:14b")
         os.makedirs("Files", exist_ok=True)
 
     # ------------------------------------------------------------------
@@ -117,6 +122,9 @@ class Controller:
     # LLM
     # ------------------------------------------------------------------
 
+    '''
+     Interroga Ollama con un prompt di sistema e uno utente, restituendo la risposta testuale e la latenza.
+    '''
     def query_ollama(self, system_prompt: str, user_prompt: str) -> tuple[str, float]:
         url = os.environ.get("OLLAMA_API_URL", "http://localhost:11434")
         try:
@@ -274,6 +282,7 @@ FILES:
 QUERY:
 {query}"""
 
+    '''Chiede al modello di decomporre il task in un piano eseguibile, restituendo la risposta testuale e la latenza.'''
     def decompose_task(self, discovered_services, discovered_capabilities, discovered_endpoints,
                        discovered_schemas, discovered_request_schemas, discovered_parameters,
                        query, input_files=None):
@@ -336,15 +345,15 @@ QUERY:
         """Naviga val seguendo la lista di parti (field, FIND(...), indice numerico)."""
         for part in parts:
             if part.startswith("FIND(") and part.endswith(")"):
-                condition = part[5:-1]
+                condition = part[5:-1] # estrae il contenuto di FIND(...)
                 if "=" not in condition or not isinstance(val, list):
                     return ""
                 key, expected = condition.split("=", 1)
                 key      = key.strip()
-                expected = expected.strip().lower().replace('+', ' ').replace('%20', ' ')
+                expected = expected.strip().lower().replace('+', ' ').replace('%20', ' ') 
                 found    = next(
                     (item for item in val
-                     if isinstance(item, dict) and expected in str(item.get(key, "")).lower()),
+                     if isinstance(item, dict) and expected in str(item.get(key, "")).lower()), 
                     None
                 )
                 if not found:
@@ -358,16 +367,19 @@ QUERY:
                             break
                 val = found if found else ""
 
+            # Accesso diretto a indice numerico (es. .0, .1)
             elif isinstance(val, list) and part.isdigit():
                 idx = int(part)
                 val = val[idx] if 0 <= idx < len(val) else ""
 
-            elif isinstance(val, list) and re.match(r'^N\((\d+)\)$', part):
+            # Accesso a indice numerico con sintassi N(0), N(1), ...
+            elif isinstance(val, list) and re.match(r'^N\((\d+)\)$', part): 
                 idx = int(re.match(r'^N\((\d+)\)$', part).group(1))
                 val = val[idx] if 0 <= idx < len(val) else ""
 
+            # Accesso a campo di dizionario
             elif isinstance(val, dict):
-                val = val.get(part, "")
+                val = val.get(part, "") # se la chiave non esiste, restituisce stringa vuota per evitare errori di tipo in catene successive
 
             else:
                 return ""
@@ -376,15 +388,15 @@ QUERY:
 
     def _resolve_expression(self, expr, context):
         """Risolve una singola espressione task.field[.field...] nel contesto."""
-        expr  = re.sub(r'\.(output|response|data)\b', '', expr)
-        expr  = re.sub(r'\[(\d+)\]', r'.\1', expr)
+        expr  = re.sub(r'\.(output|response|data)\b', '', expr) # rimuove suffissi comuni
+        expr  = re.sub(r'\[(\d+)\]', r'.\1', expr) # converte [0], [1] in .0, .1 per uniformità
         parts = expr.split('.')
-        val   = context.get(parts[0], {})
-        return self._traverse(val, parts[1:])
+        val   = context.get(parts[0], {}) # parte iniziale: nome del task
+        return self._traverse(val, parts[1:]) # naviga nelle parti successive
 
     def resolve_placeholders(self, data, context):
-        if isinstance(data, str):
-            matches = re.findall(r'\{\{(.*?)\}\}', data)
+        if isinstance(data, str): #data è una stringa, cerca placeholder {{...}}
+            matches = re.findall(r'\{\{(.*?)\}\}', data) #estrae tutte le espressioni {{...}} presenti nella stringa
             if not matches:
                 return data
 
@@ -400,9 +412,9 @@ QUERY:
                 data = data.replace(f"{{{{{match}}}}}", str(val) if val != "" else "")
             return data
 
-        if isinstance(data, dict):
+        if isinstance(data, dict): #data è un dizionario, risolve ricorsivamente i valori
             return {k: self.resolve_placeholders(v, context) for k, v in data.items()}
-        if isinstance(data, list):
+        if isinstance(data, list): #data è una lista, risolve ricorsivamente gli elementi
             return [self.resolve_placeholders(item, context) for item in data]
         return data
 
@@ -419,13 +431,13 @@ QUERY:
         # Normalizzazione URL
         if " " in endpoint:
             endpoint = endpoint.split(" ")[-1]
-        if endpoint and not endpoint.startswith("http"):
-            mock_url = os.environ.get("MOCK_SERVER_URL", "http://mock-server:8080")
-            endpoint = f"{mock_url}{endpoint}" if endpoint.startswith("/") else f"{mock_url}/{endpoint}"
-        if endpoint and "mock-server/" in endpoint:
+        if endpoint and not endpoint.startswith("http"): #http mancante → assume percorso relativo al mock server
+            mock_url = os.environ.get("MOCK_SERVER_URL", "http://mock-server:8080") 
+            endpoint = f"{mock_url}{endpoint}" if endpoint.startswith("/") else f"{mock_url}/{endpoint}" #aggiunge mock_url come prefisso
+        if endpoint and "mock-server/" in endpoint: #
             endpoint = endpoint.replace("mock-server/", "mock-server:8080/")
 
-        if not endpoint or not endpoint.strip():
+        if not endpoint or not endpoint.strip(): #url vuota → task fantasma, ignora ma restituisci successo per non interrompere la catena
             print(f"[WARN] Task fantasma '{task_name}' ignorato.")
             return {"task_name": task_name, "operation": operation,
                     "status": "SUCCESS", "status_code": 200,
@@ -509,13 +521,13 @@ QUERY:
         results   = []
         context   = {}
 
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession() as session: 
             for task in agents.get("tasks", []):
                 task["url"] = self.resolve_placeholders(task.get("url") or "", context)
                 if task.get("input"):
-                    task["input"] = self.resolve_placeholders(task["input"], context)
+                    task["input"] = self.resolve_placeholders(task["input"], context) #risolve placeholder anche nell'input, utile per POST/PUT con chaining nei body
 
-                result = await self.call_agent(session, task, discovered_services)
+                result = await self.call_agent(session, task, discovered_services) #chiama l'agente con i dati risolti
 
                 if result.get("status") == "FILE":
                     return result
@@ -531,6 +543,7 @@ QUERY:
 
         return results
 
+    # Serve per chiamare la versione asincrona da contesti sincroni (es. Flask)
     def trigger_agents(self, agents: dict, discovered_services):
         return asyncio.run(self.trigger_agents_async(agents, discovered_services))
 
@@ -539,32 +552,34 @@ QUERY:
     # ------------------------------------------------------------------
 
     def replace_endpoints(self, endpoints_list, mock_server_address):
-        return [
-            {k: re.sub(r"http://localhost:8585", mock_server_address, v)
+        return [ #sostituisce ogni occorrenza di "http://localhost:8585" con l'indirizzo del mock server, se endpoint è una stringa
+            {k: re.sub(r"http://localhost:8585", mock_server_address, v) 
              if isinstance(v, str) else v
              for k, v in ep.items()}
             for ep in endpoints_list
         ]
 
     def _attempt_auto_fix(self, plan: dict) -> dict:
+        #cerca di correggere automaticamente errori comuni come URL mancanti o operazioni in minuscolo, ma solo se è possibile rendere il piano valido senza inventare dati o strutture non presenti nell'output originale
         mock_url    = os.environ.get("MOCK_SERVER_URL", "http://mock-server:8080")
         fixed_tasks = []
 
         for task in plan.get("tasks", []):
-            if not isinstance(task, dict):
+            if not isinstance(task, dict): #task non è un dizionario, scartalo perché non possiamo correggerlo
                 continue
-            url = str(task.get("url", ""))
+            url = str(task.get("url", "")) #se l'URL è presente ma non inizia con http, prova ad aggiungere il prefisso del mock server (assumendo che sia un percorso relativo)
             if url and not url.startswith("http") and not url.startswith("{{"):
-                task["url"] = (mock_url if url.startswith("/") else mock_url + "/") + url.lstrip("/")
+                task["url"] = (mock_url if url.startswith("/") else mock_url + "/") + url.lstrip("/") #aggiunge mock_url come prefisso
                 print(f"[AUTO-FIX] URL: {task['url']}")
-            if isinstance(task.get("operation"), str):
+            if isinstance(task.get("operation"), str): 
                 task["operation"] = task["operation"].upper()
-            if all(f in task for f in ("task_name", "service_id", "url", "operation")):
+            if all(f in task for f in ("task_name", "service_id", "url", "operation")): 
+                #se dopo le correzioni il task ha tutti i campi richiesti, aggiungilo alla lista dei task corretti; altrimenti scartalo perché non è recuperabile
                 fixed_tasks.append(task)
             else:
                 print(f"[AUTO-FIX] Task scartato: {task.get('task_name', 'unnamed')}")
 
-        plan["tasks"] = fixed_tasks
+        plan["tasks"] = fixed_tasks #sostituisce la lista originale dei task con quella filtrata e corretta
         return plan
 
     # ------------------------------------------------------------------
@@ -620,23 +635,26 @@ QUERY:
             disc_req_schemas.append(s.get("request_schemas", {}))
             disc_params.append(s.get("parameters", {}))
 
-        disc_eps = self.replace_endpoints(disc_eps, mock_url)
+        disc_eps = self.replace_endpoints(disc_eps, mock_url) #sostituisce eventuali endpoint con URL del mock server, se presenti
 
+        # Chiede al modello di decomporre il task in un piano eseguibile, restituendo la risposta testuale e la latenza.
         plan_json, latency = self.decompose_task(
             disc_services, disc_caps, disc_eps,
             disc_schemas, disc_req_schemas, disc_params,
             query, analyzed_files
         )
-        plan = self.extract_agents(plan_json)
+
+        # Estrae il piano JSON dalla risposta del modello, gestendo eventuali errori di formato o testo extra.
+        plan = self.extract_agents(plan_json) 
 
         available_ids          = [s["_id"] for s in disc_services]
-        is_valid, val_errors   = PlanValidator.validate(plan, available_ids)
+        is_valid, val_errors   = PlanValidator.validate(plan, available_ids) #valida il piano generato rispetto alle regole definite, restituendo un booleano di validità e una lista di errori se non valido
 
         if not is_valid:
             print(f"[VALIDATION] {len(val_errors)} errore/i:")
             for e in val_errors:
                 print(f"  - {e}")
-            plan     = self._attempt_auto_fix(plan)
+            plan     = self._attempt_auto_fix(plan) #prova a correggere automaticamente errori comuni, ma solo se è possibile rendere il piano valido senza inventare dati o strutture non presenti nell'output originale
             is_valid, val_errors = PlanValidator.validate(plan, available_ids)
             if not is_valid:
                 print("[VALIDATION] Piano non recuperabile.")
@@ -646,7 +664,8 @@ QUERY:
         else:
             print(f"[VALIDATION] Piano valido ({len(plan.get('tasks', []))} task/s).")
 
-        results = self.trigger_agents(plan, disc_services)
+        # Esegue il piano chiamando gli agenti in sequenza, risolvendo i placeholder e gestendo i risultati intermedi, restituendo la lista dei risultati finali o un file se uno dei task restituisce un file.
+        results = self.trigger_agents(plan, disc_services) 
 
         if isinstance(results, dict) and results.get("status") == "FILE":
             return Response(results["body"], status=results["status_code"], headers=results["headers"])
