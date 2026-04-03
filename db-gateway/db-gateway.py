@@ -147,7 +147,7 @@ def vector_search():
     results = qdrant_client.search(
         collection_name=QDRANT_COLLECTION,
         query_vector=query_embedding,
-        limit=30
+        limit=20
     )
 
     services     = []
@@ -251,7 +251,9 @@ def vector_search():
         else:
             break
 
-    logger.info(f"[SEARCH] {len(results)} vettori → {len(merged)} servizi unici → {len(top_results)} nel budget token")
+    logger.info(
+    f"[SEARCH] {len(results)} vettori → {len(merged)} servizi unici → "
+    f"{len(top_results)} nel budget | token usati: {current_tokens}/{max_tokens}")
     return jsonify({"results": top_results}), 200
 
 

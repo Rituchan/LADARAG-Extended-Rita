@@ -147,16 +147,22 @@ class Controller:
                                 }
                             }
                         },
-                        "required": ["reasoning", "tasks"],
+                        "required": ["tasks"],
                         "additionalProperties": False,
                     },
                     "messages": [
                         {"role": "system", "content": system_prompt},
                         {"role": "user",   "content": user_prompt},
                     ],
-                    "options": {"temperature": 0.0, "num_ctx": 8192},
-                    "stream":  False,
+                    "think": False,          # disabilita thinking mode nativo Qwen3/Ollama
+                    "options": {
+                        "temperature": 0.0,
+                        "num_ctx":     16384,
+                    },
+                    "stream": False,
                 },
+                timeout=120,    # ← fail fast dopo 120s invece di aspettare all'infinito
+
             )
             response.raise_for_status()
             return response.json()["message"]["content"].strip(), time.perf_counter() - t0
@@ -298,6 +304,7 @@ CHEAT SHEET:
   Sort ascending (min):    {{{{task | sort_by(@, &waitingTimeMinutes)[0].id}}}}
   Sort descending (max):   {{{{task | sort_by(@, &fillLevel)[-1].id}}}}
   Count matches:           {{{{task[?alertActive==`true`] | length(@)}}}}
+  OR filter + join:        {{{{task[?field=='a' || field=='b'][*].zoneId | join(',', @)}}}}
 
 SYNTAX RULES:
   - String values  → single quotes:  [?status=='open']
@@ -333,9 +340,15 @@ RULES (in order of priority):
 9.  operation must be exactly one of: GET, POST, PUT, DELETE.
 10. Every task MUST have a non-empty url starting with http://.
 11. Required keys per task: task_name, service_id, url, operation, input.
+    service_id MUST be exactly the SERVICE_ID value shown in the catalog (e.g. 'smart-traffic-monitoring-mock').
+    NEVER use the NAME field as service_id.
 12. NEVER create an intermediate GET-by-ID if the ID is already available.
 13. PARAMETERS marked * are REQUIRED and must appear in the url.
-14. NEVER return a url with unresolved placeholders like {{id}} or {{zoneId}}."""
+14. NEVER return a url with unresolved placeholders like {{id}} or {{zoneId}}.
+15. NEVER concatenate two {{{{}}}} placeholders in the same URL param value:
+    WRONG: ?zoneIds={{{{task1[*].zoneId | join(',', @)}}}},{{{{task2[*].zoneId | join(',', @)}}}}
+    RIGHT: query all data in ONE prior task, then filter with JMESPath OR:
+           ?zoneIds={{{{get_all[?level=='high' || level=='critical'][*].zoneId | join(',', @)}}}}"""
 
     # ------------------------------------------------------------------
     # USER PROMPT
@@ -345,9 +358,10 @@ RULES (in order of priority):
                            discovered_endpoints, discovered_schemas,
                            discovered_request_schemas, discovered_parameters,
                            query, input_files=None) -> str:
-        lines = ["SERVICES AND ENDPOINTS:"]
+        lines = ["/no_think", "SERVICES AND ENDPOINTS:"]   # ← aggiunta /no_think
         for i, service in enumerate(discovered_services):
-            lines.append(f"\n[{service.get('_id')}] {service.get('name')}")
+            lines.append(f"\nSERVICE_ID: {service.get('_id')}")
+            lines.append(f"NAME: {service.get('name')}")
             caps   = discovered_capabilities[i]   if i < len(discovered_capabilities)   else {}
             eps    = discovered_endpoints[i]       if i < len(discovered_endpoints)       else {}
             rsch   = discovered_schemas[i]         if i < len(discovered_schemas)         else {}
@@ -453,8 +467,7 @@ QUERY:
         # Rimuove suffissi legacy
         expr = re.sub(r'\.(output|response|data)\b', '', expr)
         # Normalizza [N] → .[N]
-        expr = re.sub(r'(?<!\[)(\[)(\d+\])', r'.\1\2', expr)
-
+        expr = re.sub(r'(?<![\[\]])(\[)(\d+\])', r'.\1\2', expr)
         m = re.match(r'^(\w+)(.*)', expr, re.DOTALL)
         if not m:
             print(f"[JMESPATH] Impossibile estrarre task_name da '{expr}'")
@@ -499,6 +512,14 @@ QUERY:
         Supporta stringhe, dizionari e liste ricorsivamente.
         """
         if isinstance(data, str):
+            # ── Normalizza concatenazione malformata generata dall'LLM ──────────
+            # Pattern errato: {{A},{{B}}  (manca un } prima della virgola)
+            # Pattern atteso: {{A}},{{B}} (due placeholder distinti)
+            # Causa: il modello chiude il primo con } invece di }} per concatenare
+            if '},{{'  in data and '}},{{'  not in data:
+                print(f"[PLACEHOLDER FIX] Malformed concatenation normalized in: {data[:80]}")
+                data = data.replace('},{{'  , '}},{{'  )
+
             matches = re.findall(r'\{\{(.*?)\}\}', data)
             if not matches:
                 return data
@@ -653,12 +674,21 @@ QUERY:
             for ep in endpoints_list
         ]
 
-    def _attempt_auto_fix(self, plan: dict) -> dict:
-        mock_url    = os.environ.get("MOCK_SERVER_URL", "http://mock-server:8080")
+    def _attempt_auto_fix(self, plan: dict, available_ids: list = None, name_to_id: dict = None) -> dict:
+        mock_url = os.environ.get("MOCK_SERVER_URL", "http://mock-server:8080")
+        id_set   = set(available_ids or [])
         fixed_tasks = []
         for task in plan.get("tasks", []):
             if not isinstance(task, dict):
                 continue
+
+            # ── Corregge service_id: modello ha usato name invece di _id ──
+            sid = task.get("service_id", "")
+            if sid and sid not in id_set and name_to_id and sid in name_to_id:
+                corrected = name_to_id[sid]
+                print(f"[AUTO-FIX] service_id '{sid}' → '{corrected}'")
+                task["service_id"] = corrected
+
             url = str(task.get("url", ""))
             if url and not url.startswith("http") and not url.startswith("{{"):
                 task["url"] = (mock_url if url.startswith("/") else mock_url + "/") + url.lstrip("/")
@@ -745,14 +775,17 @@ QUERY:
             print(plan.get("reasoning"))
             print("🧠 " * 20 + "\n")
 
-        available_ids        = [s["_id"] for s in disc_services]
+        available_ids = [s["_id"] for s in disc_services]
+        # Mappa name → _id per auto-fix quando il modello usa il name come service_id
+        name_to_id    = {s.get("name"): s.get("_id") for s in disc_services}
+
         is_valid, val_errors = PlanValidator.validate(plan, available_ids)
 
         if not is_valid:
             print(f"[VALIDATION] {len(val_errors)} errore/i:")
             for e in val_errors:
                 print(f"  - {e}")
-            plan     = self._attempt_auto_fix(plan)
+            plan     = self._attempt_auto_fix(plan, available_ids, name_to_id)
             is_valid, val_errors = PlanValidator.validate(plan, available_ids)
             if not is_valid:
                 print("[VALIDATION] Piano non recuperabile.")
