@@ -2,8 +2,7 @@ openapi: 3.0.2
 info:
   title: Smart Bins API
   version: '1.0'
-  description: |
-    API for managing connected waste bins in urban areas. Supports creation, lookup, update, and deletion of waste bins, as well as real-time monitoring of fill levels, collection history, and bin status. Supports filtering by standardized city zones (zoneId), bin type, and operational status, enabling cross-domain orchestration such as prioritizing waste collection in zones with active events or high pedestrian density.
+  description: API for managing connected waste bins in urban areas. Supports creation, lookup, update, and deletion of waste bins, as well as real-time monitoring of fill levels, collection history, and bin status. Supports filtering by standardized city zones (zoneId), bin type, and operational status, enabling cross-domain orchestration such as prioritizing waste collection in zones with active events or high pedestrian density.
   contact:
     name: Smart City Development Team
 servers:
@@ -105,7 +104,7 @@ paths:
                   value: {}
   /bin:
     get:
-      description: Retrieve the list of smart waste bins registered in the city. Use query parameters to filter by zone, status or bin type - for example, to find all overflowing bins in Z-CENTRO or all organic bins requiring collection.
+      description: "Retrieve the list of smart waste bins registered in the city. Use query parameters to filter by zone, status or bin type - for example, to find all overflowing bins in Z-CENTRO or all organic bins requiring collection.\n\n**Mock constraint \u2014 one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported \u2014 only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side."
       summary: Search bins
       x-microcks-operation:
         dispatcher: FALLBACK
@@ -115,10 +114,22 @@ paths:
         in: query
         schema:
           type: string
-        description: Filter bins by city zone identifier (e.g., Z-CENTRO, Z-NORD)
+          enum:
+          - Z-CENTRO
+          - Z-NORD
+          - Z-SUD
+          - Z-EST
+          - Z-OVEST
+        description: 'City zone identifier. Valid values: Z-CENTRO, Z-NORD, Z-SUD, Z-EST, Z-OVEST.'
         examples:
           by_zone_centro:
             value: Z-CENTRO
+          by_zone_nord:
+            value: Z-NORD
+          by_zone_sud:
+            value: Z-SUD
+          by_zone_est:
+            value: Z-EST
       - name: status
         in: query
         schema:
@@ -147,6 +158,14 @@ paths:
         examples:
           by_type_recyclable:
             value: recyclable
+          by_type_general:
+            value: general
+          by_type_organic:
+            value: organic
+          by_type_glass:
+            value: glass
+          by_type_electronic:
+            value: electronic
       responses:
         '200':
           description: List of bins matching the specified filters
@@ -415,18 +434,7 @@ paths:
                     binType: electronic
                     sensorBattery: 55
                     status: maintenance
-                by_status_overflowing:
-                  value:
-                  - id: 3
-                    zoneId: Z-SUD
-                    location: Villa Comunale, Viale dei Rettori, Benevento
-                    fillLevel: 100
-                    lastEmptied: '2025-09-21T06:00:00Z'
-                    nextCollection: '2025-09-25T06:00:00Z'
-                    binType: organic
-                    sensorBattery: 72
-                    status: overflowing
-                by_type_recyclable:
+                by_zone_nord:
                   value:
                   - id: 2
                     zoneId: Z-NORD
@@ -446,6 +454,46 @@ paths:
                     binType: recyclable
                     sensorBattery: 80
                     status: normal
+                by_zone_sud:
+                  value:
+                  - id: 3
+                    zoneId: Z-SUD
+                    location: Villa Comunale, Viale dei Rettori, Benevento
+                    fillLevel: 100
+                    lastEmptied: '2025-09-21T06:00:00Z'
+                    nextCollection: '2025-09-25T06:00:00Z'
+                    binType: organic
+                    sensorBattery: 72
+                    status: overflowing
+                  - id: 7
+                    zoneId: Z-SUD
+                    location: Ospedale San Pio, Ingresso Emergenze, Benevento
+                    fillLevel: 0
+                    lastEmptied: '2025-09-25T06:00:00Z'
+                    nextCollection: '2025-09-27T06:00:00Z'
+                    binType: general
+                    sensorBattery: 0
+                    status: offline
+                by_zone_est:
+                  value:
+                  - id: 4
+                    zoneId: Z-EST
+                    location: Terminal Bus Extraurbani, Piazzale Venanzio Vari, Benevento
+                    fillLevel: 18
+                    lastEmptied: '2025-09-25T05:00:00Z'
+                    nextCollection: '2025-09-27T05:00:00Z'
+                    binType: general
+                    sensorBattery: 95
+                    status: normal
+                  - id: 8
+                    zoneId: Z-EST
+                    location: Via Appia Antica km 243, Benevento
+                    fillLevel: 50
+                    lastEmptied: '2025-09-23T10:00:00Z'
+                    nextCollection: '2025-09-25T10:00:00Z'
+                    binType: electronic
+                    sensorBattery: 55
+                    status: maintenance
     post:
       description: Register a new smart waste bin in the city waste management system.
       summary: Register new bin

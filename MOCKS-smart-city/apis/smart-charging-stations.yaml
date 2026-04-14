@@ -2,8 +2,7 @@ openapi: 3.0.2
 info:
   title: Smart Charging Stations API
   version: '1.0'
-  description: |
-    API for managing EV charging infrastructure across the city. Supports creation, lookup, update, and deletion of charging stations, including real-time availability, active connectors, power output, and pricing. Supports filtering by standardized city zones (zoneId), availability, and charging speed, enabling cross-domain orchestration such as finding a rapid charger in a zone with low traffic congestion or near a tourist attraction.
+  description: API for managing EV charging infrastructure across the city. Supports creation, lookup, update, and deletion of charging stations, including real-time availability, active connectors, power output, and pricing. Supports filtering by standardized city zones (zoneId), availability, and charging speed, enabling cross-domain orchestration such as finding a rapid charger in a zone with low traffic congestion or near a tourist attraction.
   contact:
     name: Smart City Development Team
 servers:
@@ -103,7 +102,7 @@ paths:
                   value: {}
   /charging-station:
     get:
-      description: Retrieve EV charging stations registered in the city. Use query parameters to filter by zone, availability, or charging speed - for example, to find all available rapid chargers in Z-CENTRO, or all stations in a specific zone for mobility planning and EV route optimization.
+      description: "Retrieve EV charging stations registered in the city. Use query parameters to filter by zone, availability, charging speed, or operational status - for example, to find all available rapid chargers in Z-CENTRO, or all stations in a specific zone for mobility planning and EV route optimization.\n\n**Mock constraint \u2014 one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported \u2014 only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side."
       summary: Search charging stations
       x-microcks-operation:
         dispatcher: FALLBACK
@@ -113,10 +112,22 @@ paths:
         in: query
         schema:
           type: string
-        description: Filter charging stations by city zone identifier (e.g., Z-CENTRO)
+          enum:
+          - Z-CENTRO
+          - Z-NORD
+          - Z-SUD
+          - Z-EST
+          - Z-OVEST
+        description: 'City zone identifier. Valid values: Z-CENTRO, Z-NORD, Z-SUD, Z-EST, Z-OVEST.'
         examples:
           by_zone_centro:
             value: Z-CENTRO
+          by_zone_nord:
+            value: Z-NORD
+          by_zone_sud:
+            value: Z-SUD
+          by_zone_est:
+            value: Z-EST
       - name: available
         in: query
         schema:
@@ -125,6 +136,8 @@ paths:
         examples:
           available_true:
             value: true
+          available_false:
+            value: false
       - name: chargingSpeed
         in: query
         schema:
@@ -255,80 +268,6 @@ paths:
                     maxPowerKW: 22.0
                     pricePerKWh: 0.45
                     status: busy
-                'true':
-                  value:
-                  - id: 1
-                    zoneId: Z-CENTRO
-                    location: Parcheggio Via Vittorio Veneto, Benevento
-                    available: true
-                    connectors: 4
-                    activeConnectors: 1
-                    chargingSpeed: fast
-                    maxPowerKW: 22.0
-                    pricePerKWh: 0.45
-                    status: operational
-                  - id: 3
-                    zoneId: Z-EST
-                    location: Terminal Bus Extraurbani, Piazzale Venanzio Vari, Benevento
-                    available: true
-                    connectors: 6
-                    activeConnectors: 0
-                    chargingSpeed: ultra_rapid
-                    maxPowerKW: 150.0
-                    pricePerKWh: 0.75
-                    status: operational
-                  - id: 4
-                    zoneId: Z-SUD
-                    location: Parcheggio Via Appia Antica, Benevento
-                    available: true
-                    connectors: 3
-                    activeConnectors: 1
-                    chargingSpeed: slow
-                    maxPowerKW: 7.4
-                    pricePerKWh: 0.3
-                    status: operational
-                  - id: 6
-                    zoneId: Z-NORD
-                    location: Parcheggio Stadio Vigorito (EV), Benevento
-                    available: true
-                    connectors: 2
-                    activeConnectors: 0
-                    chargingSpeed: fast
-                    maxPowerKW: 22.0
-                    pricePerKWh: 0.4
-                    status: operational
-                'false':
-                  value:
-                  - id: 2
-                    zoneId: Z-NORD
-                    location: Parcheggio Ospedale San Pio, Benevento
-                    available: false
-                    connectors: 2
-                    activeConnectors: 2
-                    chargingSpeed: rapid
-                    maxPowerKW: 50.0
-                    pricePerKWh: 0.55
-                    status: busy
-                  - id: 5
-                    zoneId: Z-CENTRO
-                    location: Parcheggio Piazza Risorgimento (EV), Benevento
-                    available: false
-                    connectors: 4
-                    activeConnectors: 4
-                    chargingSpeed: fast
-                    maxPowerKW: 22.0
-                    pricePerKWh: 0.45
-                    status: busy
-                  - id: 7
-                    zoneId: Z-SUD
-                    location: Via Mustilli - EV Point, Benevento
-                    available: false
-                    connectors: 2
-                    activeConnectors: 0
-                    chargingSpeed: slow
-                    maxPowerKW: 7.4
-                    pricePerKWh: 0.3
-                    status: maintenance
                 available_true:
                   value:
                   - id: 1
@@ -525,7 +464,7 @@ paths:
                     maxPowerKW: 7.4
                     pricePerKWh: 0.3
                     status: maintenance
-                by_speed_rapid:
+                available_false:
                   value:
                   - id: 2
                     zoneId: Z-NORD
@@ -537,28 +476,62 @@ paths:
                     maxPowerKW: 50.0
                     pricePerKWh: 0.55
                     status: busy
-                by_status_operational:
-                  value:
-                  - id: 1
+                  - id: 5
                     zoneId: Z-CENTRO
-                    location: Parcheggio Via Vittorio Veneto, Benevento
-                    available: true
+                    location: Parcheggio Piazza Risorgimento (EV), Benevento
+                    available: false
                     connectors: 4
-                    activeConnectors: 1
+                    activeConnectors: 4
                     chargingSpeed: fast
                     maxPowerKW: 22.0
                     pricePerKWh: 0.45
-                    status: operational
-                  - id: 3
-                    zoneId: Z-EST
-                    location: Terminal Bus Extraurbani, Piazzale Venanzio Vari, Benevento
-                    available: true
-                    connectors: 6
+                    status: busy
+                  - id: 7
+                    zoneId: Z-SUD
+                    location: Via Mustilli - EV Point, Benevento
+                    available: false
+                    connectors: 2
                     activeConnectors: 0
-                    chargingSpeed: ultra_rapid
-                    maxPowerKW: 150.0
-                    pricePerKWh: 0.75
+                    chargingSpeed: slow
+                    maxPowerKW: 7.4
+                    pricePerKWh: 0.3
+                    status: maintenance
+                offline:
+                  value:
+                  - id: 8
+                    zoneId: Z-OVEST
+                    location: Via Santa Colomba - EV Point, Benevento
+                    available: false
+                    connectors: 2
+                    activeConnectors: 0
+                    chargingSpeed: slow
+                    maxPowerKW: 7.4
+                    pricePerKWh: 0.3
+                    status: offline
+                by_zone_nord:
+                  value:
+                  - id: 2
+                    zoneId: Z-NORD
+                    location: Parcheggio Ospedale San Pio, Benevento
+                    available: false
+                    connectors: 2
+                    activeConnectors: 2
+                    chargingSpeed: rapid
+                    maxPowerKW: 50.0
+                    pricePerKWh: 0.55
+                    status: busy
+                  - id: 6
+                    zoneId: Z-NORD
+                    location: Parcheggio Stadio Vigorito (EV), Benevento
+                    available: true
+                    connectors: 2
+                    activeConnectors: 0
+                    chargingSpeed: fast
+                    maxPowerKW: 22.0
+                    pricePerKWh: 0.4
                     status: operational
+                by_zone_sud:
+                  value:
                   - id: 4
                     zoneId: Z-SUD
                     location: Parcheggio Via Appia Antica, Benevento
@@ -569,15 +542,27 @@ paths:
                     maxPowerKW: 7.4
                     pricePerKWh: 0.3
                     status: operational
-                  - id: 6
-                    zoneId: Z-NORD
-                    location: Parcheggio Stadio Vigorito (EV), Benevento
-                    available: true
+                  - id: 7
+                    zoneId: Z-SUD
+                    location: Via Mustilli - EV Point, Benevento
+                    available: false
                     connectors: 2
                     activeConnectors: 0
-                    chargingSpeed: fast
-                    maxPowerKW: 22.0
-                    pricePerKWh: 0.4
+                    chargingSpeed: slow
+                    maxPowerKW: 7.4
+                    pricePerKWh: 0.3
+                    status: maintenance
+                by_zone_est:
+                  value:
+                  - id: 3
+                    zoneId: Z-EST
+                    location: Terminal Bus Extraurbani, Piazzale Venanzio Vari, Benevento
+                    available: true
+                    connectors: 6
+                    activeConnectors: 0
+                    chargingSpeed: ultra_rapid
+                    maxPowerKW: 150.0
+                    pricePerKWh: 0.75
                     status: operational
     post:
       description: Register a new EV charging station in the city mobility system.

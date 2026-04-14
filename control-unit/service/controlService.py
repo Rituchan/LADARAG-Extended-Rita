@@ -30,8 +30,10 @@ class PlanValidator:
         if not isinstance(plan, dict) or "tasks" not in plan:
             return False, ["Missing or invalid 'tasks' array"]
         tasks = plan["tasks"]
-        if not isinstance(tasks, list) or len(tasks) == 0:
-            return False, ["Empty tasks array"]
+        if not isinstance(tasks, list):
+            return False, ["'tasks' must be an array"]
+        if len(tasks) == 0:
+            return True, []   # piano vuoto = query legittimamente insatisfacibile
 
         service_id_set     = set(available_service_ids)
         defined_task_names = set()
@@ -52,7 +54,6 @@ class PlanValidator:
             if sid and sid not in service_id_set and op != "SQL":
                 errors.append(f"{prefix}: unknown service_id '{sid}'")
 
-            op  = task.get("operation", "")
             url = str(task.get("url", ""))
 
             if op and op not in PlanValidator.VALID_OPERATIONS:
@@ -108,7 +109,7 @@ class Controller:
     def analyze_files(self, files: list):
         analyzed = []
         for f in files:
-            filename     = f.filename
+            filename     = os.path.basename(f.filename)   # strip path traversal (es. ../../)
             content_type = f.mimetype or mimetypes.guess_type(filename)[0]
             path         = os.path.join("Files", filename)
             f.save(path)
@@ -122,7 +123,7 @@ class Controller:
             analyzed.append({
                 "filename":     filename,
                 "content_type": content_type,
-                "size":         f.content_length,
+                "size":         f.content_length or 0,
                 "path":         path,
                 "category":     category,
             })
@@ -286,7 +287,7 @@ class Controller:
                                         "input": input_schema or {"type": ["string", "object", "null"]},
                                     },
                                     "required": ["task_name", "service_id", "url", "operation", "input"],
-                                    "additionalProperties": False,
+                                    "additionalProperties": False, #← blocco matematico delle allucinazioni a livello di task
                                 }
                             }
                         },
@@ -320,11 +321,21 @@ class Controller:
 
     def _build_system_prompt(self) -> str:
 
-        # ── EXAMPLE 1: Simple GET with enum filter ────────────────────────────
-        # Domain: smart library (not used in test queries)
-        # Pattern: single GET with a query param that has an enum value
-        ex_get = {
-            "reasoning": "The user wants all library books currently available for loan. I query the smart-library service filtering by status=available.",
+        # ── EXAMPLES ─────────────────────────────────────────────────────────
+        # Only 4 examples, one per structurally distinct pattern family.
+        # Each uses a domain that will NEVER appear in production queries.
+        # Each ends with a WHY comment that explains the abstract principle
+        # so the model generalises to new domains rather than imitating form.
+
+        # ── PATTERN A: single GET with one enum filter ────────────────────────
+        ex_a = {
+            "reasoning": (
+                "DECOMPOSE: available books | "
+                "MAP: smart-library-mock / GET /book | "
+                "CHAIN: none | "
+                "FILTER: status=available (one param, catalog enum) | "
+                "VALIDATE: ✓"
+            ),
             "tasks": [{
                 "task_name":  "get_available_books",
                 "service_id": "smart-library-mock",
@@ -333,36 +344,18 @@ class Controller:
                 "input":      ""
             }]
         }
+        # WHY: when a single filter satisfies the query, one GET is enough.
+        # Use the exact enum value documented in the parameter schema.
 
-        # ── EXAMPLE 2: POST with full required body ───────────────────────────
-        # Domain: smart sports facility (not used in test queries)
-        # Pattern: POST with a complete JSON body including all required fields
-        ex_post = {
-            "reasoning": "The user wants to reserve a sports court. I call the smart-sports-facility service with the reservation details as a POST body.",
-            "tasks": [{
-                "task_name":  "create_reservation",
-                "service_id": "smart-sports-facility-mock",
-                "url":        "http://mock-server:8080/rest/Smart+Sports+Facility+API/1.0/reservation",
-                "operation":  "POST",
-                "input": {
-                    "zoneId":      "Z-NORD",
-                    "facilityId":  3,
-                    "sport":       "tennis",
-                    "courtNumber": 2,
-                    "userName":    "Marco Verdi",
-                    "date":        "2025-09-26",
-                    "startTime":   "10:00",
-                    "endTime":     "11:00",
-                    "status":      "confirmed"
-                }
-            }]
-        }
-
-        # ── EXAMPLE 3: JMESPath filter + path param injection ─────────────────
-        # Domain: smart hospital (not used in test queries)
-        # Pattern: GET list → filter by field → inject id into PUT url
-        ex_chain_single = {
-            "reasoning": "The user wants to discharge a specific patient named Rossi. I GET all patients, filter by surname using JMESPath, and inject the patient id directly into the PUT url to update their status.",
+        # ── PATTERN B: GET list → JMESPath id extraction → PUT path param ────
+        ex_b = {
+            "reasoning": (
+                "DECOMPOSE: find patient Rossi → set discharged | "
+                "MAP: smart-hospital-mock / GET /patient + PUT /patient/{id} | "
+                "CHAIN: PUT path ← get_all_patients[?surname=='Rossi'] | [0].id | "
+                "FILTER: surname match via JMESPath, not query param | "
+                "VALIDATE: ✓ id in path, ✓ no bare placeholders"
+            ),
             "tasks": [
                 {
                     "task_name":  "get_all_patients",
@@ -386,12 +379,19 @@ class Controller:
                 }
             ]
         }
+        # WHY: inject chained ids directly into the url path string.
+        # Use [?key=='val'] | [0].field (pipe is required for a single result).
+        # Never add a redundant GET-by-id when the id is already in a prior result.
 
-        # ── EXAMPLE 4: Multi-zone JOIN ────────────────────────────────────────
-        # Domain: smart university campus (not used in test queries)
-        # Pattern: GET list → extract ALL zoneIds → pass as zoneIds to second service
-        ex_chain_multivalore = {
-            "reasoning": "The user wants food services near occupied lecture halls. I get all lecture halls with status=occupied, collect ALL their zoneIds, and pass them to the canteen service to find nearby options.",
+        # ── PATTERN C: GET with filter → collect all zoneIds → zoneIds join ──
+        ex_c = {
+            "reasoning": (
+                "DECOMPOSE: canteens near occupied halls | "
+                "MAP: smart-campus-mock / GET /lecture-hall + GET /canteen | "
+                "CHAIN: canteen?zoneIds ← get_occupied_halls[*].zoneId | join(',',@) | "
+                "FILTER: lecture-hall → status=occupied; canteen → zoneIds param documented | "
+                "VALIDATE: ✓ join on string field, ✓ zoneIds in catalog"
+            ),
             "tasks": [
                 {
                     "task_name":  "get_occupied_halls",
@@ -403,215 +403,211 @@ class Controller:
                 {
                     "task_name":  "get_canteens_near_halls",
                     "service_id": "smart-campus-mock",
-                    "url":        "http://mock-server:8080/rest/Smart+University+Campus+API/1.0/canteen?zoneIds={{get_occupied_halls[*].zoneId | join(',', @)}}&open=true",
+                    "url":        "http://mock-server:8080/rest/Smart+University+Campus+API/1.0/canteen?zoneIds={{get_occupied_halls[*].zoneId | join(',', @)}}",
                     "operation":  "GET",
                     "input":      ""
                 }
             ]
         }
+        # WHY: when a second service needs zones from a first result, collect ALL
+        # zoneIds with [*].zoneId | join(',', @) and pass them as a single zoneIds param.
+        # Use zoneIds only if the endpoint description documents that parameter.
 
-        # ── EXAMPLE 5: Boolean filter + JOIN ──────────────────────────────────
-        # Domain: smart agriculture (not used in test queries)
-        # Pattern: GET with boolean filter → extract zoneIds → second service
-        ex_chain_alert = {
-            "reasoning": "The user wants irrigation controllers in zones where soil moisture alerts are active. I get all soil sensors with alertActive=true, collect their zoneIds, and query irrigation controllers in those zones.",
+        # ── PATTERN D: two GETs → SQL for join / rank / aggregation ──────────
+        ex_d = {
+            "reasoning": (
+                "DECOMPOSE: rank warehouses by avg temp per zone | "
+                "MAP: smart-logistics-mock / GET /warehouse + GET /thermometer | "
+                "CHAIN: SQL joins both on zoneId | "
+                "FILTER: no query params; avg+rank → SQL | "
+                "VALIDATE: ✓ table names = task names, ✓ no {{}} in SQL"
+            ),
             "tasks": [
                 {
-                    "task_name":  "get_dry_soil_zones",
-                    "service_id": "smart-agriculture-mock",
-                    "url":        "http://mock-server:8080/rest/Smart+Agriculture+Monitoring+API/1.0/soil-sensor?alertActive=true",
+                    "task_name":  "get_warehouses",
+                    "service_id": "smart-logistics-mock",
+                    "url":        "http://mock-server:8080/rest/Smart+Logistics+API/1.0/warehouse",
                     "operation":  "GET",
                     "input":      ""
                 },
                 {
-                    "task_name":  "get_irrigation_in_dry_zones",
-                    "service_id": "smart-agriculture-mock",
-                    "url":        "http://mock-server:8080/rest/Smart+Agriculture+Monitoring+API/1.0/irrigation-controller?zoneIds={{get_dry_soil_zones[*].zoneId | join(',', @)}}",
-                    "operation":  "GET",
-                    "input":      ""
-                }
-            ]
-        }
-
-        # ── EXAMPLE 6: OR filter on same field + JOIN ─────────────────────────
-        # Domain: smart logistics (not used in test queries)
-        # Pattern: GET all (no filter) → OR filter in JMESPath → join zoneIds
-        # KEY: when filtering on multiple values of the same field,
-        # use ONE GET + JMESPath OR instead of two separate GETs
-        ex_or_filter = {
-            "reasoning": "The user wants trucks in zones with critically loaded waste bins (full or overflowing). Instead of two separate GETs, I query all bins in one call and apply a JMESPath OR filter to collect zoneIds, then find available trucks in those zones.",
-            "tasks": [
-                {
-                    "task_name":  "get_urgent_bins",
+                    "task_name":  "get_thermometers",
                     "service_id": "smart-logistics-mock",
-                    "url":        "http://mock-server:8080/rest/Smart+Logistics+and+Fleet+API/1.0/waste-bin",
+                    "url":        "http://mock-server:8080/rest/Smart+Logistics+API/1.0/thermometer",
                     "operation":  "GET",
                     "input":      ""
                 },
                 {
-                    "task_name":  "get_trucks_for_urgent_zones",
-                    "service_id": "smart-logistics-mock",
-                    "url":        "http://mock-server:8080/rest/Smart+Logistics+and+Fleet+API/1.0/collection-truck?zoneIds={{get_urgent_bins[?status=='full' || status=='overflowing'].zoneId | join(',', @)}}&available=true",
-                    "operation":  "GET",
-                    "input":      ""
+                    "task_name":  "rank_by_avg_temp",
+                    "service_id": "sql-processor",
+                    "url":        "",
+                    "operation":  "SQL",
+                    "input":      {"sql_query": "SELECT w.id, w.name, w.zoneId, AVG(t.lastReading) AS avg_temp FROM get_warehouses w JOIN get_thermometers t ON w.zoneId = t.zoneId GROUP BY w.id, w.name, w.zoneId ORDER BY avg_temp DESC"}
                 }
             ]
         }
-
-        # ── EXAMPLE 7: Substring match → path param injection ──────────────
-        # Domain: smart hotel (not used in test queries)
-        # Pattern: GET list → contains() filter on composite field → inject id in PUT url
-        # KEY: use contains() when the field value may include extra text (e.g. addresses)
-        ex7 = {
-                "reasoning": "The user wants to update the cleaning status of the room near 'Suite Deluxe'. I GET all rooms, use contains() to find the one whose name includes 'Suite Deluxe', extract its id, and inject it into the PUT url.",
-                "tasks": [
-                        {
-                                "task_name": "get_all_rooms",
-                                "service_id": "smart-hotel-mock",
-                                "url": "http://mock-server:8080/rest/Smart+Hotel+Management+API/1.0/room",
-                                "operation": "GET",
-                                "input": ""
-                        },
-                        {
-                                "task_name": "update_room_cleaning",
-                                "service_id": "smart-hotel-mock",
-                                "url": "http://mock-server:8080/rest/Smart+Hotel+Management+API/1.0/room/{{get_all_rooms[?contains(name, 'Suite Deluxe')] | [0].id}}",
-                                "operation": "PUT",
-                                "input": {
-                                        "cleaningStatus": "in_progress",
-                                        "assignedStaff": "Maria Rossi"
-                                }
-                        }
-                ]
-        }
+        # WHY: use SQL whenever the operation is a join of two datasets, aggregation
+        # (avg/sum/count), ranking, grouping, set intersection, or set difference.
+        # Reference prior task results by their task_name directly as table names.
+        # Never use {{}} placeholders inside a sql_query string.
 
         examples_str = (
-            f"EXAMPLE 1 — Simple GET with enum filter:\n{json.dumps(ex_get, indent=2)}\n\n"
-            f"EXAMPLE 2 — POST with full body:\n{json.dumps(ex_post, indent=2)}\n\n"
-            f"EXAMPLE 3 — JMESPath filter + path param injection:\n{json.dumps(ex_chain_single, indent=2)}\n\n"
-            f"EXAMPLE 4 — Multi-zone JOIN (collect ALL zones, pass as comma-separated):\n{json.dumps(ex_chain_multivalore, indent=2)}\n\n"
-            f"EXAMPLE 5 — Boolean filter + JOIN:\n{json.dumps(ex_chain_alert, indent=2)}\n\n"
-            f"EXAMPLE 6 — OR filter on same field (ONE GET + JMESPath, not two GETs):\n{json.dumps(ex_or_filter, indent=2)}\n\n"
-            f"EXAMPLE 7 — Substring match on composite field (contains) + path param injection:\n{json.dumps(ex7, indent=2)}"
+            f"EXAMPLE A — single GET with enum filter:\n{json.dumps(ex_a, indent=2)}\n\n"
+            f"EXAMPLE B — GET list → JMESPath id extraction → PUT path param:\n{json.dumps(ex_b, indent=2)}\n\n"
+            f"EXAMPLE C — GET with filter → collect zoneIds → multi-zone GET:\n{json.dumps(ex_c, indent=2)}\n\n"
+            f"EXAMPLE D — two GETs → SQL join/rank/aggregate:\n{json.dumps(ex_d, indent=2)}"
         )
 
-        return f"""You are an API orchestrator for a distributed Smart City system.
-Given a user query and a catalog of available services, produce ONLY a valid JSON execution plan.
+        return f"""<role>
+You are an API orchestrator for a distributed system.
+Given a user query and a service catalog, produce ONLY a valid JSON execution plan.
+</role>
 
-─────────────────────────────────────────────────────────────────────────────
-CHAINING — JMESPath syntax inside {{{{...}}}}
-─────────────────────────────────────────────────────────────────────────────
-Format: {{{{task_name<jmespath_expression>}}}}
-The JMESPath expression runs on the JSON result of the named previous task.
+<output_contract>
+- Output ONLY raw JSON. Zero prose, zero markdown fences, nothing outside the JSON object.
+- Top-level schema: {{"reasoning": "string", "tasks": [...]}}
+- Every task must have exactly these five keys: task_name, service_id, url, operation, input.
+- If the query cannot be satisfied with the available services, output:
+  {{"reasoning": "No available service can fulfil this request.", "tasks": []}}
+</output_contract>
 
-CHEAT SHEET:
-  Simple field:            {{{{task.field}}}}
-  Nested field:            {{{{task.nested.field}}}}
-  Array index:             {{{{task[0].field}}}}
-  All values of a field:   {{{{task[*].field}}}}
-  Single field list:       {{{{task[*].zoneId}}}}
-  Filter + first element:  {{{{task[?key=='value'] | [0].field}}}}
-  First match available:   {{{{task[?available==`true`] | [0].id}}}}
-  Number filter + first:   {{{{task[?pricePerHour==`0.0`] | [0].id}}}}
-  Substring match:         {{{{task[?contains(description, 'urgent')] | [0].id}}}}
-  Multi-zone join:         {{{{task[*].zoneId | join(',', @)}}}}
-  Filter + join:           {{{{task[?status=='open'].zoneId | join(',', @)}}}}
-  Boolean filter + join:   {{{{task[?available==`true`].zoneId | join(',', @)}}}}
-  OR filter + join:        {{{{task[?field=='a' || field=='b'].zoneId | join(',', @)}}}}
-  Count matches:           {{{{task[?alertActive==`true`] | length(@)}}}}
-  Sort ascending (min):    {{{{task | sort_by(@, &waitingTimeMinutes)[0].id}}}}
-  Sort descending (max):   {{{{task | sort_by(@, &fillLevel)[-1].id}}}}
-  Min element:             {{{{min_by(task, &fillLevel).id}}}}
-  Max element:             {{{{max_by(task, &fillLevel).id}}}}
+<grounding_rule> 
+The catalog below is the ONLY source of truth for services, endpoints, parameters, and field names.
+Treat it as a closed world: if something is not in the catalog, it does not exist.
+Never invent, guess, or extrapolate service IDs, endpoint paths, parameter names, or field names.
+</grounding_rule>
 
-CRITICAL JMESPATH RULES:
-  - join(',', @) ONLY works on string fields (e.g. zoneId). NEVER use it on integer fields (e.g. id).
-  - To get the first match after a filter, ALWAYS use the pipe: [?key=='val'] | [0].field
-    WITHOUT pipe ([?key=='val'][0].field) returns empty — this is a known Python jmespath limitation.
-  - [?filter].field extracts a field from all matching items (returns list).
-  - [?filter] | [0].field gets a single field from the first match only.
-  - [?field==`null`] matches items where the field is absent OR explicitly null — use with caution.
-  - Use contains(field, 'substring') for partial string matches (e.g. location contains a street name).
-    NEVER use == for fields that may contain extra text like addresses or descriptions.
-  - min_by/max_by take the task name as first argument: min_by(task_name, &field).field
+<reasoning_protocol>
+Write the "reasoning" value BEFORE the tasks array.
+Use CHAIN OF DRAFT format: one line per phase, keywords only, no full sentences.
 
-POST-PROCESSING — inline JMESPath vs SQL task:
-  Use JMESPath inline when: simple filter, first/last element, join comma-separated IDs.
-  Use a SQL task when: joining two datasets, avg/sum/stddev, set operations (intersect/diff),
-  multi-criteria ranking, grouping, or any operation JMESPath cannot express.
+  DECOMPOSE: <what data is needed>
+  MAP:       <service-id / method endpoint> for each need
+  CHAIN:     <task_name[jmespath]> for each dependency, or "none"
+  FILTER:    <which param per GET, threshold logic if any>
+  VALIDATE:  ✓ / list any issue found and how it is fixed
 
-  SQL TASK SYNTAX:
-    {{
-      "task_name": "your_task_name",
-      "service_id": "sql-processor",
-      "operation": "SQL",
-      "url":        "",
-      "input":      {{"sql_query": "SELECT ... FROM previous_task_name WHERE ..."}}
-    }}
+COMMIT RULE: write each phase once and move on.
+Do not use "wait", "actually", "or perhaps", "however", "but".
+If the correct interpretation is ambiguous, pick the most literal reading and commit.
+</reasoning_protocol>
 
-  - The SQL query MUST be inside an object with key "sql_query". Never a plain string.
-  - NEVER use SQL reserved keywords as task_name (e.g. order, group, select, user, table, index). Use descriptive names like get_orders, group_results.
-  - Each previous task result is available as a table named after its task_name.
-  - Use standard SQL (DuckDB dialect): JOIN, GROUP BY, ORDER BY, LIMIT, AVG, COUNT, etc.
-  - Reference previous tasks directly by task_name as table name (no {{{{}}}} placeholders needed).
+<hard_constraints>
+These rules are absolute and may never be violated.
 
-  SQL EXAMPLES:
-    Sort + top-N:   {{"sql_query": "SELECT * FROM get_sensors ORDER BY lastReading ASC LIMIT 1"}}
-    Join:           {{"sql_query": "SELECT a.*, b.congestionLevel FROM get_parking a JOIN get_traffic b ON a.zoneId = b.zoneId"}}
-    Aggregate:      {{"sql_query": "SELECT zoneId, AVG(lastReading) as avg_aqi FROM get_sensors GROUP BY zoneId"}}
-    Intersect:      {{"sql_query": "SELECT * FROM get_bins WHERE zoneId IN (SELECT zoneId FROM get_traffic WHERE congestionLevel='high')"}}
-    Diff:           {{"sql_query": "SELECT * FROM get_zones WHERE zoneId NOT IN (SELECT zoneId FROM get_stations)"}}
+HC-1  CLOSED WORLD
+      Use only services, endpoints, parameters, and field names present in the catalog.
 
-  NEVER add a duplicate GET task just to sort or filter already-fetched data.
+HC-2  NO UNRESOLVED PLACEHOLDERS
+      Every url must be fully resolved. {{id}}, {{zoneId}} and similar bare placeholders
+      are forbidden. Use chaining expressions {{{{task<expr>}}}} or literal values only.
 
-SYNTAX RULES:
-  - String values  → single quotes:  [?status=='open']
-  - Booleans       → backticks:      [?available==`true`]
-  - Numbers        → backticks:      [?pricePerHour==`1.5`]
-  - Null           → backticks:      [?incidentId==`null`]
+HC-3  REQUIRED KEYS
+      Every task must have: task_name, service_id, url, operation, input.
+      service_id must be the exact SERVICE_ID string from the catalog (not the name).
 
-MULTI-ZONE QUERIES — use zoneIds (comma-separated) when querying multiple zones:
-  url=".../parking-spot?zoneIds={{{{get_attractions[*].zoneId | join(',', @)}}}}&available=true"
-  Services supporting ?zoneIds=: parking-spot, attraction, sensor, traffic-sensor,
-  light, bin, charging-station, building, emergency-unit, vehicle, citizen-report.
+HC-4  REQUIRED PARAMETERS
+      Parameters marked * in the catalog are required and must appear in every url.
 
-CRITICAL FOR PATH PARAMETERS — inject chaining directly in the URL string:
-  RIGHT: url=".../light/{{{{get_lights[?location=='Corso Garibaldi'] | [0].id}}}}"
-  WRONG: url=".../light/{{id}}", input={{"id": "{{{{get_lights[0].id}}}}"}}
+HC-5  OPERATION VALUES
+      operation must be exactly one of: GET  POST  PUT  DELETE  SQL
 
-─────────────────────────────────────────────────────────────────────────────
-EXAMPLES — study these patterns carefully:
-─────────────────────────────────────────────────────────────────────────────
+HC-6  URL RULES
+      - Non-SQL tasks: url must start with http:// and be non-empty.
+      - SQL tasks: url must be an empty string "".
+
+HC-7  NO DUPLICATE CALLS
+      Never build a task that calls the same url+service as an earlier task.
+      Reuse earlier results via JMESPath or a SQL task instead.
+
+HC-8  NO CONCATENATED PLACEHOLDERS
+      Never write ?param={{{{task1[*].f | join(',',@)}}}},{{{{task2[*].f | join(',',@)}}}}
+      Collect all needed data in one prior task and filter with a JMESPath OR expression.
+
+HC-9  PARAMETER VALUES FROM CATALOG
+      When setting a query parameter value, copy it verbatim from the catalog's parameter
+      examples or enum list — never from the user's query text. The user may use different
+      casing, abbreviations, or synonyms. The catalog value is always authoritative.
+      Example: if the catalog shows zoneId example "Z-CENTRO" and the user writes
+      "z-centro" or "centro", use "Z-CENTRO".
+</hard_constraints>
+
+<soft_constraints>
+These are defaults. They yield only when the catalog's endpoint description explicitly says otherwise.
+
+SC-1  SINGLE QUERY PARAM PER GET  (default)
+      Build each GET url with at most one query parameter.
+      Exception: if the endpoint description in the catalog explicitly states it supports
+      combined filtering (e.g. "you can filter by both X and Y simultaneously"), you may
+      combine parameters. When uncertain, use one param and apply the second via JMESPath.
+
+SC-2  MULTI-ZONE QUERIES
+      When an endpoint's description documents a ?zoneIds= parameter for multi-zone queries,
+      pass zones from a prior task as: ?zoneIds={{{{prev[*].zoneId | join(',', @)}}}}
+
+SC-3  PATH PARAMETER INJECTION
+      Inject ids and keys directly into the url string using chaining syntax.
+      Never put them in the input field.
+
+SC-4  SQL VS JMESPATH DECISION
+      Use JMESPath for: filter, first/last match, comma-join of a string field.
+      Use SQL for: join of two datasets, avg/sum/count/grouping, ranking, set intersect/diff,
+      or any operation JMESPath cannot express in one expression.
+</soft_constraints>
+
+<self_check>
+Before writing the final JSON, verify every item below:
+
+  □ Every service_id is copied verbatim from the catalog's SERVICE_ID field.
+  □ Every endpoint path is copied verbatim from the catalog.
+  □ Every parameter name is copied verbatim from the catalog (no guessing synonyms).
+  □ No url contains bare {{...}} unless it is a valid chaining expression {{{{task<expr>}}}}.
+  □ No GET url combines multiple query params unless the endpoint description allows it.
+  □ All required (*) parameters are present in every url.
+  □ No two tasks call the same url+service.
+  □ SQL tasks have url="" and input={{"sql_query":"..."}}.
+  □ Non-SQL tasks have a non-empty url starting with http://.
+  □ If any catalog lookup failed in PHASE 2, tasks is an empty array [].
+</self_check>
+
+<jmespath_reference>
+Syntax: {{{{task_name<expr>}}}}  — expr is evaluated on the JSON result of task_name.
+
+  All field values:          {{{{t[*].field}}}}
+  Filter + first result:     {{{{t[?key=='val'] | [0].field}}}}    ← pipe required
+  Boolean filter:            {{{{t[?flag==`true`].field}}}}
+  Number filter:             {{{{t[?price==`1.5`].field}}}}
+  Null check:                {{{{t[?field==`null`]}}}}
+  Substring match:           {{{{t[?contains(field,'text')] | [0].id}}}}
+  Multi-zone join:           {{{{t[*].zoneId | join(',', @)}}}}    ← string fields only
+  Filter + join:             {{{{t[?status=='open'].zoneId | join(',', @)}}}}
+  OR filter + join:          {{{{t[?a=='x' || a=='y'].zoneId | join(',', @)}}}}
+  Min element:               {{{{min_by(t, &field).id}}}}
+  Sort + first:              {{{{t | sort_by(@, &field)[0].id}}}}
+
+CRITICAL: join(',', @) works only on string fields. Never use it on integers.
+CRITICAL: [?k=='v'] | [0].field  — the pipe is mandatory to extract a single value.
+</jmespath_reference>
+
+<examples>
+Study the WHY comment after each example. It states the abstract principle.
+Apply the principle to any domain — do not imitate the specific services or field names.
+
 {examples_str}
+</examples>
 
-─────────────────────────────────────────────────────────────────────────────
-RULES (in order of priority):
-─────────────────────────────────────────────────────────────────────────────
-1.  Use "reasoning" to think step-by-step: identify services, dependencies, and JMESPath expressions before writing tasks.
-2.  Use ONLY the provided services, endpoints, parameters, and schemas. Never invent.
-3.  Tasks execute sequentially. Use {{{{task_name<jmespath>}}}} for chaining.
-4.  For path params: inject directly into the url string (see EXAMPLE 3).
-5.  For query params: append to url as ?key=value (never in input field).
-6.  For multi-zone queries: use join(',', @) and the zoneIds param (see EXAMPLE 4).
-7.  Use RESPONSE SCHEMAS for exact field names when chaining. Never guess.
-8.  Use REQUEST SCHEMAS for POST/PUT bodies. Fields marked * are required.
-9.  operation must be exactly one of: GET, POST, PUT, DELETE, SQL.
-10. Every task MUST have a non-empty url starting with http://, EXCEPT SQL tasks (url must be empty string).
-11. Required keys per task: task_name, service_id, url, operation, input.
-    service_id MUST be exactly the SERVICE_ID value shown in the catalog (e.g. 'smart-traffic-monitoring-mock').
-    NEVER use the NAME field as service_id.
-12. NEVER create an intermediate GET-by-ID if the ID is already available.
-13. PARAMETERS marked * are REQUIRED and must appear in the url.
-14. NEVER return a url with unresolved placeholders like {{id}} or {{zoneId}}.
-16. NEVER add a duplicate task that calls the same url+service as a previous task.
-    Use JMESPath chaining on the existing result or add a SQL task instead.
-17. For operations JMESPath cannot do (join, avg, group, rank, intersect, diff),
-    add a SQL task (operation: SQL, service_id: sql-processor, url: "").
-    Write standard SQL in the input field. Use task names as table names directly.
-15. NEVER concatenate two {{{{}}}} placeholders in the same URL param value:
-    WRONG: ?zoneIds={{{{task1[*].zoneId | join(',', @)}}}},{{{{task2[*].zoneId | join(',', @)}}}}
-    RIGHT: query all data in ONE prior task, then filter with JMESPath OR:
-           ?zoneIds={{{{get_all[?level=='high' || level=='critical'].zoneId | join(',', @)}}}}"""
+<sql_reference>
+SQL tasks use DuckDB dialect. Reference prior task results by task_name as table name.
+Never use {{{{}}}} placeholders inside the sql_query string.
+NEVER use SQL reserved words as task_name (e.g. order, group, select, index, table, user).
+
+Common patterns:
+  Sort + top-N:   SELECT * FROM get_items ORDER BY field ASC LIMIT 1
+  Join:           SELECT a.*, b.field FROM task_a a JOIN task_b b ON a.zoneId = b.zoneId
+  Aggregate:      SELECT zoneId, AVG(reading) AS avg FROM get_sensors GROUP BY zoneId
+  Intersect:      SELECT * FROM task_a WHERE zoneId IN (SELECT zoneId FROM task_b WHERE cond)
+  Difference:     SELECT * FROM task_a WHERE zoneId NOT IN (SELECT zoneId FROM task_b)
+</sql_reference>"""
 
     # ------------------------------------------------------------------
     # USER PROMPT
@@ -813,10 +809,14 @@ QUERY:
             # ── Normalizza concatenazione malformata generata dall'LLM ──────────
             # Pattern errato: {{A},{{B}}  (manca un } prima della virgola)
             # Pattern atteso: {{A}},{{B}} (due placeholder distinti)
-            # Causa: il modello chiude il primo con } invece di }} per concatenare
-            if '},{{'  in data and '}},{{'  not in data:
+            # Causa: il modello chiude il primo con } invece di }} per concatenare.
+            # Fix scoped: cerca solo la sequenza "},{{" che NON sia già preceduta da "}"
+            # (cioè non già corretta come "}},{{"), evitando false sostituzioni su
+            # caratteri "},{" legittimi fuori dai placeholder.
+            fixed = re.sub(r'(?<!\})\},(\{\{)', r'}},\1', data)
+            if fixed != data:
                 print(f"[PLACEHOLDER FIX] Malformed concatenation normalized in: {data[:80]}")
-                data = data.replace('},{{'  , '}},{{'  )
+                data = fixed
 
             matches = re.findall(r'\{\{(.*?)\}\}', data)
             if not matches:
@@ -875,7 +875,10 @@ QUERY:
             if operation == "GET":
                 async with session.get(endpoint) as resp:
                     status = resp.status
-                    result = await resp.json()
+                    try:
+                        result = await resp.json()
+                    except Exception:
+                        result = await resp.text()
                     response_result.update({
                         "status":      "SUCCESS" if status in (200, 201, 204) else "ERROR",
                         "status_code": status,
@@ -884,32 +887,45 @@ QUERY:
 
             elif operation in ("POST", "PUT", "PATCH"):
                 if tag_matches:
-                    form_data = aiohttp.FormData()
+                    form_data  = aiohttp.FormData()
+                    open_files = []   # traccia file aperti per chiuderli dopo la request
                     for tag_type, tag_content in tag_matches:
                         tag_content = tag_content.strip()
                         if tag_type == "FILE":
                             file_path = os.path.join("Files", tag_content)
                             if os.path.exists(file_path):
+                                file_obj = open(file_path, "rb")
+                                open_files.append(file_obj)
                                 form_data.add_field(
-                                    "file", open(file_path, "rb"),
+                                    "file", file_obj,
                                     filename=tag_content,
                                     content_type=mimetypes.guess_type(file_path)[0]
                                                  or "application/octet-stream"
                                 )
                         elif tag_type == "TEXT":
                             form_data.add_field("data", tag_content, content_type="application/json")
-                    async with session.request(operation, endpoint, data=form_data) as resp:
-                        status = resp.status
-                        result = await resp.json()
-                        response_result.update({
-                            "status": "SUCCESS" if status in (200, 201, 204) else "ERROR",
-                            "status_code": status, "result": result,
-                        })
+                    try:
+                        async with session.request(operation, endpoint, data=form_data) as resp:
+                            status = resp.status
+                            try:
+                                result = await resp.json()
+                            except Exception:
+                                result = await resp.text()
+                            response_result.update({
+                                "status": "SUCCESS" if status in (200, 201, 204) else "ERROR",
+                                "status_code": status, "result": result,
+                            })
+                    finally:
+                        for f in open_files:
+                            f.close()
                 else:
                     payload = input_data if isinstance(input_data, dict) else {}
                     async with session.request(operation, endpoint, json=payload) as resp:
                         status = resp.status
-                        result = await resp.json()
+                        try:
+                            result = await resp.json()
+                        except Exception:
+                            result = await resp.text()
                         response_result.update({
                             "status": "SUCCESS" if status in (200, 201, 204) else "ERROR",
                             "status_code": status, "result": result,
@@ -989,7 +1005,16 @@ QUERY:
 
         try:
             conn = duckdb.connect()   # database in-memory, isolato per ogni task
+        except Exception as e:
+            return {
+                "task_name":   task_name,
+                "operation":   "SQL",
+                "status":      "ERROR",
+                "status_code": 500,
+                "result":      f"DuckDB connect error: {e}",
+            }
 
+        try:
             # Registra ogni risultato precedente come tabella DuckDB
             for tbl, data in context.items():
                 safe_name = safe_tbl(tbl)
@@ -1028,7 +1053,6 @@ QUERY:
                     row_dict[col] = val
                 result.append(row_dict)
 
-            conn.close()
             print(f"[SQL] Task '{task_name}' completato — {len(result)} righe.")
             return {
                 "task_name":   task_name,
@@ -1064,6 +1088,9 @@ QUERY:
                 "status_code": 500,
                 "result":      error_msg,
             }
+
+        finally:
+            conn.close()   # garantisce chiusura anche in caso di eccezione
 
     async def trigger_agents_async(self, agents: dict, discovered_services):
         results = []
@@ -1244,7 +1271,8 @@ QUERY:
             plan     = self._attempt_auto_fix(plan, available_ids, name_to_id)
             is_valid, val_errors = PlanValidator.validate(plan, available_ids)
             if not is_valid:
-                print("[VALIDATION] Piano non recuperabile.")
+                print("[VALIDATION] Piano non recuperabile — esecuzione annullata.")
+                plan["tasks"] = []   # svuota i task per evitare esecuzioni parziali malformate
 
         results = self.trigger_agents(plan, disc_services)
 

@@ -2,8 +2,7 @@ openapi: 3.0.2
 info:
   title: Smart Environment and Temperature Sensors API
   version: '1.0'
-  description: |
-    API for environmental monitoring across the city. Provides real-time data on ambient temperature (Celsius), air quality (AQI), humidity, noise, and weather alerts. Crucial for querying weather conditions or triggering cross-domain actions (e.g., imposing traffic limits during high pollution or frost). Supports querying by standardized city zone, sensor type, active alert status, and operational status to identify faulty or low-battery sensors requiring maintenance.
+  description: API for environmental monitoring across the city. Provides real-time data on ambient temperature (Celsius), air quality (AQI), humidity, noise, and weather alerts. Crucial for querying weather conditions or triggering cross-domain actions (e.g., imposing traffic limits during high pollution or frost). Supports querying by standardized city zone, sensor type, active alert status, and operational status to identify faulty or low-battery sensors requiring maintenance.
   contact:
     name: Smart City Development Team
 servers:
@@ -126,7 +125,7 @@ paths:
                   value: {}
   /sensor:
     get:
-      description: 'Retrieve environmental sensors deployed across the city. Use query parameters to filter by zone, sensor type, alert status, or operational status - for example to find all active air quality sensors in Z-CENTRO with an active alert, all noise sensors across the city, or all sensors in fault/maintenance state for servicing. '
+      description: "Retrieve environmental sensors deployed across the city. Use query parameters to filter by zone, sensor type, alert status, or operational status - for example to find all active air quality sensors in Z-CENTRO with an active alert, all noise sensors across the city, or all sensors in fault/maintenance state for servicing.\n\n**Mock constraint \u2014 one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported \u2014 only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side."
       summary: Search environmental sensors
       x-microcks-operation:
         dispatcher: FALLBACK
@@ -136,10 +135,22 @@ paths:
         in: query
         schema:
           type: string
-        description: Filter sensors by city zone identifier (e.g., Z-CENTRO)
+          enum:
+          - Z-CENTRO
+          - Z-NORD
+          - Z-SUD
+          - Z-EST
+          - Z-OVEST
+        description: 'City zone identifier. Valid values: Z-CENTRO, Z-NORD, Z-SUD, Z-EST, Z-OVEST.'
         examples:
           by_zone_centro:
             value: Z-CENTRO
+          by_zone_nord:
+            value: Z-NORD
+          by_zone_sud:
+            value: Z-SUD
+          by_zone_est:
+            value: Z-EST
       - name: sensorType
         in: query
         schema:
@@ -166,6 +177,8 @@ paths:
             value: pressure
           wind_speed:
             value: wind_speed
+          light:
+            value: light
       - name: alertActive
         in: query
         schema:
@@ -174,6 +187,8 @@ paths:
         examples:
           alert_active_true:
             value: true
+          alert_active_false:
+            value: false
       - name: status
         in: query
         schema:
@@ -184,8 +199,7 @@ paths:
           - maintenance
           - low_battery
           - fault
-        description: |
-          Filter by operational status - use 'active' for reliable readings, 'fault' or 'maintenance' to identify sensors needing service, 'low_battery' to prioritize battery replacements
+        description: Filter by operational status - use 'active' for reliable readings, 'fault' or 'maintenance' to identify sensors needing service, 'low_battery' to prioritize battery replacements
         examples:
           active_only:
             value: active
@@ -459,7 +473,7 @@ paths:
                     batteryLevel: 71
                     lastUpdated: '2025-09-25T10:25:00Z'
                     status: active
-                'true':
+                alertActive_true:
                   value:
                   - id: 5
                     zoneId: Z-NORD
@@ -485,7 +499,7 @@ paths:
                     batteryLevel: 40
                     lastUpdated: '2025-09-25T10:10:00Z'
                     status: active
-                'false':
+                alertActive_false:
                   value:
                   - id: 1
                     zoneId: Z-CENTRO
@@ -534,6 +548,98 @@ paths:
                     alertReason: NONE
                     batteryLevel: 77
                     lastUpdated: '2025-09-25T09:30:00Z'
+                    status: active
+                light:
+                  value:
+                  - id: 12
+                    zoneId: Z-CENTRO
+                    location: "Piazza Duomo - Sensore Luminosit\xE0, Benevento"
+                    sensorType: light
+                    lastReading: 320.0
+                    readingUnit: lux
+                    threshold: 50.0
+                    alertActive: false
+                    alertReason: NONE
+                    batteryLevel: 85
+                    lastUpdated: '2025-09-25T10:00:00Z'
+                    status: active
+                by_zone_nord:
+                  value:
+                  - id: 2
+                    zoneId: Z-NORD
+                    location: Stadio Ciro Vigorito, Benevento
+                    sensorType: temperature
+                    lastReading: 18.2
+                    readingUnit: Celsius
+                    threshold: 38.0
+                    alertActive: false
+                    alertReason: NONE
+                    batteryLevel: 62
+                    lastUpdated: '2025-09-25T09:45:00Z'
+                    status: active
+                  - id: 5
+                    zoneId: Z-NORD
+                    location: Via Posillipo, Benevento
+                    sensorType: air_quality
+                    lastReading: 185.0
+                    readingUnit: AQI
+                    threshold: 100.0
+                    alertActive: true
+                    alertReason: HIGH_POLLUTION
+                    batteryLevel: 55
+                    lastUpdated: '2025-09-25T10:05:00Z'
+                    status: active
+                by_zone_sud:
+                  value:
+                  - id: 3
+                    zoneId: Z-SUD
+                    location: Ponte Leproso, Via Appia Antica, Benevento
+                    sensorType: humidity
+                    lastReading: 61.5
+                    readingUnit: '%'
+                    threshold: 85.0
+                    alertActive: false
+                    alertReason: NONE
+                    batteryLevel: 100
+                    lastUpdated: '2025-09-25T11:15:00Z'
+                    status: active
+                  - id: 6
+                    zoneId: Z-SUD
+                    location: Viale dei Rettori, Benevento
+                    sensorType: noise
+                    lastReading: 88.5
+                    readingUnit: dB
+                    threshold: 75.0
+                    alertActive: true
+                    alertReason: HIGH_NOISE
+                    batteryLevel: 40
+                    lastUpdated: '2025-09-25T10:10:00Z'
+                    status: active
+                by_zone_est:
+                  value:
+                  - id: 4
+                    zoneId: Z-EST
+                    location: Hortus Conclusus, Vico Noce, Benevento
+                    sensorType: noise
+                    lastReading: 48.3
+                    readingUnit: dB
+                    threshold: 75.0
+                    alertActive: false
+                    alertReason: NONE
+                    batteryLevel: 77
+                    lastUpdated: '2025-09-25T09:30:00Z'
+                    status: active
+                  - id: 8
+                    zoneId: Z-EST
+                    location: Terminal Bus, Piazzale Venanzio Vari, Benevento
+                    sensorType: wind_speed
+                    lastReading: 12.4
+                    readingUnit: km/h
+                    threshold: 60.0
+                    alertActive: false
+                    alertReason: NONE
+                    batteryLevel: 71
+                    lastUpdated: '2025-09-25T10:25:00Z'
                     status: active
     post:
       description: Register a new environmental sensor in the city monitoring network.

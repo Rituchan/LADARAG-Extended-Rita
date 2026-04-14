@@ -2,8 +2,7 @@ openapi: 3.0.2
 info:
   title: Smart Traffic and Road Monitoring API
   version: '1.0'
-  description: |
-    API for managing traffic flows, detecting incidents, and enforcing road regulations across the city. Compatible with cross-domain orchestration: use this service to query congestion levels in specific zones (zoneId), filter active incidents, or act as an actuator (e.g., dynamically lowering speed limits in response to pollution alerts from the Sensors API). Supports filtering by zone, congestion level, incident status, and sensor activity.
+  description: 'API for managing traffic flows, detecting incidents, and enforcing road regulations across the city. Compatible with cross-domain orchestration: use this service to query congestion levels in specific zones (zoneId), filter active incidents, or act as an actuator (e.g., dynamically lowering speed limits in response to pollution alerts from the Sensors API). Supports filtering by zone, congestion level, incident status, and sensor activity.'
   contact:
     name: Smart City Development Team
 servers:
@@ -98,7 +97,7 @@ paths:
                   value: {}
   /traffic-sensor:
     get:
-      description: Retrieve traffic sensors deployed across the city. Use query parameters to filter by zone, congestion level, incident status, or sensor activity - for example to find all active sensors with critical congestion in Z-CENTRO, or all sensors currently detecting an incident, or all inactive sensors for maintenance.
+      description: "Retrieve traffic sensors deployed across the city. Use query parameters to filter by zone, congestion level, incident status, or sensor activity - for example to find all active sensors with critical congestion in Z-CENTRO, or all sensors currently detecting an incident, or all inactive sensors for maintenance.\n\n**Mock constraint \u2014 one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported \u2014 only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side."
       summary: Search traffic sensors
       x-microcks-operation:
         dispatcher: FALLBACK
@@ -108,10 +107,22 @@ paths:
         in: query
         schema:
           type: string
-        description: Filter traffic sensors by city zone identifier (e.g., Z-CENTRO)
+          enum:
+          - Z-CENTRO
+          - Z-NORD
+          - Z-SUD
+          - Z-EST
+          - Z-OVEST
+        description: 'City zone identifier. Valid values: Z-CENTRO, Z-NORD, Z-SUD, Z-EST, Z-OVEST.'
         examples:
           by_zone_centro:
             value: Z-CENTRO
+          by_zone_nord:
+            value: Z-NORD
+          by_zone_sud:
+            value: Z-SUD
+          by_zone_est:
+            value: Z-EST
       - name: congestionLevel
         in: query
         schema:
@@ -127,6 +138,10 @@ paths:
             value: high
           by_congestion_critical:
             value: critical
+          by_congestion_low:
+            value: low
+          by_congestion_medium:
+            value: medium
       - name: incidentDetected
         in: query
         schema:
@@ -135,6 +150,8 @@ paths:
         examples:
           incidents_only:
             value: true
+          no_incidents:
+            value: false
       - name: active
         in: query
         schema:
@@ -229,60 +246,6 @@ paths:
                     congestionLevel: critical
                     incidentDetected: true
                     lastUpdated: '2025-09-25T11:00:00Z'
-                'true':
-                  value:
-                  - id: 5
-                    zoneId: Z-CENTRO
-                    location: Corso Garibaldi - Piazza Risorgimento, Benevento
-                    active: true
-                    speedLimit: 30
-                    averageSpeed: 4.2
-                    vehicleCount: 320
-                    congestionLevel: critical
-                    incidentDetected: true
-                    lastUpdated: '2025-09-25T11:00:00Z'
-                'false':
-                  value:
-                  - id: 1
-                    zoneId: Z-CENTRO
-                    location: Ponte Vanvitelli, Benevento
-                    active: true
-                    speedLimit: 50
-                    averageSpeed: 22.5
-                    vehicleCount: 210
-                    congestionLevel: high
-                    incidentDetected: false
-                    lastUpdated: '2025-09-25T10:15:30Z'
-                  - id: 2
-                    zoneId: Z-NORD
-                    location: Rotonda dei Pentri, Benevento
-                    active: true
-                    speedLimit: 50
-                    averageSpeed: 45.0
-                    vehicleCount: 85
-                    congestionLevel: low
-                    incidentDetected: false
-                    lastUpdated: '2025-09-25T09:45:00Z'
-                  - id: 3
-                    zoneId: Z-SUD
-                    location: Viale Principe di Napoli, Benevento
-                    active: true
-                    speedLimit: 50
-                    averageSpeed: 30.0
-                    vehicleCount: 120
-                    congestionLevel: medium
-                    incidentDetected: false
-                    lastUpdated: '2025-09-25T10:00:00Z'
-                  - id: 4
-                    zoneId: Z-EST
-                    location: Via Appia - Svincolo Terminal Bus, Benevento
-                    active: true
-                    speedLimit: 70
-                    averageSpeed: 65.0
-                    vehicleCount: 40
-                    congestionLevel: low
-                    incidentDetected: false
-                    lastUpdated: '2025-09-25T09:55:00Z'
                 low:
                   value:
                   - id: 2
@@ -341,18 +304,6 @@ paths:
                     congestionLevel: critical
                     incidentDetected: true
                     lastUpdated: '2025-09-25T11:00:00Z'
-                by_congestion_high:
-                  value:
-                  - id: 1
-                    zoneId: Z-CENTRO
-                    location: Ponte Vanvitelli, Benevento
-                    active: true
-                    speedLimit: 50
-                    averageSpeed: 22.5
-                    vehicleCount: 210
-                    congestionLevel: high
-                    incidentDetected: false
-                    lastUpdated: '2025-09-25T10:15:30Z'
                 incidents_only:
                   value:
                   - id: 5
@@ -417,6 +368,96 @@ paths:
                     congestionLevel: critical
                     incidentDetected: true
                     lastUpdated: '2025-09-25T11:00:00Z'
+                no_incidents:
+                  value:
+                  - id: 1
+                    zoneId: Z-CENTRO
+                    location: Ponte Vanvitelli, Benevento
+                    active: true
+                    speedLimit: 50
+                    averageSpeed: 22.5
+                    vehicleCount: 210
+                    congestionLevel: high
+                    incidentDetected: false
+                    lastUpdated: '2025-09-25T10:15:30Z'
+                  - id: 2
+                    zoneId: Z-NORD
+                    location: Rotonda dei Pentri, Benevento
+                    active: true
+                    speedLimit: 50
+                    averageSpeed: 45.0
+                    vehicleCount: 85
+                    congestionLevel: low
+                    incidentDetected: false
+                    lastUpdated: '2025-09-25T09:45:00Z'
+                  - id: 3
+                    zoneId: Z-SUD
+                    location: Viale Principe di Napoli (Stazione Centrale), Benevento
+                    active: true
+                    speedLimit: 50
+                    averageSpeed: 30.0
+                    vehicleCount: 120
+                    congestionLevel: medium
+                    incidentDetected: false
+                    lastUpdated: '2025-09-25T10:00:00Z'
+                  - id: 4
+                    zoneId: Z-EST
+                    location: Via Appia - Svincolo Terminal Bus, Benevento
+                    active: true
+                    speedLimit: 70
+                    averageSpeed: 65.0
+                    vehicleCount: 40
+                    congestionLevel: low
+                    incidentDetected: false
+                    lastUpdated: '2025-09-25T09:55:00Z'
+                inactive_only:
+                  value:
+                  - id: 6
+                    zoneId: Z-OVEST
+                    location: Tangenziale Ovest - Svincolo Via Mustilli, Benevento
+                    active: false
+                    speedLimit: 90
+                    averageSpeed: 0.0
+                    vehicleCount: 0
+                    congestionLevel: low
+                    incidentDetected: false
+                    lastUpdated: '2025-09-25T06:00:00Z'
+                by_zone_nord:
+                  value:
+                  - id: 2
+                    zoneId: Z-NORD
+                    location: Rotonda dei Pentri, Benevento
+                    active: true
+                    speedLimit: 50
+                    averageSpeed: 45.0
+                    vehicleCount: 85
+                    congestionLevel: low
+                    incidentDetected: false
+                    lastUpdated: '2025-09-25T09:45:00Z'
+                by_zone_sud:
+                  value:
+                  - id: 3
+                    zoneId: Z-SUD
+                    location: Viale Principe di Napoli (Stazione Centrale), Benevento
+                    active: true
+                    speedLimit: 50
+                    averageSpeed: 30.0
+                    vehicleCount: 120
+                    congestionLevel: medium
+                    incidentDetected: false
+                    lastUpdated: '2025-09-25T10:00:00Z'
+                by_zone_est:
+                  value:
+                  - id: 4
+                    zoneId: Z-EST
+                    location: Via Appia - Svincolo Terminal Bus, Benevento
+                    active: true
+                    speedLimit: 70
+                    averageSpeed: 65.0
+                    vehicleCount: 40
+                    congestionLevel: low
+                    incidentDetected: false
+                    lastUpdated: '2025-09-25T09:55:00Z'
     post:
       description: Register a new traffic monitoring sensor in the city traffic control system.
       summary: Register new traffic sensor
@@ -565,8 +606,7 @@ paths:
           description: Traffic sensor not found
   /traffic-sensor/zone/{zoneId}/speed-limit:
     put:
-      description: |
-        Dynamically enforce a new speed limit on digital road signs for an entire city zone. Use this to react to environmental hazards (high pollution, frost warning) or traffic congestion detected by sensors or the Intelligence API.
+      description: Dynamically enforce a new speed limit on digital road signs for an entire city zone. Use this to react to environmental hazards (high pollution, frost warning) or traffic congestion detected by sensors or the Intelligence API.
       summary: Update speed limit for an entire zone
       parameters:
       - name: zoneId

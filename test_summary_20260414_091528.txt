@@ -1,0 +1,32 @@
+
+========================================================================
+RIEPILOGO FINALE
+========================================================================
+Query eseguite: 36
+  ✅ CORRECT:     15  (41.7%)
+  🟡 PARTIAL:     13  (36.1%)
+  ❌ INCORRECT:    8  (22.2%)
+  ⚠️  ERROR:        0  (0.0%)
+
+Affidabilità:
+  Pass@1 (prima run corretta):      41.7%
+  Pass@K (almeno una run corretta): 41.7%
+  Consistency media (piano stabile):99.1%
+
+Metriche endpoint L1 (prima run, micro):
+  TP=48  FP=23  FN=14
+  Micro F1=0.722   Macro F1=0.698
+
+Latenza: Media=18.3s  Mediana=19.1s  Max=30.8s
+
+Per categoria:
+  Categoria                Tot   OK  Part  Wrong  Err    P@1  P@K  Cons  Acc%
+  -------------------------------------------------------------------------
+  cross-service             20    6    12      2    0    30%   30%  100%   30%
+  intelligence               6    0     0      6    0     0%    0%   94%    0%
+  single-get                10    9     1      0    0    90%   90%  100%   90%
+
+Failure per layer (su 88 run valide):
+  L2 Execution:    0  (0.0%)
+  L3 Chaining:     0  (0.0%)
+  L4 Schema:       0  (0.0%)

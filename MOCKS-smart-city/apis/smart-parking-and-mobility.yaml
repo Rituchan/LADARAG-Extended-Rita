@@ -2,8 +2,7 @@ openapi: 3.0.2
 info:
   title: Smart Parking and Mobility API
   version: '1.0'
-  description: |
-    API for managing parking spots, lots, and dynamic pricing across the city. Supports searching for available spots by standardized city zones (zoneId) and spot type. Supports multi-zone queries (zoneIds) to find parking across all zones returned by a previous task (e.g., all zones where tourist attractions are open, or zones with low traffic congestion). Crucial for mobility orchestration and cross-domain reactions, such as dynamically discounting or raising parking prices in specific zones during traffic congestion or pollution events.
+  description: API for managing parking spots, lots, and dynamic pricing across the city. Supports searching for available spots by standardized city zones (zoneId) and spot type. Supports multi-zone queries (zoneIds) to find parking across all zones returned by a previous task (e.g., all zones where tourist attractions are open, or zones with low traffic congestion). Crucial for mobility orchestration and cross-domain reactions, such as dynamically discounting or raising parking prices in specific zones during traffic congestion or pollution events.
   contact:
     name: Smart City Development Team
 servers:
@@ -96,7 +95,7 @@ paths:
                   value: {}
   /parking-spot:
     get:
-      description: 'Retrieve parking spots registered in the city. Use query parameters to filter by zone, multiple zones, availability, spot type or status - for example to find all free disabled spots in Z-CENTRO, all available electric spots for EV drivers, or all free spots across every zone where tourist attractions are currently open (use zoneIds with JMESPath join: {{task[?status==''open''][*].zoneId | join('','', @)}}). '
+      description: "Retrieve parking spots registered in the city. Use query parameters to filter by zone, multiple zones, availability, spot type or status - for example to find all free disabled spots in Z-CENTRO, all available electric spots for EV drivers, or all free spots across every zone where tourist attractions are currently open.\n\n**Mock constraint \u2014 one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported \u2014 only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side."
       summary: Search parking spots
       x-microcks-operation:
         dispatcher: FALLBACK
@@ -106,20 +105,37 @@ paths:
         in: query
         schema:
           type: string
-        description: Filter parking spots by a single city zone identifier (e.g., Z-CENTRO)
+          enum:
+          - Z-CENTRO
+          - Z-NORD
+          - Z-SUD
+          - Z-EST
+          - Z-OVEST
+        description: 'City zone identifier. Valid values: Z-CENTRO, Z-NORD, Z-SUD, Z-EST, Z-OVEST.'
         examples:
           by_zone_centro:
             value: Z-CENTRO
+          by_zone_nord:
+            value: Z-NORD
+          by_zone_sud:
+            value: Z-SUD
+          by_zone_est:
+            value: Z-EST
       - name: zoneIds
         in: query
         schema:
           type: array
           items:
             type: string
+            enum:
+            - Z-CENTRO
+            - Z-NORD
+            - Z-SUD
+            - Z-EST
+            - Z-OVEST
         style: form
         explode: false
-        description: |
-          Filter parking spots by multiple city zones, comma-separated (e.g., Z-CENTRO,Z-NORD,Z-SUD). Primary use case: find parking in ALL zones that have open tourist attractions, low traffic, etc. Use with JMESPath join to collect zones from a previous task: {{task[*].zoneId | join(',', @)}} - all zones from previous task {{task[?status=='open'][*].zoneId | join(',', @)}} - zones where status is open {{task[?congestionLevel=='low'][*].zoneId | join(',', @)}} - zones with low traffic
+        description: 'Multiple city zones, comma-separated. Valid values: Z-CENTRO, Z-NORD, Z-SUD, Z-EST, Z-OVEST. Example: Z-CENTRO,Z-NORD,Z-SUD.'
         examples:
           multiple_zones:
             value: Z-CENTRO,Z-NORD
@@ -133,6 +149,8 @@ paths:
         examples:
           available_true:
             value: true
+          available_false:
+            value: false
       - name: spotType
         in: query
         schema:
@@ -296,98 +314,6 @@ paths:
                     pricePerHour: 0.0
                     status: reserved
                     lastUpdated: '2025-09-25T08:30:00Z'
-                'true':
-                  value:
-                  - id: 101
-                    zoneId: Z-CENTRO
-                    location: Parcheggio Piazza Risorgimento, Stallo A12, Benevento
-                    available: true
-                    spotType: standard
-                    pricePerHour: 1.0
-                    status: free
-                    lastUpdated: '2025-09-25T10:00:00Z'
-                  - id: 103
-                    zoneId: Z-CENTRO
-                    location: Parcheggio Viale Mellusi, Stallo C05, Benevento
-                    available: true
-                    spotType: electric
-                    pricePerHour: 1.5
-                    status: free
-                    lastUpdated: '2025-09-25T11:00:00Z'
-                  - id: 104
-                    zoneId: Z-NORD
-                    location: Parcheggio Via del Pomerio (Arco di Traiano), Stallo B03, Benevento
-                    available: true
-                    spotType: standard
-                    pricePerHour: 0.5
-                    status: free
-                    lastUpdated: '2025-09-25T09:30:00Z'
-                  - id: 105
-                    zoneId: Z-NORD
-                    location: Parcheggio Stadio Ciro Vigorito, Stallo C03, Benevento
-                    available: true
-                    spotType: standard
-                    pricePerHour: 0.5
-                    status: free
-                    lastUpdated: '2025-09-25T10:00:00Z'
-                  - id: 107
-                    zoneId: Z-SUD
-                    location: Parcheggio Viale dei Rettori, Stallo D07, Benevento
-                    available: true
-                    spotType: standard
-                    pricePerHour: 0.5
-                    status: free
-                    lastUpdated: '2025-09-25T10:15:00Z'
-                  - id: 108
-                    zoneId: Z-EST
-                    location: Parcheggio Terminal Bus, Stallo E01, Benevento
-                    available: true
-                    spotType: motorcycle
-                    pricePerHour: 0.0
-                    status: free
-                    lastUpdated: '2025-09-25T08:00:00Z'
-                  - id: 110
-                    zoneId: Z-NORD
-                    location: Parcheggio Ospedale San Pio (EV), Stallo F02, Benevento
-                    available: true
-                    spotType: electric
-                    pricePerHour: 1.0
-                    status: free
-                    lastUpdated: '2025-09-25T10:45:00Z'
-                'false':
-                  value:
-                  - id: 102
-                    zoneId: Z-CENTRO
-                    location: Parcheggio Via Carlo Torre, Stallo B05, Benevento
-                    available: false
-                    spotType: disabled
-                    pricePerHour: 0.0
-                    status: occupied
-                    lastUpdated: '2025-09-25T09:45:00Z'
-                  - id: 106
-                    zoneId: Z-SUD
-                    location: Parcheggio Via Appia Antica, Stallo D04, Benevento
-                    available: false
-                    spotType: standard
-                    pricePerHour: 0.5
-                    status: occupied
-                    lastUpdated: '2025-09-25T09:00:00Z'
-                  - id: 109
-                    zoneId: Z-CENTRO
-                    location: Parcheggio Palazzo di Giustizia, Stallo A01, Benevento
-                    available: false
-                    spotType: reserved
-                    pricePerHour: 0.0
-                    status: reserved
-                    lastUpdated: '2025-09-25T08:30:00Z'
-                  - id: 111
-                    zoneId: Z-EST
-                    location: Parcheggio Tangenziale Est, Stallo G04, Benevento
-                    available: false
-                    spotType: standard
-                    pricePerHour: 0.5
-                    status: maintenance
-                    lastUpdated: '2025-09-25T07:00:00Z'
                 available_true:
                   value:
                   - id: 101
@@ -630,7 +556,7 @@ paths:
                     pricePerHour: 0.5
                     status: maintenance
                     lastUpdated: '2025-09-25T07:00:00Z'
-                by_type_disabled:
+                available_false:
                   value:
                   - id: 102
                     zoneId: Z-CENTRO
@@ -640,50 +566,32 @@ paths:
                     pricePerHour: 0.0
                     status: occupied
                     lastUpdated: '2025-09-25T09:45:00Z'
-                by_type_electric:
-                  value:
-                  - id: 103
-                    zoneId: Z-CENTRO
-                    location: Parcheggio Viale Mellusi, Stallo C05, Benevento
-                    available: true
-                    spotType: electric
-                    pricePerHour: 1.5
-                    status: free
-                    lastUpdated: '2025-09-25T11:00:00Z'
-                  - id: 110
-                    zoneId: Z-NORD
-                    location: Parcheggio Ospedale San Pio (EV), Stallo F02, Benevento
-                    available: true
-                    spotType: electric
-                    pricePerHour: 1.0
-                    status: free
-                    lastUpdated: '2025-09-25T10:45:00Z'
-                multiple_zones:
-                  value:
-                  - id: 101
-                    zoneId: Z-CENTRO
-                    location: Parcheggio Piazza Risorgimento, Stallo A12, Benevento
-                    available: true
+                  - id: 106
+                    zoneId: Z-SUD
+                    location: Parcheggio Via Appia Antica, Stallo D04, Benevento
+                    available: false
                     spotType: standard
-                    pricePerHour: 1.0
-                    status: free
-                    lastUpdated: '2025-09-25T10:00:00Z'
-                  - id: 102
-                    zoneId: Z-CENTRO
-                    location: Parcheggio Via Carlo Torre, Stallo B05, Benevento
-                    available: false
-                    spotType: disabled
-                    pricePerHour: 0.0
+                    pricePerHour: 0.5
                     status: occupied
-                    lastUpdated: '2025-09-25T09:45:00Z'
-                  - id: 103
+                    lastUpdated: '2025-09-25T09:00:00Z'
+                  - id: 109
                     zoneId: Z-CENTRO
-                    location: Parcheggio Viale Mellusi, Stallo C05, Benevento
-                    available: true
-                    spotType: electric
-                    pricePerHour: 1.5
-                    status: free
-                    lastUpdated: '2025-09-25T11:00:00Z'
+                    location: Parcheggio Palazzo di Giustizia, Stallo A01, Benevento
+                    available: false
+                    spotType: reserved
+                    pricePerHour: 0.0
+                    status: reserved
+                    lastUpdated: '2025-09-25T08:30:00Z'
+                  - id: 111
+                    zoneId: Z-EST
+                    location: Parcheggio Tangenziale Est, Stallo G04, Benevento
+                    available: false
+                    spotType: standard
+                    pricePerHour: 0.5
+                    status: maintenance
+                    lastUpdated: '2025-09-25T07:00:00Z'
+                by_zone_nord:
+                  value:
                   - id: 104
                     zoneId: Z-NORD
                     location: Parcheggio Via del Pomerio (Arco di Traiano), Stallo B03, Benevento
@@ -700,14 +608,6 @@ paths:
                     pricePerHour: 0.5
                     status: free
                     lastUpdated: '2025-09-25T10:00:00Z'
-                  - id: 109
-                    zoneId: Z-CENTRO
-                    location: Parcheggio Palazzo di Giustizia, Stallo A01, Benevento
-                    available: false
-                    spotType: reserved
-                    pricePerHour: 0.0
-                    status: reserved
-                    lastUpdated: '2025-09-25T08:30:00Z'
                   - id: 110
                     zoneId: Z-NORD
                     location: Parcheggio Ospedale San Pio (EV), Stallo F02, Benevento
@@ -716,6 +616,42 @@ paths:
                     pricePerHour: 1.0
                     status: free
                     lastUpdated: '2025-09-25T10:45:00Z'
+                by_zone_sud:
+                  value:
+                  - id: 106
+                    zoneId: Z-SUD
+                    location: Parcheggio Via Appia Antica, Stallo D04, Benevento
+                    available: false
+                    spotType: standard
+                    pricePerHour: 0.5
+                    status: occupied
+                    lastUpdated: '2025-09-25T09:00:00Z'
+                  - id: 107
+                    zoneId: Z-SUD
+                    location: Parcheggio Viale dei Rettori, Stallo D07, Benevento
+                    available: true
+                    spotType: standard
+                    pricePerHour: 0.5
+                    status: free
+                    lastUpdated: '2025-09-25T10:15:00Z'
+                by_zone_est:
+                  value:
+                  - id: 108
+                    zoneId: Z-EST
+                    location: Parcheggio Terminal Bus, Stallo E01, Benevento
+                    available: true
+                    spotType: motorcycle
+                    pricePerHour: 0.0
+                    status: free
+                    lastUpdated: '2025-09-25T08:00:00Z'
+                  - id: 111
+                    zoneId: Z-EST
+                    location: Parcheggio Tangenziale Est, Stallo G04, Benevento
+                    available: false
+                    spotType: standard
+                    pricePerHour: 0.5
+                    status: maintenance
+                    lastUpdated: '2025-09-25T07:00:00Z'
     post:
       description: Register a new parking spot in the city mobility system.
       summary: Register new parking spot
@@ -854,8 +790,7 @@ paths:
           description: Parking spot not found
   /parking-spot/zone/{zoneId}/pricing:
     put:
-      description: |
-        Dynamically adjust the hourly parking rate for all spots in a specific zone. Useful for reacting to traffic congestion or pollution alerts by incentivizing or discouraging parking in a given area.
+      description: Dynamically adjust the hourly parking rate for all spots in a specific zone. Useful for reacting to traffic congestion or pollution alerts by incentivizing or discouraging parking in a given area.
       summary: Update pricing for an entire zone
       parameters:
       - name: zoneId

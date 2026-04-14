@@ -2,8 +2,7 @@ openapi: 3.0.2
 info:
   title: Smart Tourist Attractions API
   version: '1.0'
-  description: |
-    Smart Tourist Attractions API for managing, monitoring, and providing real-time data on city landmarks, museums, and historical sites. Designed for cross-domain orchestration: supports filtering by standardized city zones (zoneId), category, operational status, and accessibility requirements. Allows automated emergency responses such as temporarily closing all attractions in a specific zone due to severe weather or traffic gridlock. Supports accessibility-aware queries to find wheelchair-friendly attractions with short wait times.
+  description: 'Smart Tourist Attractions API for managing, monitoring, and providing real-time data on city landmarks, museums, and historical sites. Designed for cross-domain orchestration: supports filtering by standardized city zones (zoneId), category, operational status, and accessibility requirements. Allows automated emergency responses such as temporarily closing all attractions in a specific zone due to severe weather or traffic gridlock. Supports accessibility-aware queries to find wheelchair-friendly attractions with short wait times.'
   contact:
     name: Smart City Development Team
 servers:
@@ -129,7 +128,7 @@ paths:
                   value: {}
   /attraction:
     get:
-      description: Retrieves a catalog of tourist attractions in the city. Use query parameters to filter by zone, category, operational status, or accessibility - for example to find all open museums in Z-CENTRO, all wheelchair-accessible attractions, or all currently closed sites during an emergency.
+      description: "Retrieves a catalog of tourist attractions in the city. Use query parameters to filter by zone, category, operational status, or accessibility - for example to find all open museums in Z-CENTRO, all wheelchair-accessible attractions, or all currently closed sites during an emergency.\n\n**Mock constraint \u2014 one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported \u2014 only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side."
       summary: Search tourist attractions
       x-microcks-operation:
         dispatcher: FALLBACK
@@ -139,10 +138,22 @@ paths:
         in: query
         schema:
           type: string
-        description: Filter attractions by city zone identifier (e.g., Z-CENTRO)
+          enum:
+          - Z-CENTRO
+          - Z-NORD
+          - Z-SUD
+          - Z-EST
+          - Z-OVEST
+        description: 'City zone identifier. Valid values: Z-CENTRO, Z-NORD, Z-SUD, Z-EST, Z-OVEST.'
         examples:
           by_zone_centro:
             value: Z-CENTRO
+          by_zone_nord:
+            value: Z-NORD
+          by_zone_sud:
+            value: Z-SUD
+          by_zone_est:
+            value: Z-EST
       - name: category
         in: query
         schema:
@@ -160,6 +171,16 @@ paths:
         examples:
           by_category_museum:
             value: museum
+          by_category_church:
+            value: church
+          by_category_theatre:
+            value: theatre
+          by_category_monument:
+            value: monument
+          by_category_palace:
+            value: palace
+          by_category_park:
+            value: park
       - name: status
         in: query
         schema:
@@ -175,12 +196,13 @@ paths:
             value: open
           by_status_temporarily_closed:
             value: temporarily_closed
+          by_status_special_event:
+            value: special_event
       - name: wheelchairAccessible
         in: query
         schema:
           type: boolean
-        description: |
-          Filter by accessibility - use true to find only attractions suitable for visitors with mobility impairments (ramps, elevators, accessible paths)
+        description: Filter by accessibility - use true to find only attractions suitable for visitors with mobility impairments (ramps, elevators, accessible paths)
         examples:
           accessible_only:
             value: true
@@ -795,8 +817,80 @@ paths:
                     - en
                     status: open
                     lastUpdated: '2026-03-09T10:05:00Z'
-                by_status_temporarily_closed:
+                special_event:
                   value:
+                  - id: 9
+                    zoneId: Z-CENTRO
+                    name: Arco di Traiano - Evento Speciale
+                    category: archaeological
+                    address: Via Traiano, Benevento
+                    openingTime: '19:00'
+                    closingTime: '23:00'
+                    ticketPriceEur: 8.0
+                    currentVisitors: 95
+                    maxCapacity: 200
+                    waitingTimeMinutes: 20
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    - en
+                    status: special_event
+                    lastUpdated: '2026-03-09T19:00:00Z'
+                church:
+                  value:
+                  - id: 13
+                    zoneId: Z-CENTRO
+                    name: Cattedrale di Santa Maria Assunta
+                    category: church
+                    address: Piazza Duomo, Benevento
+                    openingTime: 07:00
+                    closingTime: '19:00'
+                    ticketPriceEur: 0.0
+                    currentVisitors: 35
+                    maxCapacity: 500
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    - en
+                    status: open
+                    lastUpdated: '2026-03-09T10:00:00Z'
+                theatre:
+                  value:
+                  - id: 14
+                    zoneId: Z-CENTRO
+                    name: Teatro Massimo
+                    category: theatre
+                    address: Corso Garibaldi 150, Benevento
+                    openingTime: '20:00'
+                    closingTime: '23:00'
+                    ticketPriceEur: 15.0
+                    currentVisitors: 0
+                    maxCapacity: 300
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    status: closed
+                    lastUpdated: '2026-03-09T08:00:00Z'
+                by_zone_nord:
+                  value:
+                  - id: 4
+                    zoneId: Z-NORD
+                    name: Museo del Sannio
+                    category: museum
+                    address: Piazza Matteotti 1, Benevento
+                    openingTime: 09:00
+                    closingTime: '17:00'
+                    ticketPriceEur: 4.0
+                    currentVisitors: 30
+                    maxCapacity: 120
+                    waitingTimeMinutes: 5
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    status: open
+                    lastUpdated: '2026-03-09T09:50:00Z'
                   - id: 8
                     zoneId: Z-NORD
                     name: Pinacoteca Provinciale
@@ -813,6 +907,43 @@ paths:
                     - it
                     status: temporarily_closed
                     lastUpdated: '2026-03-09T08:00:00Z'
+                by_zone_sud:
+                  value:
+                  - id: 5
+                    zoneId: Z-SUD
+                    name: Ponte Leproso
+                    category: monument
+                    address: Via Appia Antica, Benevento
+                    openingTime: 00:00
+                    closingTime: '23:59'
+                    ticketPriceEur: 0.0
+                    currentVisitors: 8
+                    maxCapacity: 500
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: true
+                    availableLanguages:
+                    - it
+                    - en
+                    status: open
+                    lastUpdated: '2026-03-09T09:30:00Z'
+                by_zone_est:
+                  value:
+                  - id: 6
+                    zoneId: Z-EST
+                    name: Hortus Conclusus
+                    category: park
+                    address: Vico Noce, Benevento
+                    openingTime: 09:00
+                    closingTime: '13:00'
+                    ticketPriceEur: 2.0
+                    currentVisitors: 12
+                    maxCapacity: 60
+                    waitingTimeMinutes: 0
+                    wheelchairAccessible: false
+                    availableLanguages:
+                    - it
+                    status: open
+                    lastUpdated: '2026-03-09T09:15:00Z'
     post:
       description: Registers a newly monitored tourist attraction into the city's tourism ecosystem.
       summary: Register new tourist attraction
@@ -999,8 +1130,7 @@ paths:
           description: The specified attraction ID was not found.
   /attraction/zone/{zoneId}/status:
     put:
-      description: |
-        Dynamically update the operational status of all tourist attractions in a specific zone. Extremely useful for emergency evacuations, severe weather closures, or city-wide special events.
+      description: Dynamically update the operational status of all tourist attractions in a specific zone. Extremely useful for emergency evacuations, severe weather closures, or city-wide special events.
       summary: Set status for all attractions in a zone
       parameters:
       - name: zoneId

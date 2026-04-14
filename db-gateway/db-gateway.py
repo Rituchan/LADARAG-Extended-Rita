@@ -13,6 +13,7 @@ import logging
 import bson
 import json
 import signal
+import re
 
 from sentence_transformers import SentenceTransformer, CrossEncoder
 
@@ -43,11 +44,11 @@ MONGO_PORT = os.environ.get("MONGO_PORT", "27017")
 MONGO_DB   = os.environ.get("MONGO_DB", "microcks")
 MONGO_URI  = f"mongodb://{MONGO_USER}:{MONGO_PASS}@{MONGO_HOST}:{MONGO_PORT}/"
 
-QDRANT_HOST       = os.environ.get("QDRANT_HOST", "catalog-vector")
-QDRANT_PORT       = os.environ.get("QDRANT_PORT", "6333")
+QDRANT_HOST             = os.environ.get("QDRANT_HOST", "catalog-vector")
+QDRANT_PORT             = os.environ.get("QDRANT_PORT", "6333")
 QDRANT_COLLECTION       = os.environ.get("QDRANT_COLLECTION", "services")
 QDRANT_COLLECTION_INDEX = os.environ.get("QDRANT_COLLECTION_INDEX", "services_index")
-QDRANT_URI        = f"http://{QDRANT_HOST}:{QDRANT_PORT}"
+QDRANT_URI              = f"http://{QDRANT_HOST}:{QDRANT_PORT}"
 
 mongo_client = MongoClient(MONGO_URI)
 qdrant_client = QdrantClient(QDRANT_URI)
@@ -96,6 +97,65 @@ def count_tokens(text):
     return len(tokens)
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# ENRICHED RERANK TEXT
+#
+# Il CrossEncoder ha scarso overlap lessicale tra query utente e capability text
+# perché le capability descrivono comportamenti REST, non concetti del dominio.
+# Arricchire il testo con i parametri e i campi del response schema espone
+# termini di dominio (es. "temperature", "Celsius", "sensorType") che il
+# CrossEncoder può confrontare direttamente con la query.
+#
+# Il testo arricchito è usato SOLO per il reranking — non viene salvato in
+# Qdrant né inviato all'LLM. Il contesto LLM riceve sempre la capability
+# originale (più leggibile e concisa).
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _build_enriched_text(
+    http_op: str,
+    capabilities: dict,
+    parameters: dict,
+    response_schemas: dict,
+    request_schemas: dict,
+) -> str:
+    """
+    Costruisce il testo arricchito per il reranking CrossEncoder combinando:
+      - capability text (descrizione funzionale dell'endpoint)
+      - parameters (nomi e valori enum dei query param)
+      - response schema fields (nomi dei campi restituiti)
+      - request schema fields (nomi dei campi in input, per i POST/PUT)
+
+    Esempio output per GET /sensor:
+      "Retrieve environmental sensors... | parameters: zoneId(Z-CENTRO,...),
+       sensorType(temperature,humidity,air_quality,...) | response fields:
+       zoneId, sensorType, lastReading, readingUnit, threshold, alertActive"
+    """
+    parts = [capabilities.get(http_op, "")]
+
+    # ── Parameters ────────────────────────────────────────────────────────────
+    param_str = parameters.get(http_op, "") or ""
+    if param_str:
+        parts.append(f"| parameters: {param_str}")
+
+    # ── Response schema fields ────────────────────────────────────────────────
+    resp_str = response_schemas.get(http_op, "") or ""
+    if resp_str:
+        # Estrae solo i nomi dei campi dallo skeleton "{field:type, ...}" o "[{...}]"
+        fields = re.findall(r'(\w+):', resp_str)
+        if fields:
+            parts.append(f"| response fields: {', '.join(fields)}")
+
+    # ── Request schema fields (solo per metodi con body) ──────────────────────
+    req_str = request_schemas.get(http_op, "") or ""
+    if req_str and not http_op.startswith("GET"):
+        fields = re.findall(r'(\w+):', req_str)
+        if fields:
+            parts.append(f"| request fields: {', '.join(fields)}")
+
+    return " ".join(parts)
+
+
+
 # ─────────────────────────────────────────────────────────────────── parallel
 def init_model():
     global model
@@ -117,7 +177,6 @@ def embed_item(args):
 def create_vector_collection():
     existing_collections = {col.name for col in qdrant_client.get_collections().collections}
 
-    # Collezione endpoints: 1 vettore per endpoint (capability text) — Stage 2
     if QDRANT_COLLECTION not in existing_collections:
         qdrant_client.create_collection(
             collection_name=QDRANT_COLLECTION,
@@ -127,7 +186,6 @@ def create_vector_collection():
     else:
         logger.info(f"Collection '{QDRANT_COLLECTION}' already exists")
 
-    # Collezione services_index: 1 vettore per servizio (description text) — Stage 1
     if QDRANT_COLLECTION_INDEX not in existing_collections:
         qdrant_client.create_collection(
             collection_name=QDRANT_COLLECTION_INDEX,
@@ -154,15 +212,25 @@ def vector_search():
 
     Stage 1 — Bi-encoder su descriptions (services_index):
       Recupera i top-K servizi per similarità semantica sulla description.
-      La description cattura il contesto cross-domain del servizio
-      (es: "parking near tourist attractions, low traffic zones...")
+      La description cattura il contesto cross-domain del servizio.
       → alta recall: trova i servizi giusti anche per query composte
 
-        Stage 2 — Cross-encoder su capabilities (reranker ms-marco):
-            Per ogni servizio recuperato nel Stage 1, carica TUTTI i suoi endpoint
-            da MongoDB e li rerankerizza con il CrossEncoder.
-            Mantiene sempre i top-N endpoint per score (senza soglia minima).
-            → bilanciamento recall/precision costante per ogni servizio selezionato
+    Stage 2 — Cross-encoder su capabilities (reranker BAAI/bge-reranker-v2-m3):
+      Per ogni servizio recuperato nel Stage 1, carica TUTTI i suoi endpoint
+      da MongoDB e li rerankerizza con il CrossEncoder.
+      Mantiene sempre i top-N endpoint per score (senza soglia minima).
+      → bilanciamento recall/precision costante per ogni servizio selezionato
+
+    Scoring composito (NUOVO):
+      Combina s1_score (rilevanza description) e ep_score normalizzato
+      (rilevanza endpoint) in un unico punteggio per ordinamento e filtraggio.
+      Evita che servizi con ep_score vicino a zero ma s1_score alto
+      vengano scartati anche quando sono semanticamente necessari.
+
+    Token budget con trimming graceful (NUOVO):
+      Invece di scartare un intero servizio quando non entra nel budget,
+      scala progressivamente il numero di endpoint mantenendo sempre
+      i top-N per ep_score fino a trovare la configurazione minima che entra.
     """
     data = request.get_json()
     if not data or "query" not in data:
@@ -172,10 +240,21 @@ def vector_search():
     query_embedding = embed(query_text)
 
     # ── Parametri two-stage ───────────────────────────────────────────────────
-    STAGE1_K             = 5     # quanti servizi recuperare nel primo stage
-    TOP_ENDPOINTS_PER_SERVICE = 4  # restituisce sempre i top-4 endpoint per servizio
-    INTELLIGENCE_ID        = "smart-city-intelligence-mock"
-    MIN_SCORE_INTELLIGENCE = 0.60  # soglia speciale per Intelligence API
+    STAGE1_K                  = 5
+    TOP_ENDPOINTS_PER_SERVICE = 5
+    INTELLIGENCE_ID           = "smart-city-intelligence-mock"
+    MIN_SCORE_INTELLIGENCE    = 0.60
+
+    # ── Parametri scoring composito ──────────────────────────────────────────
+    # ALPHA: peso del s1_score (rilevanza semantica della description)
+    # BETA:  peso dell'ep_score normalizzato (rilevanza dell'endpoint migliore)
+    # MIN_COMBINED_SCORE: soglia sotto cui un servizio viene scartato.
+    #   Calibrata sui dati reali: sensors (necessario) ha combined ~0.19,
+    #   buildings (falso positivo) ha combined ~0.15. Soglia a 0.16 taglia
+    #   i falsi positivi puri mantenendo i servizi semanticamente rilevanti.
+    ALPHA              = 0.3
+    BETA               = 0.7
+    MIN_COMBINED_SCORE = 0.16
 
     # ════════════════════════════════════════════════════════════════════════
     # STAGE 1: recupero servizi per similarità sulla description
@@ -190,7 +269,6 @@ def vector_search():
         logger.warning("[SEARCH] Stage 1: nessun servizio trovato in services_index")
         return jsonify({"results": []}), 200
 
-    # Mappa service_id → score Stage 1 (similarità description)
     stage1_scores = {
         r.payload["mongo_id"]: r.score
         for r in stage1_results
@@ -200,18 +278,25 @@ def vector_search():
                 f"{list(stage1_scores.keys())}")
 
     # ════════════════════════════════════════════════════════════════════════
-    # STAGE 2: reranking degli endpoint per ogni servizio recuperato
+    # STAGE 2: reranking degli endpoint — single-batch per tutti i servizi
+    #
+    # Invece di chiamare reranker_model.predict() una volta per servizio
+    # (N chiamate con ~6 coppie ciascuna), carichiamo prima tutti i servizi
+    # da MongoDB, costruiamo tutte le coppie (query, enriched_text) in una
+    # lista unica, e facciamo UNA SOLA chiamata a predict().
+    # Questo elimina l'overhead di inizializzazione per ogni batch e permette
+    # al modello di processare tutte le coppie in modo efficiente.
     # ════════════════════════════════════════════════════════════════════════
     merged: dict = {}
 
+    # ── Fase 2a: carica tutti i servizi da MongoDB ───────────────────────────
+    services_data = {}
     for doc_id, s1_score in stage1_scores.items():
 
-        # Filtra Intelligence API con soglia speciale già nel Stage 1
         if doc_id == INTELLIGENCE_ID and s1_score < MIN_SCORE_INTELLIGENCE:
             logger.info(f"[STAGE 1] {doc_id} escluso: score {s1_score:.3f} < {MIN_SCORE_INTELLIGENCE}")
             continue
 
-        # Carica il documento completo da MongoDB
         retrieved = collection.find_one({"_id": doc_id})
         if not retrieved:
             logger.warning(f"[STAGE 2] Servizio '{doc_id}' non trovato in MongoDB")
@@ -224,31 +309,75 @@ def vector_search():
         request_schemas  = retrieved.get("request_schemas", {}) or {}
         parameters       = retrieved.get("parameters", {}) or {}
 
-        # Filtra endpoint /register (sempre escluso)
         ops = [op for op in capabilities.keys() if op != "POST /register"]
         if not ops:
             continue
 
-        # Reranker CrossEncoder: (query, capability_text) per ogni endpoint
-        rerank_inputs  = [(query_text, capabilities[op]) for op in ops]
-        endpoint_scores = reranker_model.predict(rerank_inputs)
+        services_data[doc_id] = {
+            "s1_score":       s1_score,
+            "retrieved":      retrieved,
+            "capabilities":   capabilities,
+            "endpoints":      endpoints,
+            "response_schemas": response_schemas,
+            "request_schemas":  request_schemas,
+            "parameters":     parameters,
+            "ops":            ops,
+        }
 
-        # Seleziona gli endpoint sopra la soglia di rilevanza
+    if not services_data:
+        return jsonify({"results": []}), 200
+
+    # ── Fase 2b: costruisci tutte le coppie in una lista unica ───────────────
+    # pair_map: lista ordinata di (doc_id, op) per ricostruire i risultati
+    all_pairs = []
+    pair_map  = []  # (doc_id, op) per ogni elemento di all_pairs
+
+    for doc_id, sdata in services_data.items():
+        for op in sdata["ops"]:
+            enriched = _build_enriched_text(
+                op,
+                sdata["capabilities"],
+                sdata["parameters"],
+                sdata["response_schemas"],
+                sdata["request_schemas"],
+            )
+            all_pairs.append((query_text, enriched))
+            pair_map.append((doc_id, op))
+
+    logger.info(f"[STAGE 2] Single-batch reranking: {len(all_pairs)} coppie "
+                f"da {len(services_data)} servizi")
+
+    # ── Fase 2c: unica chiamata a predict() per tutte le coppie ─────────────
+    all_scores = reranker_model.predict(all_pairs)
+
+    # ── Fase 2d: ricostruisci i risultati per servizio ───────────────────────
+    # Aggrega gli score per doc_id
+    scores_by_service: dict = {doc_id: {} for doc_id in services_data}
+    for (doc_id, op), score in zip(pair_map, all_scores):
+        scores_by_service[doc_id][op] = float(score)
+
+    for doc_id, sdata in services_data.items():
+        s1_score     = sdata["s1_score"]
+        capabilities = sdata["capabilities"]
+        endpoints    = sdata["endpoints"]
+        response_schemas = sdata["response_schemas"]
+        request_schemas  = sdata["request_schemas"]
+        parameters   = sdata["parameters"]
+        ops          = sdata["ops"]
+
         scored_ops = sorted(
-            zip(ops, endpoint_scores),
+            [(op, scores_by_service[doc_id][op]) for op in ops],
             key=lambda x: x[1],
             reverse=True
         )
 
-        # Per ogni servizio selezionato, tieni sempre i top-N endpoint per score.
-        relevant_ops = scored_ops[:TOP_ENDPOINTS_PER_SERVICE]
-
+        relevant_ops        = scored_ops[:TOP_ENDPOINTS_PER_SERVICE]
         best_endpoint_score = relevant_ops[0][1]
 
         merged[doc_id] = {
             "_id":              doc_id,
-            "name":             retrieved.get("name"),
-            "description":      retrieved.get("description"),
+            "name":             sdata["retrieved"].get("name"),
+            "description":      sdata["retrieved"].get("description"),
             "capabilities":     {op: capabilities[op] for op, _ in relevant_ops},
             "endpoints":        {op: endpoints.get(op) for op, _ in relevant_ops},
             "response_schemas": {op: response_schemas.get(op) for op, _ in relevant_ops},
@@ -258,45 +387,142 @@ def vector_search():
             "_best_ep_score":   best_endpoint_score,
         }
 
+        ep_rows = "\n            ".join(
+            f"{op:<40} score={score:.4f}" for op, score in relevant_ops
+        )
+        discarded_ops = [op for op, _ in scored_ops[TOP_ENDPOINTS_PER_SERVICE:]]
+        disc_str = f"\n          SCARTATI : {discarded_ops}" if discarded_ops else ""
         logger.info(
-            f"[STAGE 2] {doc_id}: {len(relevant_ops)}/{len(ops)} endpoint rilevanti "
-            f"| ep_score={best_endpoint_score:.3f} | s1_score={s1_score:.3f}"
+            f"[STAGE 2] {doc_id}\n"
+            f"          s1={s1_score:.4f} | best_ep={best_endpoint_score:.4f}\n"
+            f"          SELEZIONATI ({len(relevant_ops)}/{len(ops)}):\n"
+            f"            {ep_rows}"
+            f"{disc_str}"
         )
 
     if not merged:
         return jsonify({"results": []}), 200
 
-    # ── Ordina i servizi per best_endpoint_score (proxy di rilevanza finale) ──
-    # Usiamo il reranker score dell'endpoint migliore come ranking finale.
-    # Il Stage 1 score garantisce che il servizio sia semanticamente rilevante,
-    # il Stage 2 score affina la rilevanza specifica per la query.
+    # ════════════════════════════════════════════════════════════════════════
+    # SCORING COMPOSITO: combina s1_score e ep_score normalizzato
+    #
+    # Motivazione: ep_score grezzo non è calibrato in modo assoluto.
+    # Per query cross-domain, un servizio può avere s1_score alto (description
+    # semanticamente rilevante) ma ep_score vicino a zero (il CrossEncoder
+    # non trova match diretto tra query e capability text). Normalizzare
+    # ep_score rispetto al best globale e combinarlo con s1_score produce
+    # un ranking più stabile che preserva i servizi necessari anche quando
+    # il loro endpoint migliore ha score assoluto basso.
+    # ════════════════════════════════════════════════════════════════════════
+    best_global_ep = max(
+        (v["_best_ep_score"] for v in merged.values()), default=0.0
+    )
+    min_global_ep  = min(
+        (v["_best_ep_score"] for v in merged.values()), default=0.0
+    )
+    ep_range = best_global_ep - min_global_ep
+
+    for s in merged.values():
+        # Min-max normalization: funziona anche con logit negativi (ms-marco)
+        # Il servizio migliore ottiene sempre ep_norm=1.0, il peggiore 0.0
+        ep_norm = (s["_best_ep_score"] - min_global_ep) / ep_range if ep_range > 0 else 0.0
+        s["_combined_score"] = ALPHA * s["_stage1_score"] + BETA * ep_norm
+
+    # Filtra servizi sotto la soglia combinata
+    pre_filter_count = len(merged)
+    merged_with_all  = dict(merged)  # copia pre-filtraggio per il log
+    filtered_out     = {k: f"{v['_combined_score']:.3f}" for k, v in merged.items()
+                        if v["_combined_score"] < MIN_COMBINED_SCORE}
+    merged = {k: v for k, v in merged.items() if v["_combined_score"] >= MIN_COMBINED_SCORE}
+
+    combined_rows = "\n    ".join(
+        f"  {sid:<50} s1={v['_stage1_score']:.4f}  ep={v['_best_ep_score']:.4f}  ep_norm={(v['_best_ep_score']-min_global_ep)/ep_range if ep_range>0 else 0:.4f}"
+        f"  combined={v['_combined_score']:.4f}  "
+        f"[{'PASSA' if v['_combined_score'] >= MIN_COMBINED_SCORE else 'SCARTATO'}]"
+        for sid, v in sorted(merged_with_all.items(), key=lambda x: x[1]['_combined_score'], reverse=True)
+    )
+    logger.info(
+        f"[COMBINED_SCORE] formula: {ALPHA}*s1 + {BETA}*ep_norm(min-max) | best_ep={best_global_ep:.4f} | min_ep={min_global_ep:.4f} | soglia={MIN_COMBINED_SCORE}\n"
+        f"    {combined_rows}\n"
+        f"    → filtrati {pre_filter_count - len(merged)}/{pre_filter_count}: {list(filtered_out.keys())}"
+    )
+
+    if not merged:
+        return jsonify({"results": []}), 200
+
+    # Ordina per combined_score decrescente
     ordered_services = sorted(
         merged.values(),
-        key=lambda x: x["_best_ep_score"],
+        key=lambda x: x["_combined_score"],
         reverse=True
     )
     for s in ordered_services:
         s.pop("_stage1_score", None)
         s.pop("_best_ep_score", None)
+        s.pop("_combined_score", None)
 
-    # ── Token budget: include i servizi completi finché non si supera il limite ──
+    # ════════════════════════════════════════════════════════════════════════
+    # TOKEN BUDGET con trimming graceful
+    #
+    # Per ogni servizio si tenta prima l'inserimento con tutti gli endpoint.
+    # Se non ci sta nel budget residuo, si scala progressivamente il numero
+    # di endpoint (top-N per ep_score, già ordinati) fino a trovare la
+    # configurazione minima che entra. Solo se nemmeno il singolo endpoint
+    # migliore entra nel budget, il servizio viene scartato e loggato.
+    #
+    # Questo garantisce che nessun servizio venga eliminato per intero
+    # solo perché il budget era quasi esaurito: almeno il suo endpoint
+    # più rilevante arriva sempre al contesto dell'LLM.
+    # ════════════════════════════════════════════════════════════════════════
+    _DICT_FIELDS = ("capabilities", "endpoints", "response_schemas",
+                    "request_schemas", "parameters")
+
+    def _trim_service(s: dict, keep_ops: list) -> dict:
+        """Restituisce una copia del servizio con solo gli endpoint in keep_ops."""
+        trimmed = {}
+        for k, v in s.items():
+            if k in _DICT_FIELDS and isinstance(v, dict):
+                trimmed[k] = {op: v[op] for op in keep_ops if op in v}
+            else:
+                trimmed[k] = v
+        return trimmed
+
     max_tokens     = 3500
     current_tokens = 0
     top_results    = []
+    budget_log     = []  # (service_id, n_endpoints_inseriti, n_endpoints_totali, nomi_endpoint)
 
     for s in ordered_services:
-        serialized = json.dumps(s)
-        n_tokens   = count_tokens(serialized)
-        if current_tokens + n_tokens <= max_tokens:
-            top_results.append(s)
-            current_tokens += n_tokens
-        else:
-            break
+        ops = list(s.get("capabilities", {}).keys())
 
+        inserted = False
+        for n in range(len(ops), 0, -1):
+            candidate     = _trim_service(s, ops[:n])
+            candidate_tok = count_tokens(json.dumps(candidate))
+
+            if current_tokens + candidate_tok <= max_tokens:
+                top_results.append(candidate)
+                current_tokens += candidate_tok
+                budget_log.append((s["_id"], n, len(ops), ops[:n]))
+                inserted = True
+                break
+
+        if not inserted:
+            logger.info(
+                f"[BUDGET] {s['_id']} escluso: nemmeno il top-1 endpoint "
+                f"({count_tokens(json.dumps(_trim_service(s, ops[:1])))} tok) "
+                f"entra nel budget residuo ({max_tokens - current_tokens} tok)"
+            )
+
+    budget_rows = "\n    ".join(
+        f"  {sid:<50} ({n}/{tot} ep) → {ep_names}"
+        for sid, n, tot, ep_names in budget_log
+    )
     logger.info(
-        f"[SEARCH] Stage1={len(stage1_scores)} servizi → "
-        f"Stage2={len(merged)} con endpoint rilevanti → "
-        f"{len(top_results)} nel budget | token usati: {current_tokens}/{max_tokens}"
+        f"[SEARCH] Stage1={len(stage1_scores)} → Stage2={pre_filter_count} → "
+        f"combined_filter={pre_filter_count - len(merged)} scartati → "
+        f"{len(top_results)} nel budget | token usati: {current_tokens}/{max_tokens}\n"
+        f"    {budget_rows}"
     )
     return jsonify({"results": top_results}), 200
 
@@ -328,9 +554,6 @@ def create_or_update_service_old():
         )
 
     # ── Stage 1 index: 1 vettore per servizio (description text) ─────────────
-    # Usa la description del servizio come testo di retrieval di primo livello.
-    # La description è scritta per catturare i cross-domain use case del servizio,
-    # a differenza delle capabilities che descrivono singoli endpoint.
     description = data.get("description", "")
     if description:
         desc_vector_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, f"desc:{doc_id}"))
@@ -407,7 +630,7 @@ def reindex_descriptions():
     services_index (Stage 1). Necessario dopo il primo deploy o dopo aver
     aggiunto nuovi servizi quando services_index era vuota.
     """
-    docs = list(collection.find())
+    docs    = list(collection.find())
     indexed = 0
     skipped = 0
     for doc in docs:

@@ -2,8 +2,7 @@ openapi: 3.0.2
 info:
   title: Smart Emergency Services API
   version: '1.0'
-  description: |
-    API for managing emergency units and resources across the city. Supports creation, lookup, update, and deletion of emergency units including their status, availability, active incident tracking, and dispatch information. Supports filtering by standardized city zones (zoneId), unit type, and availability, enabling cross-domain orchestration such as finding all available medical units in a zone with an active traffic incident, or coordinating emergency response across multiple domains (traffic, sensors, lighting).
+  description: API for managing emergency units and resources across the city. Supports creation, lookup, update, and deletion of emergency units including their status, availability, active incident tracking, and dispatch information. Supports filtering by standardized city zones (zoneId), unit type, and availability, enabling cross-domain orchestration such as finding all available medical units in a zone with an active traffic incident, or coordinating emergency response across multiple domains (traffic, sensors, lighting).
   contact:
     name: Smart City Development Team
 servers:
@@ -105,7 +104,7 @@ paths:
                   value: {}
   /emergency-unit:
     get:
-      description: Retrieve emergency units registered in the city response system. Use query parameters to filter by zone, unit type, or availability - for example, to find all available medical units in Z-CENTRO, or all fire units currently responding to incidents across the city.
+      description: "Retrieve emergency units registered in the city response system. Use query parameters to filter by zone, unit type, availability, or operational status - for example, to find all available medical units in Z-CENTRO, or all fire units currently responding to incidents across the city.\n\n**Mock constraint \u2014 one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported \u2014 only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side."
       summary: Search emergency units
       x-microcks-operation:
         dispatcher: FALLBACK
@@ -115,10 +114,24 @@ paths:
         in: query
         schema:
           type: string
-        description: Filter units by the city zone where they are stationed or currently operating
+          enum:
+          - Z-CENTRO
+          - Z-NORD
+          - Z-SUD
+          - Z-EST
+          - Z-OVEST
+        description: 'City zone identifier. Valid values: Z-CENTRO, Z-NORD, Z-SUD, Z-EST, Z-OVEST.'
         examples:
           by_zone_centro:
             value: Z-CENTRO
+          by_zone_nord:
+            value: Z-NORD
+          by_zone_sud:
+            value: Z-SUD
+          by_zone_est:
+            value: Z-EST
+          by_zone_ovest:
+            value: Z-OVEST
       - name: available
         in: query
         schema:
@@ -127,6 +140,8 @@ paths:
         examples:
           available_true:
             value: true
+          available_false:
+            value: false
       - name: type
         in: query
         schema:
@@ -250,80 +265,6 @@ paths:
                     dispatchTime: null
                     crewCount: 4
                     vehicleCode: POL-BN-03
-                'true':
-                  value:
-                  - id: 2
-                    zoneId: Z-SUD
-                    type: medical
-                    location: Azienda Ospedaliera San Pio, Via dell'Esperanto 1, Benevento
-                    available: true
-                    status: idle
-                    incidentId: null
-                    dispatchTime: null
-                    crewCount: 3
-                    vehicleCode: AMB-BN-02
-                  - id: 3
-                    zoneId: Z-CENTRO
-                    type: police
-                    location: Questura di Benevento, Via Orazio 5, Benevento
-                    available: true
-                    status: idle
-                    incidentId: null
-                    dispatchTime: null
-                    crewCount: 4
-                    vehicleCode: POL-BN-03
-                  - id: 4
-                    zoneId: Z-NORD
-                    type: rescue
-                    location: Protezione Civile, Contrada Olivola, Benevento
-                    available: true
-                    status: idle
-                    incidentId: null
-                    dispatchTime: null
-                    crewCount: 6
-                    vehicleCode: PC-BN-04
-                  - id: 6
-                    zoneId: Z-NORD
-                    type: fire
-                    location: Distaccamento VVF Benevento Nord, SS87, Benevento
-                    available: true
-                    status: idle
-                    incidentId: null
-                    dispatchTime: null
-                    crewCount: 4
-                    vehicleCode: VF-BN-09
-                  - id: 7
-                    zoneId: Z-SUD
-                    type: hazmat
-                    location: Deposito ARPA Campania, Via Santa Colomba, Benevento
-                    available: true
-                    status: idle
-                    incidentId: null
-                    dispatchTime: null
-                    crewCount: 3
-                    vehicleCode: HZM-BN-01
-                'false':
-                  value:
-                  - id: 1
-                    zoneId: Z-OVEST
-                    type: fire
-                    location: Comando Provinciale Vigili del Fuoco, Contrada Capodimonte, Benevento
-                    available: false
-                    status: responding
-                    incidentId: INC-20250925-042
-                    dispatchTime: '2025-09-25T09:32:00Z'
-                    crewCount: 5
-                    vehicleCode: VF-BN-07
-                  - id: 5
-                    zoneId: Z-EST
-                    type: medical
-                    location: Croce Rossa Italiana, Via Mustilli 2, Benevento
-                    available: false
-                    status: on-scene
-                    incidentId: INC-20250925-039
-                    dispatchTime: '2025-09-25T08:55:00Z'
-                    crewCount: 2
-                    vehicleCode: CRI-BN-01
                 available_true:
                   value:
                   - id: 2
@@ -532,7 +473,87 @@ paths:
                     dispatchTime: '2025-09-25T08:55:00Z'
                     crewCount: 2
                     vehicleCode: CRI-BN-01
-                by_type_medical:
+                available_false:
+                  value:
+                  - id: 1
+                    zoneId: Z-OVEST
+                    type: fire
+                    location: Comando Provinciale Vigili del Fuoco, Contrada Capodimonte, Benevento
+                    available: false
+                    status: responding
+                    incidentId: INC-20250925-042
+                    dispatchTime: '2025-09-25T09:32:00Z'
+                    crewCount: 5
+                    vehicleCode: VF-BN-07
+                  - id: 5
+                    zoneId: Z-EST
+                    type: medical
+                    location: Croce Rossa Italiana, Via Mustilli 2, Benevento
+                    available: false
+                    status: on-scene
+                    incidentId: INC-20250925-039
+                    dispatchTime: '2025-09-25T08:55:00Z'
+                    crewCount: 2
+                    vehicleCode: CRI-BN-01
+                returning:
+                  value:
+                  - id: 9
+                    zoneId: Z-SUD
+                    type: rescue
+                    location: In transito verso base - Via Santa Colomba, Benevento
+                    available: false
+                    status: returning
+                    incidentId: INC-20250925-031
+                    dispatchTime: '2025-09-25T07:10:00Z'
+                    crewCount: 4
+                    vehicleCode: PC-BN-09
+                unavailable:
+                  value:
+                  - id: 10
+                    zoneId: Z-CENTRO
+                    type: police
+                    location: Questura di Benevento - Ufficio Turni, Via Orazio 5, Benevento
+                    available: false
+                    status: unavailable
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 0
+                    vehicleCode: POL-BN-10
+                maintenance:
+                  value:
+                  - id: 11
+                    zoneId: Z-NORD
+                    type: fire
+                    location: Officina VVF Benevento, SS87 km 3, Benevento
+                    available: false
+                    status: maintenance
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 0
+                    vehicleCode: VF-BN-11
+                by_zone_nord:
+                  value:
+                  - id: 4
+                    zoneId: Z-NORD
+                    type: rescue
+                    location: Protezione Civile, Contrada Olivola, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 6
+                    vehicleCode: PC-BN-04
+                  - id: 6
+                    zoneId: Z-NORD
+                    type: fire
+                    location: Distaccamento VVF Benevento Nord, SS87, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 4
+                    vehicleCode: VF-BN-09
+                by_zone_sud:
                   value:
                   - id: 2
                     zoneId: Z-SUD
@@ -544,6 +565,18 @@ paths:
                     dispatchTime: null
                     crewCount: 3
                     vehicleCode: AMB-BN-02
+                  - id: 7
+                    zoneId: Z-SUD
+                    type: hazmat
+                    location: Deposito ARPA Campania, Via Santa Colomba, Benevento
+                    available: true
+                    status: idle
+                    incidentId: null
+                    dispatchTime: null
+                    crewCount: 3
+                    vehicleCode: HZM-BN-01
+                by_zone_est:
+                  value:
                   - id: 5
                     zoneId: Z-EST
                     type: medical
@@ -554,6 +587,18 @@ paths:
                     dispatchTime: '2025-09-25T08:55:00Z'
                     crewCount: 2
                     vehicleCode: CRI-BN-01
+                by_zone_ovest:
+                  value:
+                  - id: 1
+                    zoneId: Z-OVEST
+                    type: fire
+                    location: Comando Provinciale Vigili del Fuoco, Contrada Capodimonte, Benevento
+                    available: false
+                    status: responding
+                    incidentId: INC-20250925-042
+                    dispatchTime: '2025-09-25T09:32:00Z'
+                    crewCount: 5
+                    vehicleCode: VF-BN-07
     post:
       description: Register a new emergency unit in the city response system.
       summary: Register new emergency unit
@@ -702,8 +747,7 @@ paths:
           description: Emergency unit not found
   /emergency-unit/zone/{zoneId}/status:
     put:
-      description: |
-        Trigger a coordinated status update for all emergency units operating in a specific zone. Useful for city-wide emergency protocols such as placing all units in a zone on alert, or releasing them after an incident is resolved.
+      description: Trigger a coordinated status update for all emergency units operating in a specific zone. Useful for city-wide emergency protocols such as placing all units in a zone on alert, or releasing them after an incident is resolved.
       summary: Update status of all units in a zone
       parameters:
       - name: zoneId

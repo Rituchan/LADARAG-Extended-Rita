@@ -2,8 +2,7 @@ openapi: 3.0.2
 info:
   title: Smart Buildings API
   version: '1.0'
-  description: |
-    API for managing building data and facilities in the city. Supports creation, lookup, update, and deletion of building entries, including occupancy, energy usage, CO2 emissions, and structural metadata. Supports filtering by standardized city zones (zoneId), building type, and operational status, enabling cross-domain orchestration such as identifying high energy-consumption buildings in a zone with active pollution alerts, or finding evacuated buildings during emergencies.
+  description: API for managing building data and facilities in the city. Supports creation, lookup, update, and deletion of building entries, including occupancy, energy usage, CO2 emissions, and structural metadata. Supports filtering by standardized city zones (zoneId), building type, and operational status, enabling cross-domain orchestration such as identifying high energy-consumption buildings in a zone with active pollution alerts, or finding evacuated buildings during emergencies.
   contact:
     name: Smart City Development Team
 servers:
@@ -110,7 +109,7 @@ paths:
                   value: {}
   /building:
     get:
-      description: Retrieve the list of registered city buildings. Use query parameters to filter by zone, building type, or operational status - for example, to find all healthcare buildings in Z-NORD, or all evacuated buildings during an emergency, or all buildings currently in maintenance.
+      description: "Retrieve the list of registered city buildings. Use query parameters to filter by zone, building type, or operational status - for example, to find all healthcare buildings in Z-NORD, or all evacuated buildings during an emergency, or all buildings currently in maintenance.\n\n**Mock constraint \u2014 one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported \u2014 only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side."
       summary: Search buildings
       x-microcks-operation:
         dispatcher: FALLBACK
@@ -120,10 +119,22 @@ paths:
         in: query
         schema:
           type: string
-        description: Filter buildings by city zone identifier (e.g., Z-CENTRO)
+          enum:
+          - Z-CENTRO
+          - Z-NORD
+          - Z-SUD
+          - Z-EST
+          - Z-OVEST
+        description: 'City zone identifier. Valid values: Z-CENTRO, Z-NORD, Z-SUD, Z-EST, Z-OVEST.'
         examples:
           by_zone_centro:
             value: Z-CENTRO
+          by_zone_nord:
+            value: Z-NORD
+          by_zone_sud:
+            value: Z-SUD
+          by_zone_est:
+            value: Z-EST
       - name: status
         in: query
         schema:
@@ -508,8 +519,19 @@ paths:
                     energyUsage: 0.0
                     co2Emissions: 0.0
                     status: closed
-                by_status_evacuated:
+                by_zone_nord:
                   value:
+                  - id: 3
+                    zoneId: Z-NORD
+                    name: Istituto Scolastico G. Rummo
+                    address: Via G. Rummo 1, Benevento
+                    buildingType: education
+                    floors: 4
+                    occupancy: 480
+                    maxCapacity: 600
+                    energyUsage: 1100.0
+                    co2Emissions: 44.0
+                    status: operational
                   - id: 4
                     zoneId: Z-NORD
                     name: Palazzo Municipale Distaccato
@@ -521,7 +543,18 @@ paths:
                     energyUsage: 0.0
                     co2Emissions: 0.0
                     status: evacuated
-                by_type_healthcare:
+                  - id: 8
+                    zoneId: Z-NORD
+                    name: Condominio Residenziale Le Palme
+                    address: Via Meomartini 12, Benevento
+                    buildingType: residential
+                    floors: 8
+                    occupancy: 42
+                    maxCapacity: 60
+                    energyUsage: 600.0
+                    co2Emissions: 24.0
+                    status: operational
+                by_zone_sud:
                   value:
                   - id: 1
                     zoneId: Z-SUD
@@ -534,6 +567,41 @@ paths:
                     energyUsage: 5500.0
                     co2Emissions: 220.0
                     status: operational
+                  - id: 7
+                    zoneId: Z-SUD
+                    name: Palazzetto dello Sport
+                    address: Viale dei Rettori, Benevento
+                    buildingType: public
+                    floors: 1
+                    occupancy: 0
+                    maxCapacity: 800
+                    energyUsage: 200.0
+                    co2Emissions: 8.0
+                    status: maintenance
+                by_zone_est:
+                  value:
+                  - id: 5
+                    zoneId: Z-EST
+                    name: Centro Commerciale Il Quadrifoglio
+                    address: Viale degli Atlantici, Benevento
+                    buildingType: commercial
+                    floors: 2
+                    occupancy: 320
+                    maxCapacity: 1000
+                    energyUsage: 3200.0
+                    co2Emissions: 128.0
+                    status: operational
+                  - id: 9
+                    zoneId: Z-EST
+                    name: Capannone Industriale Zona ASI
+                    address: Contrada Olivola, Benevento
+                    buildingType: industrial
+                    floors: 1
+                    occupancy: 0
+                    maxCapacity: 50
+                    energyUsage: 0.0
+                    co2Emissions: 0.0
+                    status: closed
     post:
       description: Register a new building in the city infrastructure system.
       summary: Register new building

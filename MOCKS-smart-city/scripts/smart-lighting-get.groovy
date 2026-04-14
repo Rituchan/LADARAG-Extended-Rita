@@ -5,8 +5,16 @@ def q = { key ->
 }
 
 def status = q("status")
-if (status == "on") return "on"
-if (status == "off") return "off"
+if (status != null) status = status.toLowerCase()
+if (status == "on")             return "on"
+if (status == "off")            return "off"
 if (status == "malfunctioning") return "malfunctioning"
-return "example_list"
 
+def zoneId = q("zoneId")
+if (zoneId != null) zoneId = zoneId.toUpperCase()
+if (zoneId == "Z-CENTRO") return "by_zone_centro"
+if (zoneId == "Z-NORD")   return "by_zone_nord"
+if (zoneId == "Z-SUD")    return "by_zone_sud"
+if (zoneId == "Z-EST")    return "by_zone_est"
+
+return "example_list"

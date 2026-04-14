@@ -2,8 +2,7 @@ openapi: 3.0.2
 info:
   title: Smart Lighting and Energy API
   version: '1.0'
-  description: |
-    API for managing, monitoring, and controlling the urban street lighting infrastructure. Supports zone-based control (zoneId), allowing the orchestration engine to dynamically adjust lighting brightness across entire city districts in response to traffic incidents, pedestrian density, or severe weather conditions. Supports multi-zone queries (zoneIds) to find malfunctioning lights across all zones returned by a previous task (e.g., zones with active sensor alerts).
+  description: API for managing, monitoring, and controlling the urban street lighting infrastructure. Supports zone-based control (zoneId), allowing the orchestration engine to dynamically adjust lighting brightness across entire city districts in response to traffic incidents, pedestrian density, or severe weather conditions. Supports multi-zone queries (zoneIds) to find malfunctioning lights across all zones returned by a previous task (e.g., zones with active sensor alerts).
   contact:
     name: Smart City Development Team
 servers:
@@ -46,10 +45,10 @@ components:
         status:
           type: string
           enum:
-          - true
-          - false
+          - 'on'
+          - 'off'
           - malfunctioning
-          description: Current operational state of the light emitting unit.
+          description: 'Current operational state: ''on'' = active/illuminated, ''off'' = switched off, ''malfunctioning'' = hardware failure or connectivity drop.'
         brightness:
           type: integer
           description: Current brightness level as a percentage (0 = off, 100 = maximum).
@@ -84,7 +83,7 @@ paths:
                   value: {}
   /light:
     get:
-      description: 'Retrieves a list of smart street lights. Use query parameters to filter by zone, multiple zones, or operational status - for example to find all malfunctioning lights in Z-CENTRO, or all offline lights across every zone that has an active environmental alert (use zoneIds with JMESPath join). '
+      description: "Retrieves a list of smart street lights. Use query parameters to filter by zone, multiple zones, or operational status - for example to find all malfunctioning lights in Z-CENTRO, or all offline lights across every zone that has an active environmental alert.\n\n**Mock constraint \u2014 one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported \u2014 only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side."
       summary: Search smart lights
       x-microcks-operation:
         dispatcher: FALLBACK
@@ -94,20 +93,37 @@ paths:
         in: query
         schema:
           type: string
-        description: Filter lights by a single city zone identifier (e.g., Z-CENTRO)
+          enum:
+          - Z-CENTRO
+          - Z-NORD
+          - Z-SUD
+          - Z-EST
+          - Z-OVEST
+        description: 'City zone identifier. Valid values: Z-CENTRO, Z-NORD, Z-SUD, Z-EST, Z-OVEST.'
         examples:
           by_zone_centro:
             value: Z-CENTRO
+          by_zone_nord:
+            value: Z-NORD
+          by_zone_sud:
+            value: Z-SUD
+          by_zone_est:
+            value: Z-EST
       - name: zoneIds
         in: query
         schema:
           type: array
           items:
             type: string
+            enum:
+            - Z-CENTRO
+            - Z-NORD
+            - Z-SUD
+            - Z-EST
+            - Z-OVEST
         style: form
         explode: false
-        description: |
-          Filter lights by multiple city zones, comma-separated (e.g., Z-CENTRO,Z-NORD). Use with JMESPath join to collect zones from a previous task: {{task[*].zoneId | join(',', @)}} or {{task[?alertActive==`true`][*].zoneId | join(',', @)}}
+        description: 'Multiple city zones, comma-separated. Valid values: Z-CENTRO, Z-NORD, Z-SUD, Z-EST, Z-OVEST. Example: Z-CENTRO,Z-NORD,Z-SUD.'
         examples:
           multiple_zones:
             value: Z-CENTRO,Z-NORD
@@ -116,13 +132,17 @@ paths:
         schema:
           type: string
           enum:
-          - true
-          - false
+          - 'on'
+          - 'off'
           - malfunctioning
         description: Filter by operational status (e.g., malfunctioning to find broken lights)
         examples:
           by_status_malfunctioning:
             value: malfunctioning
+          by_status_on:
+            value: 'on'
+          by_status_off:
+            value: 'off'
       responses:
         '200':
           description: List of smart lights matching the specified filters
@@ -269,15 +289,15 @@ paths:
                     brightness: 0
                     energyConsumption: 0.0
                     smartEnabled: true
-                by_status_malfunctioning:
+                by_zone_nord:
                   value:
-                  - id: 105
-                    zoneId: Z-SUD
-                    location: Via Mustilli - Palo 3, Benevento
-                    status: malfunctioning
+                  - id: 102
+                    zoneId: Z-NORD
+                    location: Viale San Lorenzo - Palo 5, Benevento
+                    status: 'off'
                     brightness: 0
                     energyConsumption: 0.0
-                    smartEnabled: true
+                    smartEnabled: false
                   - id: 107
                     zoneId: Z-NORD
                     location: Via Posillipo - Palo 2, Benevento
@@ -285,15 +305,8 @@ paths:
                     brightness: 0
                     energyConsumption: 0.0
                     smartEnabled: true
-                'true':
+                by_zone_sud:
                   value:
-                  - id: 101
-                    zoneId: Z-CENTRO
-                    location: Corso Garibaldi - Palo 12, Benevento
-                    status: 'on'
-                    brightness: 80
-                    energyConsumption: 1.25
-                    smartEnabled: true
                   - id: 103
                     zoneId: Z-SUD
                     location: Viale dei Rettori - Palo 8, Benevento
@@ -301,13 +314,6 @@ paths:
                     brightness: 75
                     energyConsumption: 1.1
                     smartEnabled: true
-                  - id: 104
-                    zoneId: Z-EST
-                    location: Via Appia Antica - Palo 3, Benevento
-                    status: 'on'
-                    brightness: 90
-                    energyConsumption: 1.4
-                    smartEnabled: true
                   - id: 105
                     zoneId: Z-SUD
                     location: Via Mustilli - Palo 3, Benevento
@@ -315,29 +321,15 @@ paths:
                     brightness: 0
                     energyConsumption: 0.0
                     smartEnabled: true
-                  - id: 106
-                    zoneId: Z-CENTRO
-                    location: Piazza Santa Sofia - Palo 7, Benevento
-                    status: 'on'
-                    brightness: 70
-                    energyConsumption: 1.05
-                    smartEnabled: true
-                  - id: 107
-                    zoneId: Z-NORD
-                    location: Via Posillipo - Palo 2, Benevento
-                    status: malfunctioning
-                    brightness: 0
-                    energyConsumption: 0.0
-                    smartEnabled: true
-                'false':
+                by_zone_est:
                   value:
-                  - id: 102
-                    zoneId: Z-NORD
-                    location: Viale San Lorenzo - Palo 5, Benevento
-                    status: 'off'
-                    brightness: 0
-                    energyConsumption: 0.0
-                    smartEnabled: false
+                  - id: 104
+                    zoneId: Z-EST
+                    location: Via Appia Antica - Palo 3, Benevento
+                    status: 'on'
+                    brightness: 90
+                    energyConsumption: 1.4
+                    smartEnabled: true
                   - id: 108
                     zoneId: Z-EST
                     location: Via Pescara - Palo 11, Benevento
@@ -345,36 +337,6 @@ paths:
                     brightness: 0
                     energyConsumption: 0.0
                     smartEnabled: false
-                multiple_zones:
-                  value:
-                  - id: 101
-                    zoneId: Z-CENTRO
-                    location: Corso Garibaldi - Palo 12, Benevento
-                    status: 'on'
-                    brightness: 80
-                    energyConsumption: 1.25
-                    smartEnabled: true
-                  - id: 102
-                    zoneId: Z-NORD
-                    location: Viale San Lorenzo - Palo 5, Benevento
-                    status: 'off'
-                    brightness: 0
-                    energyConsumption: 0.0
-                    smartEnabled: false
-                  - id: 106
-                    zoneId: Z-CENTRO
-                    location: Piazza Santa Sofia - Palo 7, Benevento
-                    status: 'on'
-                    brightness: 70
-                    energyConsumption: 1.05
-                    smartEnabled: true
-                  - id: 107
-                    zoneId: Z-NORD
-                    location: Via Posillipo - Palo 2, Benevento
-                    status: malfunctioning
-                    brightness: 0
-                    energyConsumption: 0.0
-                    smartEnabled: true
     post:
       description: Registers a newly installed smart light pole into the city's infrastructure grid.
       summary: Register new smart light
@@ -389,7 +351,7 @@ paths:
                 value:
                   zoneId: Z-CENTRO
                   location: Piazza Santa Sofia - Palo 7, Benevento
-                  status: true
+                  status: 'on'
                   brightness: 90
                   energyConsumption: 1.35
                   smartEnabled: true
@@ -406,7 +368,7 @@ paths:
                     id: 103
                     zoneId: Z-CENTRO
                     location: Piazza Santa Sofia - Palo 7, Benevento
-                    status: true
+                    status: 'on'
                     brightness: 90
                     energyConsumption: 1.35
                     smartEnabled: true
@@ -437,7 +399,7 @@ paths:
                     id: 101
                     zoneId: Z-CENTRO
                     location: Corso Garibaldi - Palo 12, Benevento
-                    status: true
+                    status: 'on'
                     brightness: 80
                     energyConsumption: 1.25
                     smartEnabled: true
@@ -466,7 +428,7 @@ paths:
                 value:
                   zoneId: Z-CENTRO
                   location: Corso Garibaldi - Palo 12, Benevento
-                  status: false
+                  status: 'off'
                   brightness: 0
                   energyConsumption: 0.0
                   smartEnabled: true
@@ -483,7 +445,7 @@ paths:
                     id: 101
                     zoneId: Z-CENTRO
                     location: Corso Garibaldi - Palo 12, Benevento
-                    status: false
+                    status: 'off'
                     brightness: 0
                     energyConsumption: 0.0
                     smartEnabled: true
@@ -508,8 +470,7 @@ paths:
           description: The specified smart light ID was not found.
   /light/zone/{zoneId}/brightness:
     put:
-      description: |
-        Dynamically adjust the brightness level for all smart street lights within a specific zone. Useful for reacting to emergencies, traffic incidents, or energy-saving schedules.
+      description: Dynamically adjust the brightness level for all smart street lights within a specific zone. Useful for reacting to emergencies, traffic incidents, or energy-saving schedules.
       summary: Set brightness for an entire zone
       parameters:
       - name: zoneId

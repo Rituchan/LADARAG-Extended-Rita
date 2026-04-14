@@ -2,8 +2,7 @@ openapi: 3.0.2
 info:
   title: Smart Citizens Reports and Ticketing API
   version: '1.0'
-  description: |
-    API empowering residents and the Smart City Virtual Assistant to actively participate in urban maintenance. This is the primary action interface for the Help System: it allows the creation, categorization, and tracking of civic issues (tickets). Supports cross-domain integration via 'zoneId' and multi-zone queries (zoneIds) to find open tickets across all zones returned by a previous task (e.g., zones with active sensor alerts or traffic incidents).
+  description: 'API empowering residents and the Smart City Virtual Assistant to actively participate in urban maintenance. This is the primary action interface for the Help System: it allows the creation, categorization, and tracking of civic issues (tickets). Supports cross-domain integration via ''zoneId'' and multi-zone queries (zoneIds) to find open tickets across all zones returned by a previous task (e.g., zones with active sensor alerts or traffic incidents).'
   contact:
     name: Smart City Development Team
 servers:
@@ -97,7 +96,7 @@ paths:
                   value: {}
   /citizen-report:
     get:
-      description: Retrieves a list of citizen reports. Crucial for the Assistant to check if a specific issue in a zone has already been reported before creating a duplicate ticket. Use query parameters to filter by zone, multiple zones, status, or category - for example to find all open lighting reports in Z-CENTRO, or all open reports across every zone with active environmental alerts (use zoneIds with JMESPath join).
+      description: "Retrieves a list of citizen reports. Crucial for the Assistant to check if a specific issue in a zone has already been reported before creating a duplicate ticket. Use query parameters to filter by zone, multiple zones, status, or category - for example to find all open lighting reports in Z-CENTRO, or all open reports across every zone with active environmental alerts.\n\n**Mock constraint \u2014 one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported \u2014 only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side."
       summary: Search citizen reports
       x-microcks-operation:
         dispatcher: FALLBACK
@@ -107,20 +106,37 @@ paths:
         in: query
         schema:
           type: string
-        description: Filter reports by a single city zone (e.g., Z-CENTRO)
+          enum:
+          - Z-CENTRO
+          - Z-NORD
+          - Z-SUD
+          - Z-EST
+          - Z-OVEST
+        description: 'City zone identifier. Valid values: Z-CENTRO, Z-NORD, Z-SUD, Z-EST, Z-OVEST.'
         examples:
           by_zone_centro:
             value: Z-CENTRO
+          by_zone_nord:
+            value: Z-NORD
+          by_zone_sud:
+            value: Z-SUD
+          by_zone_est:
+            value: Z-EST
       - name: zoneIds
         in: query
         schema:
           type: array
           items:
             type: string
+            enum:
+            - Z-CENTRO
+            - Z-NORD
+            - Z-SUD
+            - Z-EST
+            - Z-OVEST
         style: form
         explode: false
-        description: |
-          Filter reports by multiple city zones, comma-separated (e.g., Z-CENTRO,Z-NORD). Use with JMESPath join to collect zones from a previous task: {{task[*].zoneId | join(',', @)}} or {{task[?alertActive==`true`][*].zoneId | join(',', @)}}
+        description: 'Multiple city zones, comma-separated. Valid values: Z-CENTRO, Z-NORD, Z-SUD, Z-EST, Z-OVEST. Example: Z-CENTRO,Z-NORD,Z-SUD.'
         examples:
           multiple_zones:
             value: Z-CENTRO,Z-NORD
@@ -137,6 +153,8 @@ paths:
         examples:
           by_status_open:
             value: open
+          by_status_closed:
+            value: closed
       - name: category
         in: query
         schema:
@@ -393,58 +411,36 @@ paths:
                     description: Recinzione di cantiere divelta pericolosa per i pedoni.
                     status: in_progress
                     submittedAt: '2025-09-24T08:00:00Z'
-                by_status_open:
+                closed:
                   value:
-                  - id: 1
+                  - id: 9
                     zoneId: Z-CENTRO
-                    reporterName: Mario Rossi
-                    location: Piazza Castello, Benevento
-                    category: sanitation
-                    description: Cestino traboccante di rifiuti vicino all'ingresso della Rocca dei Rettori.
-                    status: open
-                    submittedAt: '2025-09-24T14:30:00Z'
-                  - id: 3
-                    zoneId: Z-SUD
-                    reporterName: Antonio De Lucia
-                    location: Ponte Leproso, Via Appia Antica, Benevento
-                    category: lighting
-                    description: Lampione spento sul percorso pedonale verso il ponte storico.
-                    status: open
-                    submittedAt: '2025-09-24T20:00:00Z'
-                  - id: 4
-                    zoneId: Z-EST
-                    reporterName: Smart City Assistant
-                    location: Terminal Bus Extraurbani, Benevento
-                    category: environment
-                    description: 'Segnalazione automatica: livello di rumore elevato nelle ore notturne.'
-                    status: open
-                    submittedAt: '2025-09-25T01:30:00Z'
-                  - id: 7
-                    zoneId: Z-SUD
-                    reporterName: Anna Ferraro
-                    location: Via Santa Colomba, Benevento
+                    reporterName: Lucia Esposito
+                    location: Via Roma 12, Benevento
                     category: infrastructure
-                    description: Guasto all'impianto fognario con allagamento del marciapiede.
-                    status: open
-                    submittedAt: '2025-09-25T07:45:00Z'
-                  - id: 8
+                    description: Marciapiede danneggiato, intervento completato e ticket chiuso.
+                    status: closed
+                    submittedAt: '2025-09-20T10:00:00Z'
+                  - id: 10
+                    zoneId: Z-NORD
+                    reporterName: Marco Gentile
+                    location: Via Posillipo 8, Benevento
+                    category: safety
+                    description: Recinzione cantiere ripristinata. Ticket chiuso a risoluzione completata.
+                    status: closed
+                    submittedAt: '2025-09-19T14:00:00Z'
+                other:
+                  value:
+                  - id: 11
                     zoneId: Z-EST
                     reporterName: Smart City Assistant
-                    location: Via Appia km 243, Benevento
-                    category: sanitation
-                    description: 'Segnalazione automatica: cestino id=8 in stato offline da oltre 48 ore.'
+                    location: Via Appia km 240, Benevento
+                    category: other
+                    description: 'Segnalazione automatica: anomalia non classificata rilevata dal sistema.'
                     status: open
-                    submittedAt: '2025-09-25T09:00:00Z'
-                multiple_zones:
+                    submittedAt: '2025-09-25T10:00:00Z'
+                by_zone_nord:
                   value:
-                  - id: 1
-                    zoneId: Z-CENTRO
-                    reporterName: Mario Rossi
-                    location: Piazza Castello, Benevento
-                    category: sanitation
-                    description: Cestino traboccante di rifiuti vicino all'ingresso della Rocca dei Rettori.
-                    status: open
-                    submittedAt: '2025-09-24T14:30:00Z'
                   - id: 2
                     zoneId: Z-NORD
                     reporterName: Giulia Bianchi
@@ -453,14 +449,6 @@ paths:
                     description: Buca pericolosa e profonda sul manto stradale.
                     status: in_progress
                     submittedAt: '2025-09-23T09:15:00Z'
-                  - id: 5
-                    zoneId: Z-CENTRO
-                    reporterName: Lucia Esposito
-                    location: Corso Garibaldi 45, Benevento
-                    category: traffic
-                    description: Semaforo fuori servizio in corrispondenza dell'incrocio con Via Roma.
-                    status: resolved
-                    submittedAt: '2025-09-23T11:00:00Z'
                   - id: 6
                     zoneId: Z-NORD
                     reporterName: Carlo Mancini
@@ -469,9 +457,44 @@ paths:
                     description: Recinzione di cantiere divelta pericolosa per i pedoni.
                     status: in_progress
                     submittedAt: '2025-09-24T08:00:00Z'
+                by_zone_sud:
+                  value:
+                  - id: 3
+                    zoneId: Z-SUD
+                    reporterName: Antonio De Lucia
+                    location: Ponte Leproso, Via Appia Antica, Benevento
+                    category: lighting
+                    description: Lampione spento sul percorso pedonale verso il ponte storico.
+                    status: open
+                    submittedAt: '2025-09-24T20:00:00Z'
+                  - id: 7
+                    zoneId: Z-SUD
+                    reporterName: Anna Ferraro
+                    location: Via Santa Colomba, Benevento
+                    category: infrastructure
+                    description: Guasto all'impianto fognario con allagamento del marciapiede.
+                    status: open
+                    submittedAt: '2025-09-25T07:45:00Z'
+                by_zone_est:
+                  value:
+                  - id: 4
+                    zoneId: Z-EST
+                    reporterName: Smart City Assistant
+                    location: Terminal Bus Extraurbani, Benevento
+                    category: environment
+                    description: 'Segnalazione automatica: livello di rumore elevato nelle ore notturne.'
+                    status: open
+                    submittedAt: '2025-09-25T01:30:00Z'
+                  - id: 8
+                    zoneId: Z-EST
+                    reporterName: Smart City Assistant
+                    location: Via Appia km 243, Benevento
+                    category: sanitation
+                    description: 'Segnalazione automatica: cestino id=8 in stato offline da oltre 48 ore.'
+                    status: open
+                    submittedAt: '2025-09-25T09:00:00Z'
     post:
-      description: |
-        Submits a new citizen report. This is the primary Actuator endpoint for the Smart City Assistant to escalate issues to human operators automatically.
+      description: Submits a new citizen report. This is the primary Actuator endpoint for the Smart City Assistant to escalate issues to human operators automatically.
       summary: Submit new citizen report (Open Ticket)
       requestBody:
         required: true

@@ -2,8 +2,7 @@ openapi: 3.0.2
 info:
   title: Smart Public Transport and Transit API
   version: '1.0'
-  description: |
-    API for managing public transport vehicles (buses, trams, metro) and routes across the city. Crucial for urban mobility orchestration. Supports dynamic filtering by city zones (zoneId) and operational status. Supports multi-zone queries (zoneIds) to find vehicles across all zones returned by a previous task. Can be used as an actuator to halt or reroute transit services in specific zones during environmental emergencies or severe traffic congestion.
+  description: API for managing public transport vehicles (buses, trams, metro) and routes across the city. Crucial for urban mobility orchestration. Supports dynamic filtering by city zones (zoneId) and operational status. Supports multi-zone queries (zoneIds) to find vehicles across all zones returned by a previous task. Can be used as an actuator to halt or reroute transit services in specific zones during environmental emergencies or severe traffic congestion.
   contact:
     name: Smart City Development Team
 servers:
@@ -100,7 +99,7 @@ paths:
                   value: {}
   /vehicle:
     get:
-      description: Retrieve public transport vehicles currently tracked by the system. Use query parameters to filter by city zone, multiple zones, operational status, or vehicle type - for example to find all delayed buses in Z-CENTRO, or all vehicles across every zone where a traffic incident has been detected (use zoneIds with JMESPath join).
+      description: "Retrieve public transport vehicles currently tracked by the system. Use query parameters to filter by city zone, multiple zones, operational status, or vehicle type - for example to find all delayed buses in Z-CENTRO, or all vehicles across every zone where a traffic incident has been detected.\n\n**Mock constraint \u2014 one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported \u2014 only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side."
       summary: Search transit vehicles
       x-microcks-operation:
         dispatcher: FALLBACK
@@ -110,20 +109,37 @@ paths:
         in: query
         schema:
           type: string
-        description: Filter vehicles by their current city zone ID (e.g., Z-CENTRO)
+          enum:
+          - Z-CENTRO
+          - Z-NORD
+          - Z-SUD
+          - Z-EST
+          - Z-OVEST
+        description: 'City zone identifier. Valid values: Z-CENTRO, Z-NORD, Z-SUD, Z-EST, Z-OVEST.'
         examples:
           by_zone_centro:
             value: Z-CENTRO
+          by_zone_nord:
+            value: Z-NORD
+          by_zone_sud:
+            value: Z-SUD
+          by_zone_est:
+            value: Z-EST
       - name: zoneIds
         in: query
         schema:
           type: array
           items:
             type: string
+            enum:
+            - Z-CENTRO
+            - Z-NORD
+            - Z-SUD
+            - Z-EST
+            - Z-OVEST
         style: form
         explode: false
-        description: |
-          Filter vehicles by multiple city zones, comma-separated (e.g., Z-CENTRO,Z-NORD). Use with JMESPath join to collect zones from a previous task: {{task[*].zoneId | join(',', @)}} or {{task[?incidentDetected==`true`][*].zoneId | join(',', @)}}
+        description: 'Multiple city zones, comma-separated. Valid values: Z-CENTRO, Z-NORD, Z-SUD, Z-EST, Z-OVEST. Example: Z-CENTRO,Z-NORD,Z-SUD.'
         examples:
           multiple_zones:
             value: Z-CENTRO,Z-NORD
@@ -155,6 +171,10 @@ paths:
         examples:
           by_type_bus:
             value: bus
+          by_type_metro:
+            value: metro
+          by_type_ferry:
+            value: ferry
       responses:
         '200':
           description: List of vehicles matching the specified filters
@@ -428,7 +448,29 @@ paths:
                     capacity: 120
                     status: in-service
                     lastUpdated: '2025-09-25T10:08:00Z'
-                by_status_delayed:
+                metro:
+                  value:
+                  - id: 9
+                    zoneId: Z-CENTRO
+                    routeId: Metro 1
+                    vehicleType: metro
+                    currentLocation: Stazione Centrale Metropolitana, Benevento
+                    occupancy: 120
+                    capacity: 200
+                    status: in-service
+                    lastUpdated: '2025-09-25T10:15:00Z'
+                ferry:
+                  value:
+                  - id: 10
+                    zoneId: Z-SUD
+                    routeId: Ferry 1
+                    vehicleType: ferry
+                    currentLocation: Porto Fluviale Sabato, Benevento
+                    occupancy: 8
+                    capacity: 50
+                    status: in-service
+                    lastUpdated: '2025-09-25T10:00:00Z'
+                by_zone_nord:
                   value:
                   - id: 2
                     zoneId: Z-NORD
@@ -439,35 +481,6 @@ paths:
                     capacity: 75
                     status: delayed
                     lastUpdated: '2025-09-25T10:02:00Z'
-                multiple_zones:
-                  value:
-                  - id: 1
-                    zoneId: Z-CENTRO
-                    routeId: Linea 1
-                    vehicleType: bus
-                    currentLocation: Stazione FS Centrale, Piazzale Colonna, Benevento
-                    occupancy: 38
-                    capacity: 75
-                    status: in-service
-                    lastUpdated: '2025-09-25T10:05:00Z'
-                  - id: 2
-                    zoneId: Z-NORD
-                    routeId: Linea 3
-                    vehicleType: bus
-                    currentLocation: Viale Mellusi (Fermata Ospedale), Benevento
-                    occupancy: 52
-                    capacity: 75
-                    status: delayed
-                    lastUpdated: '2025-09-25T10:02:00Z'
-                  - id: 5
-                    zoneId: Z-CENTRO
-                    routeId: Tram 1
-                    vehicleType: tram
-                    currentLocation: Piazza Santa Sofia, Benevento
-                    occupancy: 44
-                    capacity: 120
-                    status: in-service
-                    lastUpdated: '2025-09-25T10:08:00Z'
                   - id: 6
                     zoneId: Z-NORD
                     routeId: Linea 5
@@ -477,15 +490,37 @@ paths:
                     capacity: 75
                     status: end-of-line
                     lastUpdated: '2025-09-25T09:50:00Z'
-                  - id: 8
-                    zoneId: Z-CENTRO
-                    routeId: Linea 1
+                by_zone_sud:
+                  value:
+                  - id: 3
+                    zoneId: Z-SUD
+                    routeId: Linea 16
                     vehicleType: bus
-                    currentLocation: Corso Garibaldi - Piazza Risorgimento, Benevento
+                    currentLocation: Deposito Trotta Bus, Via Santa Colomba, Benevento
                     occupancy: 0
                     capacity: 75
-                    status: suspended
-                    lastUpdated: '2025-09-25T11:30:00Z'
+                    status: out-of-service
+                    lastUpdated: '2025-09-25T06:00:00Z'
+                  - id: 7
+                    zoneId: Z-SUD
+                    routeId: Linea 2
+                    vehicleType: bus
+                    currentLocation: Officine Trotta Bus, Via Santa Colomba, Benevento
+                    occupancy: 0
+                    capacity: 75
+                    status: maintenance
+                    lastUpdated: '2025-09-25T07:00:00Z'
+                by_zone_est:
+                  value:
+                  - id: 4
+                    zoneId: Z-EST
+                    routeId: Linea 7
+                    vehicleType: bus
+                    currentLocation: Terminal Bus Extraurbani, Piazzale Venanzio Vari, Benevento
+                    occupancy: 61
+                    capacity: 75
+                    status: in-service
+                    lastUpdated: '2025-09-25T10:10:00Z'
     post:
       description: Register a new public transport vehicle in the city transit system.
       summary: Register new vehicle
@@ -629,8 +664,7 @@ paths:
           description: Vehicle not found
   /vehicle/zone/{zoneId}/service-status:
     put:
-      description: |
-        Dynamically halt, suspend, or resume public transport services across an entire zone. Critical for emergency response (e.g., suspending bus service in Z-CENTRO due to severe flooding or traffic gridlock).
+      description: Dynamically halt, suspend, or resume public transport services across an entire zone. Critical for emergency response (e.g., suspending bus service in Z-CENTRO due to severe flooding or traffic gridlock).
       summary: Update transit service status for a zone
       parameters:
       - name: zoneId

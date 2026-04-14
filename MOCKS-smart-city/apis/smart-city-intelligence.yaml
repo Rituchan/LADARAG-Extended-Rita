@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Smart City Intelligence API
   version: '1.0'
-  description: |
+  description: |-
     Cross-domain aggregation and goal-based intelligence service for the Smart City platform. This service acts as a read-only intelligence layer that joins real-time data from multiple microservices to answer composite queries that cannot be resolved through sequential API chaining alone - where results from one domain must be filtered, ranked, or combined with results from other domains before a meaningful answer can be returned.
     Designed for five families of orchestration scenarios:
       1. Safety & Alerts      - unified view of all active city alerts across domains
@@ -245,7 +245,13 @@ paths:
         in: query
         schema:
           type: string
-        description: Restrict alerts to a specific city zone
+          enum:
+          - Z-CENTRO
+          - Z-NORD
+          - Z-SUD
+          - Z-EST
+          - Z-OVEST
+        description: 'City zone identifier. Valid values: Z-CENTRO, Z-NORD, Z-SUD, Z-EST, Z-OVEST.'
         examples:
           by_zone_centro:
             value: Z-CENTRO
@@ -318,8 +324,7 @@ paths:
                     totalAlerts: 0
   /city/zone/{zoneId}/pulse:
     get:
-      description: |
-        Returns a full real-time snapshot of a specific city zone aggregating data from all domain services: parking, traffic, air quality, attractions, transport, and active alerts. Returns a composite liveability score (0-100).
+      description: 'Returns a full real-time snapshot of a specific city zone aggregating data from all domain services: parking, traffic, air quality, attractions, transport, and active alerts. Returns a composite liveability score (0-100).'
       summary: Get real-time zone pulse across all domains
       x-microcks-operation:
         dispatcher: RANDOM
@@ -366,8 +371,7 @@ paths:
                     overallScore: 18.0
   /city/mobility/best-parking:
     get:
-      description: |
-        Finds and ranks available parking spots based on proximity to a target zone, traffic conditions, spot type, and price. Resolves queries like "find parking near the museum with low traffic" or "find a disabled parking spot in Z-CENTRO" without multi-step chaining.
+      description: Finds and ranks available parking spots based on proximity to a target zone, traffic conditions, spot type, and price. Resolves queries like "find parking near the museum with low traffic" or "find a disabled parking spot in Z-CENTRO" without multi-step chaining.
       summary: Find best available parking for a goal
       x-microcks-operation:
         dispatcher: RANDOM
@@ -446,8 +450,7 @@ paths:
                   value: []
   /city/mobility/best-charging:
     get:
-      description: |
-        Finds and ranks available EV charging stations based on proximity to a target zone, required charging speed, and price. Resolves queries like "find a rapid charger near the historic center".
+      description: Finds and ranks available EV charging stations based on proximity to a target zone, required charging speed, and price. Resolves queries like "find a rapid charger near the historic center".
       summary: Find best available EV charging station for a goal
       x-microcks-operation:
         dispatcher: RANDOM
@@ -511,8 +514,7 @@ paths:
                     score: 71.0
   /city/tourism/best-attraction:
     get:
-      description: |
-        Recommends tourist attractions based on real-time conditions: crowd levels, wait times, accessibility requirements, ticket price, category, and environmental quality in the attraction zone. Resolves queries like "which attraction has the shortest wait right now?".
+      description: 'Recommends tourist attractions based on real-time conditions: crowd levels, wait times, accessibility requirements, ticket price, category, and environmental quality in the attraction zone. Resolves queries like "which attraction has the shortest wait right now?".'
       summary: Recommend the best attraction to visit right now
       x-microcks-operation:
         dispatcher: RANDOM
@@ -599,8 +601,7 @@ paths:
                   value: []
   /city/maintenance/urgent:
     get:
-      description: |
-        Aggregates urgent maintenance needs across all city infrastructure domains: overflowing bins, malfunctioning lights, offline sensors, buildings in maintenance or evacuated status, and open unresolved citizen reports.
+      description: 'Aggregates urgent maintenance needs across all city infrastructure domains: overflowing bins, malfunctioning lights, offline sensors, buildings in maintenance or evacuated status, and open unresolved citizen reports.'
       summary: Get all infrastructure items requiring urgent attention
       x-microcks-operation:
         dispatcher: RANDOM
@@ -609,7 +610,13 @@ paths:
         in: query
         schema:
           type: string
-        description: Restrict results to a specific city zone
+          enum:
+          - Z-CENTRO
+          - Z-NORD
+          - Z-SUD
+          - Z-EST
+          - Z-OVEST
+        description: 'City zone identifier. Valid values: Z-CENTRO, Z-NORD, Z-SUD, Z-EST, Z-OVEST.'
         examples:
           by_zone_centro:
             value: Z-CENTRO
