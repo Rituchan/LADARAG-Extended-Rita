@@ -179,6 +179,8 @@ services:
       - OLLAMA_API_URL=http://192.168.250.40:15888
      # - LLM_MODEL=phi4:14b
       - MOCK_SERVER_URL=http://mock-server:8080
+      - BACKEND_MODE = ${BACKEND_MODE:-MOCK}
+      - API_AUTH_HEADERS = ${API_AUTH_HEADERS:-}
     stop_grace_period: 10s
     depends_on:
       mock-deployer:

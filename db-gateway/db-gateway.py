@@ -13,8 +13,9 @@ import signal
 import re
 import time
 import requests
-
 from sentence_transformers import SentenceTransformer, CrossEncoder
+from optimum.onnxruntime import ORTModelForFeatureExtraction, ORTModelForSequenceClassification
+from transformers import AutoTokenizer
 
 
 def handle_sigterm(*args):
@@ -73,9 +74,50 @@ reranker_model  = None
 tokenizer       = None
 
 
+class ONNXCrossEncoder:
+    """
+    Wrapper personalizzato per eseguire un CrossEncoder in formato ONNX.
+    Ottimizza massivamente l'inferenza CPU rispetto a PyTorch standard.
+    """
+    def __init__(self, model_name):
+        logger.info(f"Converting and loading {model_name} in ONNX format (this may take a minute)...")
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        # Il parametro export=True scarica il modello PyTorch e lo converte in ONNX al volo
+        self.model = ORTModelForSequenceClassification.from_pretrained(
+            model_name, 
+            export=True, 
+            provider="CPUExecutionProvider"
+        )
+        logger.info(f"{model_name} successfully loaded in ONNX.")
+
+    def predict(self, sentences, batch_size=4):
+        all_scores = []
+        for i in range(0, len(sentences), batch_size):
+            batch = sentences[i:i+batch_size]
+            # max_length=512 previene crash su endpoint con descrizioni anomale
+            inputs = self.tokenizer(batch, padding=True, truncation=True, max_length=512, return_tensors="pt")
+            
+            # Inferenza tramite runtime ONNX (C++)
+            outputs = self.model(**inputs)
+            logits = outputs.logits
+            if logits.ndim > 1:
+                logits = logits.squeeze(-1)
+            logits = logits.detach().numpy()
+            
+            # Gestione dei risultati (singoli o multipli)
+            if logits.ndim == 0:
+                all_scores.append(float(logits))
+            else:
+                all_scores.extend([float(x) for x in logits])
+                
+        return all_scores
+
+
 def load_model():
     global embedding_model, reranker_model, tokenizer
     logger.info("Loading models...")
+    
+    # 1. Caricamento Embedding Model (Lasciato in PyTorch standard)
     embedding_model = SentenceTransformer(
         model_name_or_path='Qwen/Qwen3-Embedding-0.6B',
         device='cpu',
@@ -83,11 +125,9 @@ def load_model():
     )
     tokenizer = embedding_model.tokenizer
     logger.info("Embedding model loaded.")
-    reranker_model = CrossEncoder(
-        model_name_or_path='BAAI/bge-reranker-base',
-        device='cpu',
-        trust_remote_code=True
-    )
+    
+    # 2. Caricamento Reranker Model (Usando il nuovo motore ONNX)
+    reranker_model = ONNXCrossEncoder('BAAI/bge-reranker-base')
     logger.info("Reranker model loaded.")
 
 
@@ -499,8 +539,10 @@ def vector_search():
     logger.info(f"[STAGE 2] Single-batch reranking: {len(all_pairs)} coppie "
                 f"da {len(services_data)} servizi")
 
-    # ── Unica chiamata a predict() per tutte le coppie ───────────────────────
-    all_scores = reranker_model.predict(all_pairs)
+    # ── Unica chiamata a predict() per tutte le coppie (con partizionamento) ──
+    # Impostiamo batch_size=4 per forzare il CrossEncoder a calcolare piccoli blocchi,
+    # prevenendo l'esaurimento della RAM e l'utilizzo dello Swap Disk su CPU in Docker.
+    all_scores = reranker_model.predict(all_pairs, batch_size=4)
 
     # ── Aggrega gli score per doc_id ─────────────────────────────────────────
     scores_by_service: dict = {doc_id: {} for doc_id in services_data}

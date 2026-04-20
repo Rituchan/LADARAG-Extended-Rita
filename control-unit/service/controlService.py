@@ -15,6 +15,7 @@ import jmespath                        # pip install jmespath
 import duckdb                          # pip install duckdb
 import pandas as pd                    # pip install pandas
 from jmespath import exceptions as jmespath_exc
+from urllib.parse import urlparse, parse_qs
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -101,6 +102,10 @@ class Controller:
 
     def __init__(self):
         self.model_name = os.environ.get("LLM_MODEL", "qwen3.5:27b")
+        # Backend mode: MOCK (Microcks) oppure REAL (API reali).
+        # Letta a ogni chiamata di control() per permettere lo switch a runtime
+        # senza restart — utile per gli script di valutazione della tesi.
+        self.backend_mode = "MOCK"
         # Fallback LLM per piani vuoti: classifica il motivo e, se
         # OUT_OF_DOMAIN, propone anche un contratto API concettuale.
         # Un'unica chiamata LLM copre entrambi i compiti (vedi designerService.py).
@@ -201,12 +206,22 @@ class Controller:
     def _validate_plan(self,
                        plan: dict,
                        discovered_services: list,
-                       discovered_request_schemas: list) -> list[str]:
+                       discovered_request_schemas: list,
+                       discovered_parameters: list | None = None,
+                       backend_mode: str = "MOCK") -> list[str]:
         """
-        Validatore post-parse per le chiavi del campo 'input' di ogni task.
+        Validatore post-parse del piano generato dall'LLM.
 
-        Confronta le chiavi presenti nell'input generato dall'LLM con quelle
-        dichiarate nello schema dell'endpoint specifico chiamato.
+        Controlli effettuati per ogni task:
+          1. (POST/PUT/PATCH) Le chiavi del body 'input' devono essere documentate
+             nel request_schema dell'endpoint chiamato.
+          2. (GET) Ogni query param nell'URL deve essere nel set di parametri
+             documentati dal catalogo per quell'endpoint.
+          3. (GET, HC-12, solo in MOCK) Un URL non deve combinare due o più
+             query param in AND: i mock server (Microcks) matchano un parametro
+             alla volta contro gli esempi registrati. In REAL il check viene
+             saltato perché le API reali supportano l'AND-combination.
+
         Ritorna una lista di warning: lista vuota significa piano pulito.
 
         Utile per:
@@ -217,43 +232,88 @@ class Controller:
         warnings: list[str] = []
         field_pattern = re.compile(r'(\w+):')
 
-        # Costruisce mappa  path_endpoint → set_chiavi_valide
-        # es. "/sort" → {"data", "by", "order", "top"}
-        endpoint_valid_keys: dict[str, set] = {}
+        # Costruisce due mappe  path_endpoint → set_nomi_validi:
+        #   endpoint_valid_keys   → chiavi del body (POST/PUT)
+        #   endpoint_valid_params → nomi dei query param (GET)
+        endpoint_valid_keys:   dict[str, set] = {}
+        endpoint_valid_params: dict[str, set] = {}
+
         for i, _ in enumerate(discovered_services):
             schemas = discovered_request_schemas[i] \
                       if i < len(discovered_request_schemas) else {}
+            params  = discovered_parameters[i] \
+                      if discovered_parameters and i < len(discovered_parameters) else {}
+
             for ep_key, schema_str in schemas.items():
                 if not schema_str:
                     continue
                 path = ep_key.split(" ")[-1]          # "POST /sort" → "/sort"
                 endpoint_valid_keys[path] = set(field_pattern.findall(schema_str))
 
+            for ep_key, params_str in params.items():
+                if not params_str:
+                    continue
+                path = ep_key.split(" ")[-1]          # "GET /sensor" → "/sensor"
+                endpoint_valid_params[path] = set(field_pattern.findall(str(params_str)))
+
         for task in plan.get("tasks", []):
             task_name = task.get("task_name", "?")
             url       = task.get("url", "")
             input_val = task.get("input")
+            operation = str(task.get("operation") or "GET").upper()
 
-            # Salta task senza body strutturato (GET, input stringa/null/vuoto)
-            if not isinstance(input_val, dict) or not input_val:
-                continue
+            # ── Check 1: chiavi del body (POST/PUT/PATCH) ────────────────────
+            if isinstance(input_val, dict) and input_val:
+                matched_valid_keys = None
+                for ep_path, valid_keys in endpoint_valid_keys.items():
+                    if ep_path in url:
+                        matched_valid_keys = valid_keys
+                        break
 
-            matched_valid_keys = None
-            for ep_path, valid_keys in endpoint_valid_keys.items():
-                if ep_path in url:
-                    matched_valid_keys = valid_keys
-                    break
+                if matched_valid_keys is not None:
+                    hallucinated = set(input_val.keys()) - matched_valid_keys
+                    if hallucinated:
+                        warnings.append(
+                            f"[SCHEMA VIOLATION] Task '{task_name}' → "
+                            f"chiavi non valide: {sorted(hallucinated)} | "
+                            f"chiavi ammesse: {sorted(matched_valid_keys)}"
+                        )
 
-            if matched_valid_keys is None:
-                continue   # endpoint non nel registry, skip
+            # ── Check 2 & 3: query param dei GET (HC-12) ─────────────────────
+            if operation == "GET" and url:
+                try:
+                    parsed = urlparse(url)
+                    qs = parse_qs(parsed.query, keep_blank_values=True)
+                except Exception:
+                    qs = {}
 
-            hallucinated = set(input_val.keys()) - matched_valid_keys
-            if hallucinated:
-                warnings.append(
-                    f"[SCHEMA VIOLATION] Task '{task_name}' → "
-                    f"chiavi non valide: {sorted(hallucinated)} | "
-                    f"chiavi ammesse: {sorted(matched_valid_keys)}"
-                )
+                param_names = set(qs.keys())
+
+                # Matching endpoint sul path (stessa euristica del check 1)
+                matched_valid_params = None
+                for ep_path, valid_names in endpoint_valid_params.items():
+                    if ep_path in parsed.path:
+                        matched_valid_params = valid_names
+                        break
+
+                # Check 2: param non documentati nel catalogo
+                if matched_valid_params:   # non-None e non vuoto
+                    hallucinated_params = param_names - matched_valid_params
+                    if hallucinated_params:
+                        warnings.append(
+                            f"[PARAM VIOLATION] Task '{task_name}' → "
+                            f"query param non documentati: {sorted(hallucinated_params)} | "
+                            f"documentati: {sorted(matched_valid_params)}"
+                        )
+
+                # Check 3: HC-12 — AND-combination (solo in MOCK)
+                if backend_mode == "MOCK" and len(param_names) >= 2:
+                    warnings.append(
+                        f"[HC-12 VIOLATION] Task '{task_name}' → "
+                        f"GET combina {len(param_names)} query param in AND: "
+                        f"{sorted(param_names)} | "
+                        f"url: {url[:120]}"
+                    )
 
         return warnings
 
@@ -324,7 +384,38 @@ class Controller:
     # PROMPT
     # ------------------------------------------------------------------
 
-    def _build_system_prompt(self) -> str:
+    def _build_system_prompt(self, backend_mode: str = "MOCK") -> str:
+
+        # ── BACKEND-MODE-CONDITIONAL RULES ───────────────────────────────────
+        # HC-12 è motivato dal comportamento dei mock server (Microcks matcha
+        # un parametro alla volta contro gli esempi registrati). Sui servizi
+        # reali le API supportano l'AND-combination dei query param documentati,
+        # quindi HC-12 diventa controproducente: forzerebbe due GET + SQL dove
+        # un singolo GET basterebbe. In REAL il vincolo viene rimosso.
+        if backend_mode == "REAL":
+            hc12_block      = ""
+            self_check_hc12 = (
+                "  □ Every query param in a GET url is documented in the "
+                "endpoint's parameters list (HC-1)."
+            )
+        else:
+            hc12_block = """
+
+HC-12  NO AND-COMBINATION OF QUERY PARAMS
+      A GET url MUST NOT carry two or more query parameters in AND (e.g. ?a=x&b=y)
+      unless the endpoint's description EXPLICITLY documents that the combination
+      is supported.
+      Why: mock servers (Microcks) match each parameter in isolation against
+      registered examples. AND-combining two independently-documented parameters
+      returns the first matched example, NOT the intersection — silently
+      producing wrong data.
+      Correct pattern when two independent filters are needed and no single
+      endpoint documents them together: issue ONE GET per filter, combine
+      the results in a terminal SQL task (e.g. JOIN on zoneId, or WHERE IN)."""
+            self_check_hc12 = (
+                "  □ No GET url combines two or more query params in AND (HC-12) "
+                "— use one GET per filter + a terminal SQL task."
+            )
 
         # ── EXAMPLES ─────────────────────────────────────────────────────────
         # Five examples, one per structurally distinct pattern family.
@@ -359,7 +450,7 @@ class Controller:
                 "DECOMPOSE: find patient Rossi → set discharged | "
                 "MAP: smart-hospital-mock / GET /patient + PUT /patient/{id} | "
                 "CHAIN: PUT path ← get_all_patients[?surname=='Rossi'] | [0].id | "
-                "COMBINE: jmespath on get_all_patients feeds PUT url | "
+                "COMBINE: chain: discharge_patient consumes get_all_patients via JMESPath | "
                 "FILTER: surname match via JMESPath, not query param | "
                 "VALIDATE: ✓ id in path, ✓ no bare placeholders"
             ),
@@ -396,7 +487,7 @@ class Controller:
                 "DECOMPOSE: canteens near occupied halls | "
                 "MAP: smart-campus-mock / GET /lecture-hall + GET /canteen | "
                 "CHAIN: canteen?zoneIds ← get_occupied_halls[*].zoneId | join(',',@) | "
-                "COMBINE: jmespath join feeds canteen zoneIds param | "
+                "COMBINE: chain: get_canteens_near_halls consumes get_occupied_halls via JMESPath | "
                 "FILTER: lecture-hall → status=occupied; canteen → zoneIds param documented | "
                 "VALIDATE: ✓ join on string field, ✓ zoneIds in catalog"
             ),
@@ -548,7 +639,7 @@ class Controller:
             f"EXAMPLE B — GET list → JMESPath id extraction → PUT path param:\n{json.dumps(ex_b, indent=2)}\n\n"
             f"EXAMPLE C — GET with filter → collect zoneIds → multi-zone GET:\n{json.dumps(ex_c, indent=2)}\n\n"
             f"EXAMPLE D — two GETs → SQL join/rank/aggregate:\n{json.dumps(ex_d, indent=2)}\n\n"
-            f"EXAMPLE E — two GETs → SQL set difference (exclusion):\n{json.dumps(ex_e, indent=2)}"
+            f"EXAMPLE E — two GETs → SQL set difference (exclusion):\n{json.dumps(ex_e, indent=2)}\n\n"
             f"EXAMPLE F — Qualitative constraint → SQL Sort (NO magic numbers):\n{json.dumps(ex_f, indent=2)}"
         )
 
@@ -585,10 +676,14 @@ Use CHAIN OF DRAFT format: one line per phase, keywords only, no full sentences.
 
   DECOMPOSE: <what data is needed>
   MAP:       <service-id / method endpoint> for each need
-  CHAIN:     <task_name[jmespath]> for each dependency, or "none"
+  CHAIN:     how tasks depend on each other, one of:
+              - "none" (independent tasks)
+              - "<target_task>.<slot> ← <source_task><jmespath>" (JMESPath chaining)
+              - "SQL <op> over <source_task>[, <source_task>]" (SQL reference)
   COMBINE:   <how the final answer is produced — one of:
               "single task" /
-              "jmespath on task_X" /
+              "chain: last task consumes task_X via JMESPath" /
+              "sql filter task_X" /
               "sql join task_X and task_Y" /
               "sql set_difference task_X minus task_Y" /
               "sql set_intersection task_X and task_Y" /
@@ -601,9 +696,12 @@ Do not use "wait", "actually", "or perhaps", "however", "but".
 If the correct interpretation is ambiguous, pick the most literal reading and commit.
 
 COMBINE CONSISTENCY: the value you write for COMBINE must match the tasks array.
-If COMBINE says "single task", there is exactly one task. If COMBINE names a SQL
-operation, the last task must be an SQL task. A plan whose tasks don't match
-the declared COMBINE strategy FAILS validation — fix it before writing the JSON.
+  - "single task"  → exactly one task.
+  - "chain: ..."   → N HTTP tasks; the last task's url or input contains a
+                     {{{{...}}}} placeholder; its raw result IS the answer (no SQL).
+  - "sql ..."      → the LAST task is an SQL task.
+A plan whose tasks don't match the declared COMBINE strategy FAILS validation —
+fix it before writing the JSON.
 </reasoning_protocol>
 
 <hard_constraints>
@@ -646,10 +744,34 @@ HC-9  PARAMETER VALUES FROM CATALOG
       "narrative" or "Narrative", use "NARRATIVE".
 
 HC-10  NO INVENTED THRESHOLDS
-    Never invent numeric thresholds in WHERE clauses or JMESPath (e.g. "< 50", "> 100") UNLESS the user explicitly specifies an exact number in their query.
+    Never invent numeric thresholds in WHERE clauses (e.g. "< 50", "> 100") UNLESS the user explicitly specifies an exact number in their query.
     If the user asks for qualitative states (e.g. "clean x", "quiet x", "cheap x") without providing numbers:
-    - To find extremes, use ORDER BY field ASC/DESC LIMIT N or min_by/max_by.
+    - To find extremes, use an SQL task with ORDER BY field ASC/DESC LIMIT N.
     - To filter by "good/bad/safe" conditions, use catalog-documented boolean or enum fields (e.g. alertActive=false, status='ok').
+
+HC-11  JMESPATH IS URL/INPUT SUBSTITUTION ONLY
+      JMESPath placeholders {{{{task<expr>}}}} serve EXACTLY ONE purpose: injecting
+      values from a prior task's result into the url or input of a subsequent
+      HTTP task. This is the CHAIN mechanism — valid and expected across any
+      number of chained HTTP tasks (see Examples B, C).
+
+      JMESPath is NOT a result-combination mechanism. Use an SQL terminal task
+      when the final answer requires ANY of the following over prior results:
+        - merging rows from TWO OR MORE task results (join, set intersect/diff)
+        - aggregation (sum, avg, count, min, max, group by)
+        - ranking or sorting across a dataset (order by + limit)
+        - post-filtering a single task when the HTTP API could not filter it
+          server-side
+
+      Therefore: min_by, max_by, sort_by MUST NOT appear inside {{{{...}}}} —
+      express them as SQL (ORDER BY ... LIMIT, MIN, MAX, GROUP BY) in a
+      terminal SQL task.
+
+      Quick decision table:
+        one GET, API does it all                    → COMBINE "single task",   no SQL
+        GET → GET/POST/PUT/DELETE via JMESPath url  → COMBINE "chain: ...",    no SQL
+        two+ GETs whose results must be merged      → COMBINE "sql ...",       last task SQL
+        one GET + post-aggregation/ranking          → COMBINE "sql ...",       last task SQL{hc12_block}
 </hard_constraints>
 
 <soft_constraints>
@@ -660,11 +782,6 @@ SC-1  MULTI-ZONE QUERIES
 SC-2  PATH PARAMETER INJECTION
       Inject ids and keys directly into the url string using chaining syntax.
       Never put them in the input field.
-
-SC-3  SQL VS JMESPATH DECISION
-      Use JMESPath for: filter, first/last match, comma-join of a string field.
-      Use SQL for: join of two datasets, avg/sum/count/grouping, ranking, set intersect/diff,
-      or any operation JMESPath cannot express in one expression.
 </soft_constraints>
 
 <self_check>
@@ -674,34 +791,47 @@ Before writing the final JSON, verify every item below:
   □ Every endpoint path is copied verbatim from the catalog.
   □ Every parameter name is copied verbatim from the catalog (no guessing synonyms).
   □ No url contains bare {{...}} unless it is a valid chaining expression {{{{task<expr>}}}}.
-  □ No GET url combines multiple query params unless the endpoint description allows it.
+{self_check_hc12}
   □ All required (*) parameters are present in every url.
   □ No two tasks call the same url+service.
   □ SQL tasks have url="" and input={{"sql_query":"..."}}.
   □ Non-SQL tasks have a non-empty url starting with http://.
-  □ COMBINE phase matches tasks: "single task"→1 task, SQL operation→last task is SQL.
+  □ COMBINE phase matches tasks:
+      "single task" → exactly 1 task.
+      "chain: ..."  → N HTTP tasks; last task's url or input contains {{...}}; no SQL.
+      "sql ..."     → last task is SQL.
   □ If any catalog lookup failed in PHASE 2, tasks is an empty array [].
 </self_check>
 
 <jmespath_reference>
-Syntax: {{{{task_name<expr>}}}}  — expr is evaluated on the JSON result of task_name.
+JMESPath serves ONE purpose: inject values from a prior task's result into the
+url or input of a subsequent HTTP task. Syntax: {{{{task_name<expr>}}}}.
 
-  All field values:          {{{{t[*].field}}}}
-  Filter + first result:     {{{{t[?key=='val'] | [0].field}}}}    ← pipe required
-  Boolean filter:            {{{{t[?flag==`true`].field}}}}
-  Number filter:             {{{{t[?price==`1.5`].field}}}}
-  Null check:                {{{{t[?field==`null`]}}}}
-  Substring match:           {{{{t[?contains(field,'text')] | [0].id}}}}
-  Multi-zone join:           {{{{t[*].zoneId | join(',', @)}}}}    ← string fields only
-  Filter + join:             {{{{t[?status=='open'].zoneId | join(',', @)}}}}
-  OR filter + join:          {{{{t[?a=='x' || a=='y'].zoneId | join(',', @)}}}}
-    Min element:               {{{{min_by(t, &field)}}}}
-    Max element:               {{{{max_by(t, &field)}}}}
-    Sort + top-N:              {{{{t | sort_by(@, &field)[:3]}}}}
-  Sort + first:              {{{{t | sort_by(@, &field)[0].id}}}}
+Three canonical patterns — nothing else is permitted inside {{{{...}}}}:
 
-CRITICAL: join(',', @) works only on string fields. Never use it on integers.
-CRITICAL: [?k=='v'] | [0].field  — the pipe is mandatory to extract a single value.
+  1. Single value  (filter + pick first):  {{{{t[?k=='v'] | [0].field}}}}     ← pipe required
+  2. All values    (array):                 {{{{t[*].field}}}}
+  3. Joined string (comma-joined):          {{{{t[*].field | join(',', @)}}}} ← string fields only
+
+Pattern 1 is combinable with any filter expression; pattern 3 accepts an
+optional filter before the pipe: {{{{t[?k=='v'].field | join(',', @)}}}}.
+
+Filter expressions inside [?...]:
+  operators  ==  !=  <  >  <=  >=  &&  ||
+  functions  contains(field, 'text')
+  literals   'strings'   `numbers`   `true`   `false`   `null`
+
+Examples of valid filters (plug into pattern 1 or 3):
+  [?status=='open']                 [?alertActive==`true`]
+  [?price<`100`]                    [?contains(name, 'Rossi')]
+  [?a=='x' || a=='y']               [?field==`null`]
+
+CRITICAL RULES:
+  - join(',', @) works ONLY on string fields. Never on integers or arrays.
+  - [?k=='v'] | [0].field — the pipe is mandatory to extract a single value.
+  - Ranking, sorting, aggregation, grouping, and combining two prior tasks
+    are ALWAYS SQL — never JMESPath. min_by, max_by, sort_by MUST NOT
+    appear inside {{{{...}}}}. Use SQL's ORDER BY, LIMIT, MIN, MAX, GROUP BY.
 </jmespath_reference>
 
 <examples>
@@ -717,6 +847,8 @@ Never use {{{{}}}} placeholders inside the sql_query string.
 NEVER use SQL reserved words as task_name (e.g. order, group, select, index, table, user).
 
 Common patterns:
+  Post-filter:    SELECT * FROM t WHERE field = 'value'
+                  SELECT col1, col2 FROM t WHERE cond1 AND cond2
   Sort + top-N:   SELECT * FROM t ORDER BY field ASC LIMIT 1
                   SELECT * FROM t ORDER BY field DESC LIMIT 1
                   SELECT * FROM t ORDER BY field ASC LIMIT N
@@ -772,7 +904,7 @@ QUERY:
                        discovered_endpoints, discovered_schemas,
                        discovered_request_schemas, discovered_parameters,
                        query, input_files=None):
-        system_prompt = self._build_system_prompt()
+        system_prompt = self._build_system_prompt(self.backend_mode)
         user_prompt   = self._build_user_prompt(
             discovered_services, discovered_capabilities, discovered_endpoints,
             discovered_schemas, discovered_request_schemas, discovered_parameters,
@@ -854,13 +986,18 @@ QUERY:
         Risolve un placeholder JMESPath sul contesto dei task precedenti.
 
         Formato:  task_name<jmespath_expression>
-        Esempi:
-          get_bins.location
-          get_bins[0].id
-          get_attractions[?status=='open'] | [0].zoneId
-          get_attractions[*].zoneId | join(',',@)
-          get_sensors[?alertActive==`true`].zoneId | join(',',@)
+
+        Pattern canonici (vedi HC-11 nel system prompt — gli UNICI permessi):
+          get_bins[0].id                                         # single value
+          get_attractions[?status=='open'] | [0].zoneId          # filter + pick
+          get_sensors[*].zoneId                                  # array
+          get_sensors[?alertActive==`true`].zoneId | join(',',@) # filtered join
+
+        Pattern legacy supportati per graceful degradation (ma VIETATI dal prompt —
+        se il modello li genera comunque, il codice non crasha ma è un bug):
           get_lights | sort_by(@, &brightness)[0].id
+          min_by(get_sensors, &reading)
+        Per ranking/min/max usare un task SQL terminale.
         """
         # Rimuove suffissi legacy
         expr = re.sub(r'\.(output|response|data)\b', '', expr)
@@ -981,27 +1118,76 @@ QUERY:
         return data
 
     # ------------------------------------------------------------------
+    # AUTH HEADERS (per API reali)
+    # ------------------------------------------------------------------
+
+    def _build_auth_headers(self) -> dict:
+        """
+        Costruisce gli header di autenticazione per le chiamate HTTP.
+
+        Sorgente: variabile d'ambiente API_AUTH_HEADERS contenente un JSON,
+        es.:
+            API_AUTH_HEADERS='{"Authorization": "Bearer xyz", "X-Api-Key": "abc"}'
+
+        Il formato JSON copre tutti i casi comuni senza cablare assunzioni:
+          - API key semplice  → {"X-Api-Key": "..."}
+          - Bearer token      → {"Authorization": "Bearer ..."}
+          - Header custom     → {"X-Custom": "..."}
+          - Più header insieme (es. auth + tracing) su stesso env var.
+
+        Restituisce {} se la variabile non è settata o non è JSON valido,
+        caso tipico in MOCK mode (Microcks non richiede auth di default).
+
+        Estensione futura: per-service via API_AUTH_HEADERS__<service_id>.
+        Il punto di iniezione (call_agent) passa già per questo metodo, basta
+        aggiungere qui la lettura condizionale senza toccare il chiamante.
+        """
+        raw = os.environ.get("API_AUTH_HEADERS", "")
+        if not raw:
+            return {}
+        try:
+            headers = json.loads(raw)
+            if isinstance(headers, dict):
+                return {str(k): str(v) for k, v in headers.items()}
+            print(f"[AUTH] API_AUTH_HEADERS non è un oggetto JSON, ignorato")
+        except json.JSONDecodeError as e:
+            print(f"[AUTH] API_AUTH_HEADERS non è JSON valido ({e}), ignorato")
+        return {}
+
+    # ------------------------------------------------------------------
     # ESECUZIONE TASK
     # ------------------------------------------------------------------
 
     async def call_agent(self, session, task, discovered_services):
         task_name  = task.get("task_name") or "unnamed_task"
-        endpoint   = task.get("url") or task.get("endpoint") or ""
+        endpoint   = task.get("endpoint") or task.get("url") or ""
         input_data = task.get("input", "")
         operation  = str(task.get("operation") or "GET").upper()
 
         if " " in endpoint:
             endpoint = endpoint.split(" ")[-1]
-        if endpoint and not endpoint.startswith("http"):
+        # Prepend di MOCK_SERVER_URL solo in MOCK mode. In REAL un URL non-http
+        # è un bug di planning: lasciamo che la request fallisca naturalmente.
+        if self.backend_mode == "MOCK" and endpoint and not endpoint.startswith("http"):
             mock_url = os.environ.get("MOCK_SERVER_URL", "http://mock-server:8080")
             endpoint = f"{mock_url}{endpoint}" if endpoint.startswith("/") else f"{mock_url}/{endpoint}"
 
-        response_result = {"task_name": task_name, "operation": operation}
+        response_result = {
+            "task_name": task_name,
+            "operation": operation,
+            # URL pianificato dal planner (può contenere {{...}})
+            "url_template": task.get("url", ""),
+            # URL realmente usato nella chiamata HTTP (placeholder già risolti)
+            "url_resolved": endpoint,
+        }
 
         if not endpoint or not endpoint.strip():
             print(f"[WARN] Task fantasma '{task_name}' ignorato.")
             response_result.update({"status": "SUCCESS", "status_code": 200, "result": {}})
             return response_result
+
+        # Header di autenticazione (vuoto se non configurato, es. MOCK)
+        auth_headers = self._build_auth_headers()
 
         try:
             tag_pattern = r"\[(\w+)\](.*?)\[/\1\]"
@@ -1009,7 +1195,7 @@ QUERY:
                           if isinstance(input_data, str) else []
 
             if operation == "GET":
-                async with session.get(endpoint) as resp:
+                async with session.get(endpoint, headers=auth_headers) as resp:
                     status = resp.status
                     try:
                         result = await resp.json()
@@ -1041,7 +1227,7 @@ QUERY:
                         elif tag_type == "TEXT":
                             form_data.add_field("data", tag_content, content_type="application/json")
                     try:
-                        async with session.request(operation, endpoint, data=form_data) as resp:
+                        async with session.request(operation, endpoint, data=form_data, headers=auth_headers) as resp:
                             status = resp.status
                             try:
                                 result = await resp.json()
@@ -1056,7 +1242,7 @@ QUERY:
                             f.close()
                 else:
                     payload = input_data if isinstance(input_data, dict) else {}
-                    async with session.request(operation, endpoint, json=payload) as resp:
+                    async with session.request(operation, endpoint, json=payload, headers=auth_headers) as resp:
                         status = resp.status
                         try:
                             result = await resp.json()
@@ -1068,7 +1254,7 @@ QUERY:
                         })
 
             elif operation == "DELETE":
-                async with session.delete(endpoint) as resp:
+                async with session.delete(endpoint, headers=auth_headers) as resp:
                     status = resp.status
                     try:
                         result = await resp.json()
@@ -1222,7 +1408,10 @@ QUERY:
                 if operation == "SQL":
                     result = self._execute_sql_task(task, context)
                 else:
-                    task["url"] = self.resolve_placeholders(task.get("url") or "", context)
+                    # Mantiene il template LLM in task['url'] per il client,
+                    # usa endpoint separato per la chiamata effettiva.
+                    task["endpoint"] = self.resolve_placeholders(task.get("url") or "", context)
+                    task["url_resolved"] = task["endpoint"]
                     if task.get("input"):
                         task["input"] = self.resolve_placeholders(task["input"], context)
                     result = await self.call_agent(session, task, discovered_services)
@@ -1251,6 +1440,11 @@ QUERY:
     # ------------------------------------------------------------------
 
     def replace_endpoints(self, endpoints_list, mock_server_address):
+        # In REAL mode il catalogo espone URL di produzione: non riscriviamo nulla.
+        # In MOCK mode sostituiamo localhost:8585 (default Microcks) con la URL
+        # del mock-server configurato, per poter eseguire dal container.
+        if self.backend_mode == "REAL":
+            return endpoints_list
         return [
             {k: re.sub(r"http://localhost:8585", mock_server_address, v)
              if isinstance(v, str) else v
@@ -1274,15 +1468,19 @@ QUERY:
                 task["service_id"] = corrected
 
             url = str(task.get("url", ""))
-            # Sostituisce localhost con l'indirizzo del mock server (URL dal YAML)
-            if url and re.search(r'http://localhost:\d+', url):
-                fixed = re.sub(r'http://localhost:\d+', mock_url, url)
-                print(f"[AUTO-FIX] localhost → mock-server: {fixed}")
-                task["url"] = fixed
-                url = fixed
-            if url and not url.startswith("http") and not url.startswith("{{"):
-                task["url"] = (mock_url if url.startswith("/") else mock_url + "/") + url.lstrip("/")
-                print(f"[AUTO-FIX] URL: {task['url']}")
+            # I cablaggi mock (rewrite localhost e prepend mock_url) si applicano
+            # solo in MOCK. In REAL un URL non-http o con localhost è un bug di
+            # pianificazione: verrà scartato dalla successiva validazione.
+            if self.backend_mode == "MOCK":
+                # Sostituisce localhost con l'indirizzo del mock server (URL dal YAML)
+                if url and re.search(r'http://localhost:\d+', url):
+                    fixed = re.sub(r'http://localhost:\d+', mock_url, url)
+                    print(f"[AUTO-FIX] localhost → mock-server: {fixed}")
+                    task["url"] = fixed
+                    url = fixed
+                if url and not url.startswith("http") and not url.startswith("{{"):
+                    task["url"] = (mock_url if url.startswith("/") else mock_url + "/") + url.lstrip("/")
+                    print(f"[AUTO-FIX] URL: {task['url']}")
             if isinstance(task.get("operation"), str):
                 task["operation"] = task["operation"].upper()
             if all(f in task for f in ("task_name", "service_id", "url", "operation")):
@@ -1298,6 +1496,16 @@ QUERY:
 
     def control(self, query, files=None):
         analyzed_files = self.analyze_files(files or [])
+        planning_latency_s = None
+
+        # Backend mode letto per ogni call: permette switch runtime tra MOCK e REAL
+        # senza restart, utile per gli script di valutazione. Default MOCK per
+        # retrocompatibilità con il setup Microcks esistente.
+        self.backend_mode = os.environ.get("BACKEND_MODE", "MOCK").upper() # Legge BACKEND_MODE ad ogni chiamata per permettere switch dinamico senza restart
+        if self.backend_mode not in ("MOCK", "REAL"):
+            print(f"[BACKEND_MODE] valore non riconosciuto '{self.backend_mode}', fallback su MOCK")
+            self.backend_mode = "MOCK"
+        print(f"[BACKEND_MODE] {self.backend_mode}")
 
         catalog_url  = os.environ.get("CATALOG_URL",    "http://catalog-gateway:5000")
         registry_url = os.environ.get("REGISTRY_URL",   "http://registry:8500")
@@ -1309,7 +1517,12 @@ QUERY:
         service_list = service_data.get("results", [])
 
         if not service_list:
-            return {"execution_plan": {}, "execution_results": [], "error": "No services matched the query"}
+            return {
+                "execution_plan": {},
+                "execution_results": [],
+                "error": "No services matched the query",
+                "planning_latency_s": planning_latency_s,
+            }
 
         registry_ids          = {s["id"] for s in services}
         filtered_service_list = [s for s in service_list if s["_id"] in registry_ids]
@@ -1319,8 +1532,12 @@ QUERY:
             print("[WARNING] Servizi non più nel registry:", [s.get("_id") for s in orphaned])
 
         if not filtered_service_list:
-            return {"execution_plan": {}, "execution_results": [],
-                    "error": "None of the discovered services are currently available"}
+            return {
+                "execution_plan": {},
+                "execution_results": [],
+                "error": "None of the discovered services are currently available",
+                "planning_latency_s": planning_latency_s,
+            }
 
 
         # Log retrieval — il merge avviene nel gateway, qui i servizi sono già distinti
@@ -1355,12 +1572,13 @@ QUERY:
             disc_schemas, disc_req_schemas, disc_params,
             query, analyzed_files
         )
+        planning_latency_s = round(latency, 3)
         print(f"[LATENCY] Piano generato in {latency:.2f}s")
 
         plan = self.extract_agents(plan_json)
 
         # ── Validazione schema input (post-parse) ─────────────────────────────
-        schema_warnings = self._validate_plan(plan, disc_services, disc_req_schemas)
+        schema_warnings = self._validate_plan(plan, disc_services, disc_req_schemas, disc_params, self.backend_mode)
         if schema_warnings:
             print(f"\n{'⚠️  ' * 10}")
             print(f"[SCHEMA VALIDATOR] {len(schema_warnings)} violazione/i rilevata/e:")
@@ -1369,13 +1587,6 @@ QUERY:
             print(f"{'⚠️  ' * 10}\n")
         else:
             print("[SCHEMA VALIDATOR] ✅ Nessuna violazione rilevata.")
-
-        # Stampa il ragionamento del modello
-        if isinstance(plan, dict) and "reasoning" in plan:
-            print("\n" + "🧠 " * 20)
-            print("[PENSIERO DI QWEN 3.5]:")
-            print(plan.get("reasoning"))
-            print("🧠 " * 20 + "\n")
 
         # Piano con tasks=[]: il planner non ha prodotto alcuna esecuzione.
         # Delega al Designer che in UNA sola chiamata LLM:
@@ -1413,6 +1624,7 @@ QUERY:
                 "empty_plan_category":     category,
                 "empty_plan_justification": analysis.get("justification", ""),
                 "suggested_api_contracts": [contract] if isinstance(contract, dict) else [],
+                "planning_latency_s":      planning_latency_s,
             }
 
         available_ids = [s["_id"] for s in disc_services]
@@ -1446,4 +1658,8 @@ QUERY:
                 except Exception as e:
                     print(f"[WARN] Pulizia fallita: {e}")
 
-        return {"execution_plan": plan, "execution_results": results}
+        return {
+            "execution_plan": plan,
+            "execution_results": results,
+            "planning_latency_s": planning_latency_s,
+        }

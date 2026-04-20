@@ -1,7 +1,16 @@
 """
-testRunner.py  (v4)
+testRunner.py  (v4.1)
 ====================
 Test runner per LADARAG-Extended con supporto query out-of-plan.
+
+Modifiche v4.1 rispetto a v4:
+    - check_layer3_chaining ora legge 'url_resolved' se presente
+      (con fallback su 'url'), evitando falsi positivi su placeholder
+      effettivamente risolti dal Controller.
+    - Rimossa la metrica di consistenza (plan_signatures, canonical_plan,
+      avg_cons, colonna 'Cons' nel per-category, voce 'Consistency' nel
+      detail e nel print per-run). Con --runs 1 la metrica era trivialmente
+      100% e non informativa; il runner ora riporta solo Pass@1 / Pass@K.
 
 Modifiche rispetto a v3:
     - Nuovo valutatore check_out_of_plan() per query che attivano il
@@ -163,16 +172,6 @@ def infer_category(oracle_steps, query):
     return "three-step"
 
 
-def canonical_plan(plan):
-    tasks = plan.get("tasks", [])
-    parts = []
-    for t in tasks:
-        method = t.get("operation", "").upper()
-        path   = urlparse(str(t.get("url", ""))).path.rstrip('/')
-        parts.append(f"{method} {path}")
-    return " | ".join(parts)
-
-
 # ─────────────────────────────────────────────────────────────────────────────
 # ORACLE MULTI-DIMENSIONALE — 4 LAYER (query eseguibili)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -249,9 +248,20 @@ def check_layer2_execution(execution_results):
 
 
 def check_layer3_chaining(tasks, execution_results):
+    """
+    Verifica che i placeholder {{...}} nelle URL siano stati risolti.
+
+    Legge 'url_resolved' (URL post-sostituzione prodotto dal Controller)
+    se presente, altrimenti fa fallback su 'url' (che può contenere il
+    template con i placeholder). In questo modo non vengono segnalati
+    come errori i casi in cui la sostituzione è effettivamente avvenuta
+    ma il campo 'url' del task conserva ancora la sintassi originale
+    per tracciabilità.
+    """
     issues = []
     for task in tasks:
-        url       = str(task.get("url", ""))
+        # Preferisci url_resolved (post-sostituzione) a url (template con {{...}})
+        url       = str(task.get("url_resolved") or task.get("url", ""))
         task_name = task.get("task_name", "unnamed")
         if re.search(r'\{\{.*?\}\}', url):
             issues.append(f"{task_name}: placeholder non risolto in URL")
@@ -510,14 +520,14 @@ def run_tests(args):
     status_counter = Counter()
     category_stats = defaultdict(lambda: {
         "correct": 0, "partial": 0, "incorrect": 0, "error": 0,
-        "total": 0, "pass_at_1": 0, "pass_at_k": 0, "consistency_sum": 0.0,
+        "total": 0, "pass_at_1": 0, "pass_at_k": 0,
     })
 
     total = len(rows)
     print(f"\n{'='*72}")
     print(f"Avvio — {total} query — {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"Oracle: 4 layer (L1 plan · L2 execution · L3 chaining · L4 schema)")
-    print(f"v4: supporto query out-of-plan (out-of-domain / ambiguous / invalid)")
+    print(f"v4.1: url_resolved su L3; metrica di consistenza rimossa")
     print(f"{'='*72}\n")
 
     noise_stats = defaultdict(lambda: {
@@ -540,8 +550,7 @@ def run_tests(args):
         oop_flag    = " 🔍OOP" if is_oop else ""
         print(f"[{idx:>3}/{total}] {category:<22} (×{n_runs}) {csv_label:<18}{oop_flag} {question[:50]}")
 
-        run_records     = []
-        plan_signatures = []
+        run_records = []
 
         for run_i in range(n_runs):
             outcome = run_query(question, args.control_url, args.timeout)
@@ -576,9 +585,6 @@ def run_tests(args):
             final = ev["final"]
             l1, l2, l3, l4 = (ev["layers"][k] for k in
                                ("L1_plan", "L2_execution", "L3_chaining", "L4_schema"))
-
-            sig = canonical_plan(plan)
-            plan_signatures.append(sig)
 
             icon  = {"CORRECT": "✅", "PARTIAL": "🟡", "INCORRECT": "❌"}.get(final, "❓")
             icons = {k: ("✅" if v["verdict"] in ("PASS","SKIP") else "❌")
@@ -617,7 +623,7 @@ def run_tests(args):
             run_records.append({
                 "run": run_i + 1, "final": final, "eval": ev,
                 "latency": outcome["latency"], "plan": plan,
-                "tasks_count": len(tasks), "signature": sig,
+                "tasks_count": len(tasks),
                 "is_oop": is_oop,
             })
 
@@ -626,10 +632,8 @@ def run_tests(args):
         valid_runs = [r for r in run_records if "final" in r]
         n_valid    = len(valid_runs)
 
-        pass_at_1   = valid_runs[0]["final"] == "CORRECT" if valid_runs else False
-        pass_at_k   = any(r["final"] == "CORRECT" for r in valid_runs)
-        consistency = Counter(plan_signatures).most_common(1)[0][1] / len(plan_signatures) \
-                      if plan_signatures else 0.0
+        pass_at_1 = valid_runs[0]["final"] == "CORRECT" if valid_runs else False
+        pass_at_k = any(r["final"] == "CORRECT" for r in valid_runs)
 
         if n_valid == 0:
             agg_final = "ERROR"
@@ -641,12 +645,10 @@ def run_tests(args):
             agg_final = "PARTIAL"
 
         if n_valid > 1:
-            c_icon = "🔵" if consistency == 1.0 else ("🟡" if consistency >= 0.6 else "🔴")
             print(
                 f"         aggregato: {agg_final:<10} "
                 f"Pass@1={'✅' if pass_at_1 else '❌'}  "
-                f"Pass@K={'✅' if pass_at_k else '❌'}  "
-                f"Consistency={consistency:.0%}{c_icon}"
+                f"Pass@K={'✅' if pass_at_k else '❌'}"
             )
 
         status_counter[agg_final] += 1
@@ -655,7 +657,6 @@ def run_tests(args):
         cs[agg_final.lower()] = cs.get(agg_final.lower(), 0) + 1
         cs["pass_at_1"]       += int(pass_at_1)
         cs["pass_at_k"]       += int(pass_at_k)
-        cs["consistency_sum"] += consistency
 
         if noise_type:
             ns = noise_stats[noise_type]
@@ -668,7 +669,7 @@ def run_tests(args):
             "is_oop": is_oop,
             "n_runs": n_runs, "n_valid": n_valid,
             "agg_final": agg_final, "pass_at_1": pass_at_1,
-            "pass_at_k": pass_at_k, "consistency": consistency,
+            "pass_at_k": pass_at_k,
             "run_records": run_records,
         })
 
@@ -715,7 +716,6 @@ def print_summary(data):
 
     pass_at_1 = sum(1 for r in results if r.get("pass_at_1")) / ran
     pass_at_k = sum(1 for r in results if r.get("pass_at_k")) / ran
-    avg_cons  = statistics.mean(r.get("consistency", 0) for r in results)
 
     avg_lat    = statistics.mean(latencies)   if latencies else 0
     median_lat = statistics.median(latencies) if latencies else 0
@@ -747,7 +747,6 @@ def print_summary(data):
     print(f"\nAffidabilità:")
     print(f"  Pass@1 (prima run corretta):      {pass_at_1:.1%}")
     print(f"  Pass@K (almeno una run corretta): {pass_at_k:.1%}")
-    print(f"  Consistency media (piano stabile):{avg_cons:.1%}")
 
     print(f"\nMetriche endpoint L1 (prima run, micro):")
     print(f"  TP={all_tp}  FP={all_fp}  FN={all_fn}")
@@ -756,9 +755,9 @@ def print_summary(data):
     print(f"\nLatenza: Media={avg_lat:.1f}s  Mediana={median_lat:.1f}s  Max={max_lat:.1f}s")
 
     print(f"\nPer categoria:")
-    hdr = f"  {'Categoria':<24}{'Tot':>4}{'OK':>5}{'Part':>6}{'Wrong':>7}{'Err':>5}  {'P@1':>5}{'P@K':>5}{'Cons':>6}{'Acc%':>6}"
+    hdr = f"  {'Categoria':<24}{'Tot':>4}{'OK':>5}{'Part':>6}{'Wrong':>7}{'Err':>5}  {'P@1':>5}{'P@K':>5}{'Acc%':>6}"
     print(hdr)
-    print(f"  {'-'*73}")
+    print(f"  {'-'*67}")
     for cat in sorted(category_stats):
         s = category_stats[cat]
         if s["total"] == 0:
@@ -767,11 +766,10 @@ def print_summary(data):
         acc  = s.get("correct", 0) / tot * 100
         pa1  = s.get("pass_at_1", 0) / tot * 100
         pak  = s.get("pass_at_k", 0) / tot * 100
-        cons = s.get("consistency_sum", 0) / tot * 100
         print(
             f"  {cat:<24}{tot:>4}{s.get('correct',0):>5}{s.get('partial',0):>6}"
             f"{s.get('incorrect',0):>7}{s.get('error',0):>5}  "
-            f"{pa1:>4.0f}% {pak:>4.0f}% {cons:>4.0f}% {acc:>4.0f}%"
+            f"{pa1:>4.0f}% {pak:>4.0f}% {acc:>4.0f}%"
         )
 
     # Layer failure breakdown
@@ -840,8 +838,8 @@ def write_reports(data, output_dir):
             f.write(f"Oracle: {r['oracle']}\n")
             noise_label = f"  Noise: {r['noise_type']}" if r.get("noise_type") else ""
             f.write(f"Aggregato: {r['agg_final']}  "
-                    f"Pass@1={r['pass_at_1']}  Pass@K={r['pass_at_k']}  "
-                    f"Consistency={r['consistency']:.0%}{noise_label}\n")
+                    f"Pass@1={r['pass_at_1']}  Pass@K={r['pass_at_k']}"
+                    f"{noise_label}\n")
             for run in r.get("run_records", []):
                 f.write(f"\n  Run {run.get('run','?')}:\n")
                 if "network_error" in run:
@@ -890,7 +888,7 @@ def write_reports(data, output_dir):
 # ─────────────────────────────────────────────────────────────────────────────
 
 def parse_args():
-    p = argparse.ArgumentParser(description="Test runner v4 per LADARAG-Extended")
+    p = argparse.ArgumentParser(description="Test runner v4.1 per LADARAG-Extended")
     p.add_argument("--control-url",        default=DEFAULTS["control_url"])
     p.add_argument("--csv",                default=DEFAULTS["csv_file"], dest="csv_file")
     p.add_argument("--output-dir",         default=DEFAULTS["output_dir"])
