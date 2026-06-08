@@ -15,7 +15,7 @@ import jmespath                        # pip install jmespath
 import duckdb                          # pip install duckdb
 import pandas as pd                    # pip install pandas
 from jmespath import exceptions as jmespath_exc
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, urlsplit, urlunsplit, parse_qsl, urlencode
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -449,7 +449,7 @@ HC-12  NO AND-COMBINATION OF QUERY PARAMS
             "reasoning": (
                 "DECOMPOSE: find patient Rossi → set discharged | "
                 "MAP: smart-hospital-mock / GET /patient + PUT /patient/{id} | "
-                "CHAIN: PUT path ← get_all_patients[?surname=='Rossi'] | [0].id | "
+                "CHAIN: PUT path ← get_all_patients.patients[?surname=='Rossi'] | [0].id | "
                 "COMBINE: chain: discharge_patient consumes get_all_patients via JMESPath | "
                 "FILTER: surname match via JMESPath, not query param | "
                 "VALIDATE: ✓ id in path, ✓ no bare placeholders"
@@ -465,7 +465,7 @@ HC-12  NO AND-COMBINATION OF QUERY PARAMS
                 {
                     "task_name":  "discharge_patient",
                     "service_id": "smart-hospital-mock",
-                    "url":        "http://mock-server:8080/rest/Smart+Hospital+Management+API/1.0/patient/{{get_all_patients[?surname=='Rossi'] | [0].id}}",
+                    "url":        "http://mock-server:8080/rest/Smart+Hospital+Management+API/1.0/patient/{{get_all_patients.patients[?surname=='Rossi'] | [0].id}}",
                     "operation":  "PUT",
                     "input": {
                         "zoneId":    "Z-SUD",
@@ -478,7 +478,8 @@ HC-12  NO AND-COMBINATION OF QUERY PARAMS
             ]
         }
         # WHY: inject chained ids directly into the url path string.
-        # Use [?key=='val'] | [0].field (pipe is required for a single result).
+        # Use t.array_key[?key=='val'] | [0].field — include the wrapper key (patients,
+        # items, results…) between the task name and the filter.
         # Never add a redundant GET-by-id when the id is already in a prior result.
 
         # ── PATTERN C: GET with filter → collect all zoneIds → zoneIds join ──
@@ -789,6 +790,7 @@ Before writing the final JSON, verify every item below:
 
   □ Every service_id is copied verbatim from the catalog's SERVICE_ID field.
   □ Every endpoint path is copied verbatim from the catalog.
+  □ Every url is copied verbatim from the catalog's URL field — not from memory.
   □ Every parameter name is copied verbatim from the catalog (no guessing synonyms).
   □ No url contains bare {{...}} unless it is a valid chaining expression {{{{task<expr>}}}}.
 {self_check_hc12}
@@ -807,14 +809,25 @@ Before writing the final JSON, verify every item below:
 JMESPath serves ONE purpose: inject values from a prior task's result into the
 url or input of a subsequent HTTP task. Syntax: {{{{task_name<expr>}}}}.
 
-Three canonical patterns — nothing else is permitted inside {{{{...}}}}:
+Most API responses wrap their array under a named key (e.g. "items", "results").
+You MUST include that key between the task name and the filter/index.
+WRONG: {{{{get_playlists[?name=='My Rock'] | [0].id}}}}  ← filter on a dict, always None
+RIGHT: {{{{get_playlists.items[?name=='My Rock'] | [0].id}}}}  ← filter on the array
 
-  1. Single value  (filter + pick first):  {{{{t[?k=='v'] | [0].field}}}}     ← pipe required
-  2. All values    (array):                 {{{{t[*].field}}}}
-  3. Joined string (comma-joined):          {{{{t[*].field | join(',', @)}}}} ← string fields only
+Exception: if the response IS directly a list at the root, omit the wrapper key.
+
+Four canonical patterns — nothing else is permitted inside {{{{...}}}}:
+
+  1. Filter + pick first:    {{{{t.array_key[?k=='v'] | [0].field}}}}   ← pipe required
+                             Example: {{{{get_playlists.items[?name=='My Rock'] | [0].id}}}}
+  2. All values (array):     {{{{t.array_key[*].field}}}}
+  3. Joined string:          {{{{t.array_key[*].field | join(',', @)}}}} ← string fields only
+  4. Positional first item:  {{{{t.array_key[0].field}}}}
+                             DO NOT write {{{{t.array_key}}}} alone — that injects the
+                             whole array into the URL and breaks routing.
 
 Pattern 1 is combinable with any filter expression; pattern 3 accepts an
-optional filter before the pipe: {{{{t[?k=='v'].field | join(',', @)}}}}.
+optional filter before the pipe: {{{{t.array_key[?k=='v'].field | join(',', @)}}}}.
 
 Filter expressions inside [?...]:
   operators  ==  !=  <  >  <=  >=  &&  ||
@@ -827,6 +840,7 @@ Examples of valid filters (plug into pattern 1 or 3):
   [?a=='x' || a=='y']               [?field==`null`]
 
 CRITICAL RULES:
+  - Always include the array wrapper key: t.items[?...] not t[?...].
   - join(',', @) works ONLY on string fields. Never on integers or arrays.
   - [?k=='v'] | [0].field — the pipe is mandatory to extract a single value.
   - Ranking, sorting, aggregation, grouping, and combining two prior tasks
@@ -1001,10 +1015,10 @@ QUERY:
         """
         # Rimuove suffissi legacy
         expr = re.sub(r'\.(output|response|data)\b', '', expr)
-        # Normalizza [N] → .[N]
-        # Aggiunge '.' prima di [N] solo quando preceduto da word char (task[0] → task.[0])
-        # NON dopo spazio o pipe (| [0] deve restare | [0], non | .[0])
-        expr = re.sub(r'(?<=\w)(\[)(\d+\])', r'.\1\2', expr)
+        # Normalizza .[N] → [N]: l'indicizzazione JMESPath valida è 'results[0]',
+        # NON 'results.[0]' (un punto prima della parentesi è un parse error).
+        # Rimuoviamo l'eventuale punto spurio, lasciando intatto '| [0]' (pipe).
+        expr = re.sub(r'\.(\[\d+\])', r'\1', expr)
         m = re.match(r'^(\w+)(.*)', expr, re.DOTALL)
         if not m:
             print(f"[JMESPATH] Impossibile estrarre task_name da '{expr}'")
@@ -1054,6 +1068,28 @@ QUERY:
 
         try:
             result = jmespath.search(jmespath_expr, val)
+
+            # ── Autofix: filtro [?] applicato al dict root invece che all'array ────
+            # Causa tipica: LLM scrive task[?k=='v'] | [0].f ma la risposta è
+            # {"items": [{k,v}, ...]} — il filtro va su .items, non sul root.
+            # Se result è None e l'expr inizia con [?, si tenta con i wrapper key
+            # più comuni, ma solo se effettivamente presenti nel dict di risposta.
+            if result is None and jmespath_expr.lstrip().startswith('[?') and isinstance(val, dict):
+                _WRAPPERS = ('items', 'results', 'data', 'tracks', 'albums',
+                             'artists', 'playlists', 'devices', 'queued_tracks')
+                for _w in _WRAPPERS:
+                    if _w not in val:
+                        continue
+                    _candidate = jmespath.search(f'{_w}{jmespath_expr}', val)
+                    if _candidate is not None and _candidate != [] and _candidate != "":
+                        print(
+                            f"[JMESPATH AUTOFIX] '{task_name}{remainder}': filtro applicato "
+                            f"su '.{_w}' (wrapper auto-rilevato). "
+                            f"Scrivi '{task_name}.{_w}{jmespath_expr}' per essere esplicito."
+                        )
+                        result = _candidate
+                        break
+
             if result is None:
                 print(f"[JMESPATH] Nessun match per '{jmespath_expr}' su '{task_name}'")
                 return ""
@@ -1069,9 +1105,10 @@ QUERY:
             return result
         except jmespath_exc.JMESPathError as e:
             print(f"[JMESPATH ERROR] expr='{expr}' jmespath='{jmespath_expr}': {e}")
-            if isinstance(val, dict):
-                return val.get(jmespath_expr.split('.')[0], "")
-            return "" 
+            # NON restituire il parent (dict/list): verrebbe serializzato con
+            # json.dumps dentro l'URL, producendo un 404 silenzioso. Falliamo
+            # in modo visibile restituendo stringa vuota.
+            return ""
 
     def resolve_placeholders(self, data, context: dict):
         """
@@ -1164,13 +1201,24 @@ QUERY:
         input_data = task.get("input", "")
         operation  = str(task.get("operation") or "GET").upper()
 
-        if " " in endpoint:
-            endpoint = endpoint.split(" ")[-1]
+        # Strip di un eventuale prefisso di metodo HTTP ("GET /path" → "/path").
+        # NB: NON usare endpoint.split(" ")[-1] — spezzerebbe gli URL con spazi nel
+        # query string (es. ?query=The Dark Knight → "Knight"), causando 404.
+        _verb = re.match(r'^\s*(?:GET|POST|PUT|DELETE|PATCH)\s+(\S.*)$', endpoint, re.IGNORECASE)
+        if _verb:
+            endpoint = _verb.group(1).strip()
         # Prepend di MOCK_SERVER_URL solo in MOCK mode. In REAL un URL non-http
         # è un bug di planning: lasciamo che la request fallisca naturalmente.
         if self.backend_mode == "MOCK" and endpoint and not endpoint.startswith("http"):
             mock_url = os.environ.get("MOCK_SERVER_URL", "http://mock-server:8080")
             endpoint = f"{mock_url}{endpoint}" if endpoint.startswith("/") else f"{mock_url}/{endpoint}"
+        # Ricodifica difensiva del query string: rende l'URL robusto a spazi e
+        # caratteri non-encoded emessi dal planner (es. ?query=The Dark Knight).
+        if endpoint.startswith("http") and "?" in endpoint:
+            _p = urlsplit(endpoint)
+            endpoint = urlunsplit(
+                _p._replace(query=urlencode(parse_qsl(_p.query, keep_blank_values=True)))
+            )
 
         response_result = {
             "task_name": task_name,
@@ -1472,15 +1520,27 @@ QUERY:
             # solo in MOCK. In REAL un URL non-http o con localhost è un bug di
             # pianificazione: verrà scartato dalla successiva validazione.
             if self.backend_mode == "MOCK":
-                # Sostituisce localhost con l'indirizzo del mock server (URL dal YAML)
+                # 1. Sostituisce localhost con l'indirizzo del mock server
                 if url and re.search(r'http://localhost:\d+', url):
                     fixed = re.sub(r'http://localhost:\d+', mock_url, url)
                     print(f"[AUTO-FIX] localhost → mock-server: {fixed}")
                     task["url"] = fixed
                     url = fixed
+
+                # 2. Strip angle brackets  <https://...>  →  https://...
+                #    Artefatto di formattazione Markdown del modello (non un
+                #    errore di planning): il modello sa qual è l'URL ma lo
+                #    ha wrappato con i simboli < > del link Markdown.
+                if url.startswith('<') and url.endswith('>'):
+                    url = url[1:-1]
+                    task["url"] = url
+                    print(f"[AUTO-FIX] Stripped angle brackets: {url}")
+
+                # 3. URL senza schema → prepend mock_url
                 if url and not url.startswith("http") and not url.startswith("{{"):
                     task["url"] = (mock_url if url.startswith("/") else mock_url + "/") + url.lstrip("/")
                     print(f"[AUTO-FIX] URL: {task['url']}")
+
             if isinstance(task.get("operation"), str):
                 task["operation"] = task["operation"].upper()
             if all(f in task for f in ("task_name", "service_id", "url", "operation")):
@@ -1545,7 +1605,9 @@ QUERY:
         print(f"[RETRIEVAL] Query: {query}")
         for s in filtered_service_list:
             caps = s.get("capabilities", {})
+            endpoint_names = list(caps.keys())
             print(f"  - {s.get('_id')} | {s.get('name')} | {len(caps)} endpoints")
+            print(f"    {endpoint_names}")
         print("=" * 60 + "\n")
 
         disc_services, disc_caps, disc_eps = [], [], []

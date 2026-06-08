@@ -261,17 +261,20 @@ RULES:
 - Do NOT invent information not implied by the query.
 
 EXAMPLES:
-Input: "list all temperature sensors"
-Output: {"sub_queries": ["temperature sensors"]}
+Input: "list all available double rooms"
+Output: {"sub_queries": ["room availability", "room types"]}
 
-Input: "find car parks near Arco di Traiano with charging stations nearby"
-Output: {"sub_queries": ["parking spots", "tourist attractions", "charging stations"]}
+Input: "find family suites near the wellness center with sea view"
+Output: {"sub_queries": ["room inventory", "hotel amenities", "room features"]}
 
-Input: "show me air quality in zones with heavy traffic"
-Output: {"sub_queries": ["air quality measurements", "traffic data by zone"]}
+Input: "show me average room prices during the high season holidays"
+Output: {"sub_queries": ["pricing rates", "seasonal calendars"]}
 
-Input: "create a new user account"
-Output: {"sub_queries": ["user account management"]}
+Input: "book a massage session for tomorrow afternoon"
+Output: {"sub_queries": ["spa reservations", "guest bookings"]}
+
+Input: "show me guest reviews for rooms on the top floor"
+Output: {"sub_queries": ["guest reviews", "room locations"]}
 """
 
 DECOMPOSITION_SCHEMA = {
@@ -423,13 +426,14 @@ def vector_search():
     query_text = data["query"]
 
     # ── Parametri pipeline ────────────────────────────────────────────────────
-    STAGE1_K                  = 7
-    TOP_ENDPOINTS_PER_SERVICE = 4
+    STAGE1_K                  = 1
+    TOP_ENDPOINTS_PER_SERVICE = 60
     K_RRF                     = 60   # parametro canonico (Cormack et al., 2009)
 
     # ════════════════════════════════════════════════════════════════════════
     # STAGE 0: QUERY DECOMPOSITION (opzionale)
     # ════════════════════════════════════════════════════════════════════════
+    logger.info(f"[QUERY] {query_text}")
     sub_queries, decomp_meta = decompose_query(query_text)
     logger.info(
         f"[DECOMPOSITION] source={decomp_meta['source']} "
@@ -553,24 +557,13 @@ def vector_search():
     for doc_id, sdata in services_data.items():
         ops = sdata["ops"]
 
-        # ── HEURISTIC: Virtual boost per GET list endpoints ───────────────────
-        # I GET senza path parameter sono gli unici endpoint che permettono di
-        # listare le risorse, e sono operativamente necessari per orchestrare
-        # le chiamate successive. Il boost è puramente ordinale (alza i GET
-        # list in cima allo slice senza alterare il best_endpoint_score usato
-        # nel ranking RRF). /health è escluso: non porta dati utili.
-        GET_LIST_BOOST = 5.0
-
-        def sorting_heuristic(op_score_tuple):
-            op_name, original_score = op_score_tuple
-            is_get_list = (op_name.startswith("GET ")
-                           and "{" not in op_name
-                           and not op_name.endswith("/health"))
-            return original_score + (GET_LIST_BOOST if is_get_list else 0.0)
-
+        # Ordinamento puro per score CrossEncoder: nessun boost euristico.
+        # Il CrossEncoder conosce la query specifica e assegna lo score corretto
+        # a ogni endpoint — sovrascriverlo con un boost query-agnostico degrada
+        # la selezione per query che non richiedono un GET list.
         scored_ops = sorted(
             [(op, scores_by_service[doc_id][op]) for op in ops],
-            key=sorting_heuristic,
+            key=lambda x: x[1],
             reverse=True
         )
 

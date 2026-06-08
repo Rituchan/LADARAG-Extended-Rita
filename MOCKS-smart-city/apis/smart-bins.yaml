@@ -100,11 +100,15 @@ paths:
               schema:
                 type: object
               examples:
-                healthy:
+                healthy: &id001
                   value: {}
+                mock: *id001
   /bin:
     get:
-      description: "Retrieve the list of smart waste bins registered in the city. Use query parameters to filter by zone, status or bin type - for example, to find all overflowing bins in Z-CENTRO or all organic bins requiring collection.\n\n**Mock constraint \u2014 one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported \u2014 only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side."
+      description: 'Retrieve the list of smart waste bins registered in the city. Use query parameters to filter by zone, status or bin type - for example, to find all overflowing bins in Z-CENTRO or all organic bins requiring collection.
+
+
+        **Mock constraint — one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported — only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side.'
       summary: Search bins
       x-microcks-operation:
         dispatcher: FALLBACK
@@ -176,7 +180,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Bin'
               examples:
-                example_list:
+                example_list: &id002
                   value:
                   - id: 1
                     zoneId: Z-CENTRO
@@ -494,6 +498,7 @@ paths:
                     binType: electronic
                     sensorBattery: 55
                     status: maintenance
+                mock: *id002
     post:
       description: Register a new smart waste bin in the city waste management system.
       summary: Register new bin
@@ -522,7 +527,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Bin'
               examples:
-                created:
+                created: &id003
                   value:
                     id: 3
                     zoneId: Z-CENTRO
@@ -533,6 +538,7 @@ paths:
                     binType: organic
                     sensorBattery: 100
                     status: normal
+                mock: *id003
   /bin/{id}:
     get:
       description: Retrieve the current status of a specific waste bin by ID.
@@ -555,7 +561,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Bin'
               examples:
-                bin_1:
+                bin_1: &id004
                   value:
                     id: 1
                     zoneId: Z-CENTRO
@@ -566,6 +572,7 @@ paths:
                     binType: general
                     sensorBattery: 88
                     status: normal
+                mock: *id004
         '404':
           description: Bin not found
     put:
@@ -605,7 +612,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Bin'
               examples:
-                updated:
+                updated: &id005
                   value:
                     id: 1
                     zoneId: Z-CENTRO
@@ -616,6 +623,7 @@ paths:
                     binType: general
                     sensorBattery: 86
                     status: overflowing
+                mock: *id005
         '404':
           description: Bin not found
     delete:
@@ -647,11 +655,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseStatus'
               examples:
-                ok:
+                ok: &id006
                   value:
                     status: success
                     httpCode: 200
                     message: Service registered
+                mock: *id006
         '500':
           description: Registration failed
           content:
@@ -659,8 +668,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseStatus'
               examples:
-                fail:
+                fail: &id007
                   value:
                     status: error
                     httpCode: 500
                     message: Unable to register to Consul
+                mock: *id007

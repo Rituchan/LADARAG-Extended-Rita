@@ -105,11 +105,15 @@ paths:
               schema:
                 type: object
               examples:
-                healthy:
+                healthy: &id001
                   value: {}
+                mock: *id001
   /building:
     get:
-      description: "Retrieve the list of registered city buildings. Use query parameters to filter by zone, building type, or operational status - for example, to find all healthcare buildings in Z-NORD, or all evacuated buildings during an emergency, or all buildings currently in maintenance.\n\n**Mock constraint \u2014 one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported \u2014 only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side."
+      description: 'Retrieve the list of registered city buildings. Use query parameters to filter by zone, building type, or operational status - for example, to find all healthcare buildings in Z-NORD, or all evacuated buildings during an emergency, or all buildings currently in maintenance.
+
+
+        **Mock constraint — one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported — only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side.'
       summary: Search buildings
       x-microcks-operation:
         dispatcher: FALLBACK
@@ -174,7 +178,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Building'
               examples:
-                example_list:
+                example_list: &id002
                   value:
                   - id: 1
                     zoneId: Z-SUD
@@ -602,6 +606,7 @@ paths:
                     energyUsage: 0.0
                     co2Emissions: 0.0
                     status: closed
+                mock: *id002
     post:
       description: Register a new building in the city infrastructure system.
       summary: Register new building
@@ -632,7 +637,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Building'
               examples:
-                created:
+                created: &id003
                   value:
                     id: 3
                     zoneId: Z-CENTRO
@@ -645,6 +650,7 @@ paths:
                     energyUsage: 500.0
                     co2Emissions: 20.0
                     status: operational
+                mock: *id003
   /building/{id}:
     get:
       description: Retrieve full details of a specific building by ID.
@@ -667,7 +673,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Building'
               examples:
-                building_1:
+                building_1: &id004
                   value:
                     id: 1
                     zoneId: Z-SUD
@@ -680,6 +686,7 @@ paths:
                     energyUsage: 5500.0
                     co2Emissions: 220.0
                     status: operational
+                mock: *id004
         '404':
           description: Building not found
     put:
@@ -721,7 +728,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Building'
               examples:
-                updated:
+                updated: &id005
                   value:
                     id: 1
                     zoneId: Z-SUD
@@ -734,6 +741,7 @@ paths:
                     energyUsage: 5800.0
                     co2Emissions: 232.0
                     status: operational
+                mock: *id005
         '404':
           description: Building not found
     delete:
@@ -765,11 +773,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseStatus'
               examples:
-                ok:
+                ok: &id006
                   value:
                     status: success
                     httpCode: 200
                     message: Service registered
+                mock: *id006
         '500':
           description: Registration failed
           content:
@@ -777,8 +786,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseStatus'
               examples:
-                fail:
+                fail: &id007
                   value:
                     status: error
                     httpCode: 500
                     message: Unable to register to Consul
+                mock: *id007

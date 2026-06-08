@@ -10,22 +10,21 @@ VERSION="1.0"
 for api_file in "$APIS_DIR"/*.yaml; do
   echo "Debug: Processing file '$api_file'"
 
-  # Estraiamo il titolo reale direttamente dal file YAML
-  # Cerca la riga che inizia con "title:", rimuove gli spazi iniziali, la parola "title:" e gli apici.
-  raw_title=$(grep -m 1 "^[[:space:]]*title:" "$api_file" | sed 's/^[[:space:]]*title:[[:space:]]*//' | tr -d "'\"")
-  
+  # Legge il titolo rimuovendo sia \r (Windows CRLF) che \n residui
+  raw_title=$(grep -m 1 "^[[:space:]]*title:" "$api_file" \
+    | sed 's/^[[:space:]]*title:[[:space:]]*//' \
+    | tr -d "'\"" \
+    | tr -d '\r' \
+    | tr -d '\n')
+
   echo "Debug: Real service_name read from YAML = '$raw_title'"
 
-  # Codifichiamo l'URL in modo sicuro: 
-  # Sostituiamo gli spazi con '+' e il carattere '&' con '%26'
+  # Codifica spazi e & nell'URL
   service_url_part=$(echo "$raw_title" | sed 's/ /+/g' | sed 's/&/%26/g')
 
-  # Costruiamo l'URL finale per Microcks
   register_url="${MOCK_BASE_URL}/${service_url_part}/${VERSION}/register"
-
   echo "Debug: register_url='$register_url'"
 
-  # Effettuiamo la chiamata POST
   response_body_file="/tmp/register_response.json"
   response=$(curl -sS -o "$response_body_file" -w "%{http_code}" -X POST "$register_url")
 

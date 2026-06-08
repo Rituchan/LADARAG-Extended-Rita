@@ -93,11 +93,15 @@ paths:
               schema:
                 type: object
               examples:
-                healthy:
+                healthy: &id001
                   value: {}
+                mock: *id001
   /traffic-sensor:
     get:
-      description: "Retrieve traffic sensors deployed across the city. Use query parameters to filter by zone, congestion level, incident status, or sensor activity - for example to find all active sensors with critical congestion in Z-CENTRO, or all sensors currently detecting an incident, or all inactive sensors for maintenance.\n\n**Mock constraint \u2014 one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported \u2014 only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side."
+      description: 'Retrieve traffic sensors deployed across the city. Use query parameters to filter by zone, congestion level, incident status, or sensor activity - for example to find all active sensors with critical congestion in Z-CENTRO, or all sensors currently detecting an incident, or all inactive sensors for maintenance.
+
+
+        **Mock constraint — one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported — only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side.'
       summary: Search traffic sensors
       x-microcks-operation:
         dispatcher: FALLBACK
@@ -172,7 +176,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/TrafficSensor'
               examples:
-                example_list:
+                example_list: &id002
                   value:
                   - id: 1
                     zoneId: Z-CENTRO
@@ -458,6 +462,7 @@ paths:
                     congestionLevel: low
                     incidentDetected: false
                     lastUpdated: '2025-09-25T09:55:00Z'
+                mock: *id002
     post:
       description: Register a new traffic monitoring sensor in the city traffic control system.
       summary: Register new traffic sensor
@@ -487,7 +492,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/TrafficSensor'
               examples:
-                created:
+                created: &id003
                   value:
                     id: 3
                     zoneId: Z-CENTRO
@@ -499,6 +504,7 @@ paths:
                     congestionLevel: medium
                     incidentDetected: false
                     lastUpdated: '2025-09-25T10:00:00Z'
+                mock: *id003
   /traffic-sensor/{id}:
     get:
       description: Retrieve real-time traffic data from a specific sensor by ID.
@@ -521,7 +527,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/TrafficSensor'
               examples:
-                sensor_1:
+                sensor_1: &id004
                   value:
                     id: 1
                     zoneId: Z-CENTRO
@@ -533,6 +539,7 @@ paths:
                     congestionLevel: high
                     incidentDetected: false
                     lastUpdated: '2025-09-25T10:15:30Z'
+                mock: *id004
         '404':
           description: Traffic sensor not found
     put:
@@ -573,7 +580,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/TrafficSensor'
               examples:
-                updated:
+                updated: &id005
                   value:
                     id: 1
                     zoneId: Z-CENTRO
@@ -585,6 +592,7 @@ paths:
                     congestionLevel: critical
                     incidentDetected: true
                     lastUpdated: '2025-09-25T11:00:00Z'
+                mock: *id005
         '404':
           description: Traffic sensor not found
     delete:
@@ -647,8 +655,9 @@ paths:
               schema:
                 type: string
               examples:
-                success:
+                success: &id006
                   value: Zone speed limit updated
+                mock: *id006
   /register:
     post:
       description: Register this microservice with the central discovery system (Consul).
@@ -661,11 +670,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseStatus'
               examples:
-                ok:
+                ok: &id007
                   value:
                     status: success
                     httpCode: 200
                     message: Service registered
+                mock: *id007
         '500':
           description: Registration failed
           content:
@@ -673,8 +683,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseStatus'
               examples:
-                fail:
+                fail: &id008
                   value:
                     status: error
                     httpCode: 500
                     message: Unable to register to Consul
+                mock: *id008

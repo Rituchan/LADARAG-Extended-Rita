@@ -98,11 +98,15 @@ paths:
               schema:
                 type: object
               examples:
-                healthy:
+                healthy: &id001
                   value: {}
+                mock: *id001
   /charging-station:
     get:
-      description: "Retrieve EV charging stations registered in the city. Use query parameters to filter by zone, availability, charging speed, or operational status - for example, to find all available rapid chargers in Z-CENTRO, or all stations in a specific zone for mobility planning and EV route optimization.\n\n**Mock constraint \u2014 one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported \u2014 only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side."
+      description: 'Retrieve EV charging stations registered in the city. Use query parameters to filter by zone, availability, charging speed, or operational status - for example, to find all available rapid chargers in Z-CENTRO, or all stations in a specific zone for mobility planning and EV route optimization.
+
+
+        **Mock constraint — one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported — only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side.'
       summary: Search charging stations
       x-microcks-operation:
         dispatcher: FALLBACK
@@ -174,7 +178,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/ChargingStation'
               examples:
-                example_list:
+                example_list: &id002
                   value:
                   - id: 1
                     zoneId: Z-CENTRO
@@ -564,6 +568,7 @@ paths:
                     maxPowerKW: 150.0
                     pricePerKWh: 0.75
                     status: operational
+                mock: *id002
     post:
       description: Register a new EV charging station in the city mobility system.
       summary: Register new charging station
@@ -593,7 +598,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ChargingStation'
               examples:
-                created:
+                created: &id003
                   value:
                     id: 3
                     zoneId: Z-EST
@@ -605,6 +610,7 @@ paths:
                     maxPowerKW: 150.0
                     pricePerKWh: 0.75
                     status: operational
+                mock: *id003
   /charging-station/{id}:
     get:
       description: Retrieve the current status of a specific EV charging station by ID.
@@ -627,7 +633,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ChargingStation'
               examples:
-                station_1:
+                station_1: &id004
                   value:
                     id: 1
                     zoneId: Z-CENTRO
@@ -639,6 +645,7 @@ paths:
                     maxPowerKW: 22.0
                     pricePerKWh: 0.45
                     status: operational
+                mock: *id004
         '404':
           description: Charging station not found
     put:
@@ -679,7 +686,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ChargingStation'
               examples:
-                updated:
+                updated: &id005
                   value:
                     id: 1
                     zoneId: Z-CENTRO
@@ -691,6 +698,7 @@ paths:
                     maxPowerKW: 22.0
                     pricePerKWh: 0.45
                     status: busy
+                mock: *id005
         '404':
           description: Charging station not found
     delete:
@@ -722,11 +730,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseStatus'
               examples:
-                ok:
+                ok: &id006
                   value:
                     status: success
                     httpCode: 200
                     message: Service registered
+                mock: *id006
         '500':
           description: Registration failed
           content:
@@ -734,8 +743,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseStatus'
               examples:
-                fail:
+                fail: &id007
                   value:
                     status: error
                     httpCode: 500
                     message: Unable to register to Consul
+                mock: *id007

@@ -26,7 +26,7 @@ for api_file in "$APIS_DIR"/*.yaml; do
     --keycloakClientId=foo --keycloakClientSecret=bar
   echo "| Imported $api_filename."
 
-  # ── Fetch service_id con polling ─────────────────────────────────────────────
+  # ── Fetch service_id con polling ─────────────────────────────────────────
   MAX_RETRIES=15
   RETRY_COUNT=0
   service_id=""
@@ -55,12 +55,11 @@ for api_file in "$APIS_DIR"/*.yaml; do
 
   echo "| Service ID: $service_id"
 
-  # ── Patch POST /register dispatcher (invariato) ──────────────────────────────
+  # ── Patch POST /register ─────────────────────────────────────────────────
   if [ -f "$register_script" ]; then
     echo "| Patching POST /register..."
     SCRIPT=$(cat "$register_script" | tr -d '\r')
-    REGISTER_OP="POST /register"
-    REGISTER_OP_ENC=$(printf '%s' "$REGISTER_OP" | /tmp/jq -sRr @uri)
+    REGISTER_OP_ENC=$(printf '%s' "POST /register" | /tmp/jq -sRr @uri)
     PAYLOAD=$(/tmp/jq -n \
       --arg dispatcher "SCRIPT" \
       --arg dispatcherRules "$SCRIPT" \
@@ -77,36 +76,37 @@ for api_file in "$APIS_DIR"/*.yaml; do
     fi
   fi
 
-  # ── Patch GET list dispatcher (NUOVO) ────────────────────────────────────────
-  # Legge <base_name>-get.groovy dalla stessa cartella degli script /register.
-  # Aggiungere un nuovo servizio = aggiungere il file .groovy, zero modifiche qui.
+  # ── Patch TUTTI gli endpoint GET/POST/PUT/DELETE con il get-script ────────
+  # Itera su ogni path del YAML (esclusi /register e /health) e applica
+  # il dispatcher SCRIPT a tutti i metodi supportati.
   if [ -f "$get_script" ]; then
-    # Ricava il path GET dalla prima riga del YAML (es. "GET /bin")
-    get_path=$(grep "^  /[a-z]" "$api_file" \
-      | grep -v "/health:\|/register:" \
-      | head -1 \
-      | sed 's/^  //' | tr -d ':' | tr -d '\r')
-    GET_OP="GET ${get_path}"
-    GET_OP_ENC=$(printf '%s' "$GET_OP" | /tmp/jq -sRr @uri)
-
-    echo "| Patching ${GET_OP}..."
     SCRIPT=$(cat "$get_script" | tr -d '\r')
     PAYLOAD=$(/tmp/jq -n \
       --arg dispatcher "SCRIPT" \
       --arg dispatcherRules "$SCRIPT" \
       '{dispatcher: $dispatcher, dispatcherRules: $dispatcherRules}')
 
-    if curl --fail-with-body -sS \
-        -X PUT "${MICROCKS_URL}/services/${service_id}/operation?operationName=${GET_OP_ENC}" \
-        -H "Authorization: Bearer $TOKEN" \
-        -H "Content-Type: application/json" \
-        -d "$PAYLOAD" > /tmp/patch.json 2>&1; then
-      echo "✅ ${GET_OP} → SCRIPT"
-    else
-      echo "❌ ${GET_OP} patch failed"; cat /tmp/patch.json
-    fi
+    # Estrai tutti i path dal YAML (righe che iniziano con "  /")
+    grep "^  /[a-zA-Z{]" "$api_file" \
+      | grep -v "/health:\|/register:" \
+      | sed 's/^  //' | tr -d ':' | tr -d '\r' \
+      | while read -r path; do
+          # Per ogni path patcha GET, POST, PUT, DELETE, PATCH
+          for method in GET POST PUT DELETE PATCH; do
+            OP="${method} ${path}"
+            OP_ENC=$(printf '%s' "$OP" | /tmp/jq -sRr @uri)
+            if curl --fail-with-body -sS \
+                -X PUT "${MICROCKS_URL}/services/${service_id}/operation?operationName=${OP_ENC}" \
+                -H "Authorization: Bearer $TOKEN" \
+                -H "Content-Type: application/json" \
+                -d "$PAYLOAD" > /tmp/patch_op.json 2>&1; then
+              echo "✅ ${OP} → SCRIPT"
+            fi
+            # Silenzio sui 404 (operazione non esistente per quel metodo) — normale
+          done
+        done
   else
-    echo "⚠️  No GET script for $service_name — skipping GET patch."
+    echo "⚠️  No GET script for $service_name — skipping operation patch."
   fi
 
   echo "-----------------------------------"

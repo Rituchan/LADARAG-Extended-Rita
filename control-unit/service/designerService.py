@@ -58,8 +58,7 @@ class Designer:
     def __init__(self, fallback_model: str = "glm-4.7-flash:q4_K_M"):
         """
         fallback_model:  modello da usare se la env DESIGNER_LLM_MODEL
-                         non e' settata. Tipicamente lo stesso del planner
-                         principale, passato dal Controller.
+                         non e' settata. 
         """
         self.model_name = os.environ.get("DESIGNER_LLM_MODEL", fallback_model)
 

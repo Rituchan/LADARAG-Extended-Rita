@@ -124,11 +124,15 @@ paths:
               schema:
                 type: object
               examples:
-                healthy:
+                healthy: &id001
                   value: {}
+                mock: *id001
   /attraction:
     get:
-      description: "Retrieves a catalog of tourist attractions in the city. Use query parameters to filter by zone, category, operational status, or accessibility - for example to find all open museums in Z-CENTRO, all wheelchair-accessible attractions, or all currently closed sites during an emergency.\n\n**Mock constraint \u2014 one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported \u2014 only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side."
+      description: 'Retrieves a catalog of tourist attractions in the city. Use query parameters to filter by zone, category, operational status, or accessibility - for example to find all open museums in Z-CENTRO, all wheelchair-accessible attractions, or all currently closed sites during an emergency.
+
+
+        **Mock constraint — one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported — only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side.'
       summary: Search tourist attractions
       x-microcks-operation:
         dispatcher: FALLBACK
@@ -216,7 +220,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Attraction'
               examples:
-                example_list:
+                example_list: &id002
                   value:
                   - id: 1
                     zoneId: Z-CENTRO
@@ -944,6 +948,7 @@ paths:
                     - it
                     status: open
                     lastUpdated: '2026-03-09T09:15:00Z'
+                mock: *id002
     post:
       description: Registers a newly monitored tourist attraction into the city's tourism ecosystem.
       summary: Register new tourist attraction
@@ -980,7 +985,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Attraction'
               examples:
-                created:
+                created: &id003
                   value:
                     id: 3
                     zoneId: Z-CENTRO
@@ -999,6 +1004,7 @@ paths:
                     - en
                     status: open
                     lastUpdated: '2026-03-09T10:00:00Z'
+                mock: *id003
   /attraction/{id}:
     get:
       description: Fetches the real-time details and telemetry of a specific tourist attraction using its unique ID.
@@ -1021,7 +1027,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Attraction'
               examples:
-                attraction_1:
+                attraction_1: &id004
                   value:
                     id: 1
                     zoneId: Z-CENTRO
@@ -1041,6 +1047,7 @@ paths:
                     - fr
                     status: open
                     lastUpdated: '2026-03-09T10:10:00Z'
+                mock: *id004
         '404':
           description: The specified attraction ID does not exist in the database.
     put:
@@ -1089,7 +1096,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Attraction'
               examples:
-                updated:
+                updated: &id005
                   value:
                     id: 1
                     zoneId: Z-CENTRO
@@ -1109,6 +1116,7 @@ paths:
                     - fr
                     status: open
                     lastUpdated: '2026-03-09T11:00:00Z'
+                mock: *id005
         '404':
           description: The specified attraction ID was not found.
     delete:
@@ -1172,8 +1180,9 @@ paths:
               schema:
                 type: string
               examples:
-                success:
+                success: &id006
                   value: Zone attraction status updated
+                mock: *id006
   /register:
     post:
       description: Register this microservice with the central discovery system (Consul).
@@ -1186,11 +1195,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseStatus'
               examples:
-                ok:
+                ok: &id007
                   value:
                     status: success
                     httpCode: 200
                     message: Service registered
+                mock: *id007
         '500':
           description: Registration failed
           content:
@@ -1198,8 +1208,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseStatus'
               examples:
-                fail:
+                fail: &id008
                   value:
                     status: error
                     httpCode: 500
                     message: Unable to register to Consul
+                mock: *id008

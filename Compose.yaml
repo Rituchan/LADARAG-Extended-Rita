@@ -32,63 +32,67 @@ services:
         condition: service_healthy
 
   mock-deployer:
-      image: quay.io/microcks/microcks-cli:latest
-      container_name: mock-deployer
-      depends_on:
-        yaml-preprocessor:
-          condition: service_completed_successfully
-        mock-server:
-          condition: service_healthy
-        catalog-gateway:
-          condition: service_healthy
-        api-importer:
-          condition: service_started
-      volumes:
-        - ./MOCKS-smart-city/apis:/apis
-        - ./MOCKS-smart-city/scripts:/scripts
-        - ./deploy.sh:/deploy.sh:ro
-        - ./register.sh:/register.sh:ro
-      entrypoint: sh
-      command:
-        - -c
-        - |
-          set -e
-          export PATH="/tmp:$$PATH"
+    image: quay.io/microcks/microcks-cli:latest
+    container_name: mock-deployer
+    depends_on:
+      yaml-preprocessor:
+        condition: service_completed_successfully
+      mock-server:
+        condition: service_healthy
+      catalog-gateway:
+        condition: service_healthy
+      api-importer:
+        condition: service_started
+    volumes:
+      # - ./MOCKS-smart-city/apis:/apis
+      # - ./MOCKS-smart-city/scripts:/scripts
+      - ./Eval/service-mocks/apis:/apis
+      - ./Eval/service-mocks/scripts:/scripts
+      - ./deploy.sh:/deploy.sh:ro
+      - ./register.sh:/register.sh:ro
+    entrypoint: sh
+    command:
+      - -c
+      - |
+        set -e
+        export PATH="/tmp:$$PATH"
 
-          echo "Downloading jq..."
-          curl -L -o /tmp/jq https://github.com/stedolan/jq/releases/latest/download/jq-linux64
-          chmod +x /tmp/jq
-          
-          /deploy.sh
-          
-          echo "Waiting 15 seconds before running register.sh..."
-          sleep 15
-          
-          /register.sh
+        echo "Downloading jq..."
+        curl -L -o /tmp/jq https://github.com/stedolan/jq/releases/latest/download/jq-linux64
+        chmod +x /tmp/jq
 
-          echo "Triggering API schema enrichment..."
-          # Ciclo di retry: prova ogni 3 secondi finché api-importer non risponde con successo
-          until curl -s -f -X POST http://api-importer:7500/api/importer/enrich \
-              -H "Content-Type: application/json" \
-              -d '{"mock_server_url": "http://mock-server:8080"}'; do
-            echo "api-importer non ancora pronto, riprovo tra 3 secondi..."
-            sleep 3
-          done
-          
-          echo -e "\n✅ Enrichment triggered successfully!"
-      environment:
-        - MICROCKS_HOST=mock-server
-        - MICROCKS_PORT=8080
-        - MICROCKS_USER=admin
-        - MICROCKS_PASS=admin
-      stop_grace_period: 10s
+        /deploy.sh
+
+        echo "Waiting 15 seconds before running register.sh..."
+        sleep 15
+
+        /register.sh
+
+        echo "Triggering API schema enrichment..."
+        # Ciclo di retry: prova ogni 3 secondi finché api-importer non risponde con successo
+        until curl -s -f -X POST http://api-importer:7500/api/importer/enrich \
+            -H "Content-Type: application/json" \
+            -d '{"mock_server_url": "http://mock-server:8080"}'; do
+          echo "api-importer non ancora pronto, riprovo tra 3 secondi..."
+          sleep 3
+        done
+
+        echo -e "\n✅ Enrichment triggered successfully!"
+    environment:
+      - MICROCKS_HOST=mock-server
+      - MICROCKS_PORT=8080
+      - MICROCKS_USER=admin
+      - MICROCKS_PASS=admin
+    stop_grace_period: 10s
 
   yaml-preprocessor:
     image: python:3.11-alpine
     container_name: yaml-preprocessor
     volumes:
-      - ./MOCKS-smart-city/apis:/apis
-      - ./MOCKS-smart-city/scripts:/scripts:ro
+       # - ./MOCKS-smart-city/apis:/apis
+       # - ./MOCKS-smart-city/scripts:/scripts:ro
+      - ./Eval/service-mocks/apis:/apis
+      - ./Eval/service-mocks/scripts:/scripts:ro
     command:
       - sh
       - -c
@@ -179,7 +183,7 @@ services:
       - OLLAMA_API_URL=http://192.168.250.40:15888
      # - LLM_MODEL=phi4:14b
       - MOCK_SERVER_URL=http://mock-server:8080
-      - BACKEND_MODE = ${BACKEND_MODE:-MOCK}
+      - BACKEND_MODE=${BACKEND_MODE:-MOCK}
       - API_AUTH_HEADERS = ${API_AUTH_HEADERS:-}
     stop_grace_period: 10s
     depends_on:

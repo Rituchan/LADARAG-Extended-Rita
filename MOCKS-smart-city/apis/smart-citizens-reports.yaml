@@ -92,11 +92,15 @@ paths:
               schema:
                 type: object
               examples:
-                healthy:
+                healthy: &id001
                   value: {}
+                mock: *id001
   /citizen-report:
     get:
-      description: "Retrieves a list of citizen reports. Crucial for the Assistant to check if a specific issue in a zone has already been reported before creating a duplicate ticket. Use query parameters to filter by zone, multiple zones, status, or category - for example to find all open lighting reports in Z-CENTRO, or all open reports across every zone with active environmental alerts.\n\n**Mock constraint \u2014 one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported \u2014 only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side."
+      description: 'Retrieves a list of citizen reports. Crucial for the Assistant to check if a specific issue in a zone has already been reported before creating a duplicate ticket. Use query parameters to filter by zone, multiple zones, status, or category - for example to find all open lighting reports in Z-CENTRO, or all open reports across every zone with active environmental alerts.
+
+
+        **Mock constraint — one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported — only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side.'
       summary: Search citizen reports
       x-microcks-operation:
         dispatcher: FALLBACK
@@ -181,7 +185,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/CitizenReport'
               examples:
-                example_list:
+                example_list: &id002
                   value:
                   - id: 1
                     zoneId: Z-CENTRO
@@ -493,6 +497,7 @@ paths:
                     description: 'Segnalazione automatica: cestino id=8 in stato offline da oltre 48 ore.'
                     status: open
                     submittedAt: '2025-09-25T09:00:00Z'
+                mock: *id002
     post:
       description: Submits a new citizen report. This is the primary Actuator endpoint for the Smart City Assistant to escalate issues to human operators automatically.
       summary: Submit new citizen report (Open Ticket)
@@ -520,7 +525,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/CitizenReport'
               examples:
-                created:
+                created: &id003
                   value:
                     id: 3
                     zoneId: Z-CENTRO
@@ -530,6 +535,7 @@ paths:
                     description: 'Segnalazione automatica: Rilevato lampione spento tramite API Sensori, attraversamento pedonale insicuro.'
                     status: open
                     submittedAt: '2025-09-25T11:00:00Z'
+                mock: *id003
   /citizen-report/{id}:
     get:
       description: Fetches the full details and current status of a specific citizen report by ticket ID.
@@ -552,7 +558,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/CitizenReport'
               examples:
-                report_1:
+                report_1: &id004
                   value:
                     id: 1
                     zoneId: Z-CENTRO
@@ -562,6 +568,7 @@ paths:
                     description: Cestino traboccante di rifiuti vicino all'ingresso della Rocca dei Rettori.
                     status: open
                     submittedAt: '2025-09-24T14:30:00Z'
+                mock: *id004
         '404':
           description: The specified report ID does not exist in the database.
     put:
@@ -600,7 +607,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/CitizenReport'
               examples:
-                updated:
+                updated: &id005
                   value:
                     id: 1
                     zoneId: Z-CENTRO
@@ -610,6 +617,7 @@ paths:
                     description: Cestino traboccante - Intervento completato.
                     status: resolved
                     submittedAt: '2025-09-24T14:30:00Z'
+                mock: *id005
         '404':
           description: The specified report ID was not found.
     delete:
@@ -641,11 +649,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseStatus'
               examples:
-                ok:
+                ok: &id006
                   value:
                     status: success
                     httpCode: 200
                     message: Service registered
+                mock: *id006
         '500':
           description: Internal server error preventing successful registration.
           content:
@@ -653,8 +662,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseStatus'
               examples:
-                fail:
+                fail: &id007
                   value:
                     status: error
                     httpCode: 500
                     message: Unable to register to Consul
+                mock: *id007

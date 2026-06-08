@@ -100,11 +100,15 @@ paths:
               schema:
                 type: object
               examples:
-                healthy:
+                healthy: &id001
                   value: {}
+                mock: *id001
   /emergency-unit:
     get:
-      description: "Retrieve emergency units registered in the city response system. Use query parameters to filter by zone, unit type, availability, or operational status - for example, to find all available medical units in Z-CENTRO, or all fire units currently responding to incidents across the city.\n\n**Mock constraint \u2014 one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported \u2014 only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side."
+      description: 'Retrieve emergency units registered in the city response system. Use query parameters to filter by zone, unit type, availability, or operational status - for example, to find all available medical units in Z-CENTRO, or all fire units currently responding to incidents across the city.
+
+
+        **Mock constraint — one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported — only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side.'
       summary: Search emergency units
       x-microcks-operation:
         dispatcher: FALLBACK
@@ -181,7 +185,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/EmergencyUnit'
               examples:
-                example_list:
+                example_list: &id002
                   value:
                   - id: 1
                     zoneId: Z-OVEST
@@ -599,6 +603,7 @@ paths:
                     dispatchTime: '2025-09-25T09:32:00Z'
                     crewCount: 5
                     vehicleCode: VF-BN-07
+                mock: *id002
     post:
       description: Register a new emergency unit in the city response system.
       summary: Register new emergency unit
@@ -628,7 +633,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/EmergencyUnit'
               examples:
-                created:
+                created: &id003
                   value:
                     id: 3
                     zoneId: Z-CENTRO
@@ -640,6 +645,7 @@ paths:
                     dispatchTime: null
                     crewCount: 4
                     vehicleCode: POL-BN-03
+                mock: *id003
   /emergency-unit/{id}:
     get:
       description: Retrieve full details of a specific emergency unit by ID.
@@ -662,7 +668,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/EmergencyUnit'
               examples:
-                unit_1:
+                unit_1: &id004
                   value:
                     id: 1
                     zoneId: Z-OVEST
@@ -674,6 +680,7 @@ paths:
                     dispatchTime: '2025-09-25T09:32:00Z'
                     crewCount: 5
                     vehicleCode: VF-BN-07
+                mock: *id004
         '404':
           description: Emergency unit not found
     put:
@@ -714,7 +721,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/EmergencyUnit'
               examples:
-                updated:
+                updated: &id005
                   value:
                     id: 1
                     zoneId: Z-OVEST
@@ -726,6 +733,7 @@ paths:
                     dispatchTime: null
                     crewCount: 5
                     vehicleCode: VF-BN-07
+                mock: *id005
         '404':
           description: Emergency unit not found
     delete:
@@ -791,8 +799,9 @@ paths:
               schema:
                 type: string
               examples:
-                success:
+                success: &id006
                   value: Zone emergency status updated
+                mock: *id006
   /register:
     post:
       description: Register this microservice with the central discovery system (Consul).
@@ -805,11 +814,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseStatus'
               examples:
-                ok:
+                ok: &id007
                   value:
                     status: success
                     httpCode: 200
                     message: Service registered
+                mock: *id007
         '500':
           description: Registration failed
           content:
@@ -817,8 +827,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseStatus'
               examples:
-                fail:
+                fail: &id008
                   value:
                     status: error
                     httpCode: 500
                     message: Unable to register to Consul
+                mock: *id008

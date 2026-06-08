@@ -1,87 +1,118 @@
-import yaml
-import glob
-import os
 import sys
+import os
+import yaml
 
-'''
-Script per risolvere il problema degli alias/ancore YAML nei file delle API.
-Il problema è che alcuni file YAML usano alias (&) e ancore (*) per evitare la
-ripetizione di blocchi di dati, ma questo può causare problemi di compatibilità con alcuni parser YAML.
-Questo script legge ogni file YAML, risolve gli alias in memoria e poi riscrive il file senza usare alias,
-garantendo che ogni blocco di dati sia scritto per esteso.
-Inoltre, pulisce eventuali errori di formattazione nelle regole di Microcks.
-'''
 
-# Creiamo un Dumper personalizzato che impedisce la scrittura di alias/ancore
-class NoAliasDumper(yaml.SafeDumper):
-    def ignore_aliases(self, data):
-        return True
+def _transform_op(op):
+    """Transform a single operation dict in-place:
+    - response example: → examples: mock: value:
+    - x-microcks-operation dispatcherRules → return "mock"
+    """
+    if not isinstance(op, dict):
+        return
 
-# Forza le stringhe multilinea a usare il block scalar |
-# Senza questo, PyYAML scrive gli script Groovy come stringa inline senza |,
-# collassando i newline e rendendo lo script non parsabile da Microcks.
-def literal_presenter(dumper, data):
-    if '\n' in data:
-        return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|')
-    return dumper.represent_scalar('tag:yaml.org,2002:str', data)
+    # Only touch response content, not requestBody content.
+    for _code, resp in op.get('responses', {}).items():
+        if not isinstance(resp, dict):
+            continue
+        for _media, media_obj in resp.get('content', {}).items():
+            if not isinstance(media_obj, dict):
+                continue
 
-NoAliasDumper.add_representer(str, literal_presenter)
+            if 'example' in media_obj and 'examples' not in media_obj:
+                # Anonymous example → named 'mock'
+                media_obj['examples'] = {'mock': {'value': media_obj.pop('example')}}
+            elif 'examples' in media_obj and 'mock' not in media_obj['examples']:
+                # Already named but no 'mock' key → add alias from first entry
+                first = next(iter(media_obj['examples'].values()), {'value': {}})
+                media_obj['examples']['mock'] = first
+            elif 'examples' not in media_obj and 'example' not in media_obj:
+                # No example at all → add empty mock so dispatcher can resolve
+                media_obj['examples'] = {'mock': {'value': {}}}
 
-# Trova tutti i file yaml da processare.
-# Uso:
-#   python fix_yaml.py                -> prova /apis/*.yaml, poi ../apis/*.yaml
-#   python fix_yaml.py /apis/*.yaml   -> pattern esplicito
-#   python fix_yaml.py ./apis         -> directory (auto *.yaml)
-if len(sys.argv) > 1:
-    input_path = sys.argv[1]
-    if os.path.isdir(input_path):
-        pattern = os.path.join(input_path, "*.yaml")
-    else:
-        pattern = input_path
-else:
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    candidate_container = "/apis/*.yaml"
-    candidate_repo = os.path.abspath(os.path.join(script_dir, "..", "apis", "*.yaml"))
-    pattern = candidate_container if glob.glob(candidate_container) else candidate_repo
+    # Simplify inline dispatcherRules to just return the 'mock' example name.
+    # Use Groovy single-quote string to keep the YAML scalar free of double quotes.
+    microcks = op.get('x-microcks-operation')
+    if isinstance(microcks, dict) and microcks.get('dispatcher') == 'SCRIPT':
+        if not microcks.get('dispatcherRules'):
+            microcks['dispatcherRules'] = "return 'mock'"
 
-file_trovati = sorted(glob.glob(pattern))
 
-if not file_trovati:
-    print(f"Nessun file YAML trovato con pattern: {pattern}")
-    sys.exit(1)
+def _ensure_health_endpoint(data):
+    """Add /health GET endpoint if missing.
 
-for filepath in file_trovati:
-    # 1. Legge il file (PyYAML risolve automaticamente * e & in memoria)
-    with open(filepath, 'r', encoding='utf-8') as f:
-        data = yaml.safe_load(f)
+    The Consul health check registered by spotify.groovy / tmdb.groovy
+    polls  GET /rest/<Service>/<Version>/health  every 10 s.  If that
+    path is absent from the YAML, Microcks returns 404, Consul marks the
+    service critical, and after DeregisterCriticalServiceAfter (30 s) it
+    removes the service from the registry entirely.
+    """
+    paths = data.setdefault('paths', {})
+    if '/health' in paths:
+        return
+    paths['/health'] = {
+        'get': {
+            'operationId': 'healthCheck',
+            'summary': 'Health check',
+            'responses': {
+                '200': {
+                    'description': 'OK',
+                    'content': {
+                        'application/json': {
+                            'examples': {
+                                'mock': {'value': {'status': 'ok'}}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
-    # PULIZIA: Rimuove spazi e apici "spazzatura" dalle regole di Microcks su tutti gli endpoint.
-    # ATTENZIONE: i newline vengono rimossi SOLO per dispatcher non-SCRIPT (es. FALLBACK, URI_PARAMS).
-    # Per dispatcher SCRIPT i newline sono parte integrante dello script Groovy e non vanno toccati.
-    if data and 'paths' in data:
-        for path, methods in data['paths'].items():
-            for method, details in methods.items():
-                try:
-                    if 'x-microcks-operation' in details and 'dispatcherRules' in details['x-microcks-operation']:
-                        rules = details['x-microcks-operation']['dispatcherRules']
-                        dispatcher = details['x-microcks-operation'].get('dispatcher', '')
-                        if isinstance(rules, str):
-                            if dispatcher == 'SCRIPT':
-                                # Script Groovy multilinea: preserva i newline, solo strip degli spazi esterni.
-                                # Il literal_presenter si occuperà di scrivere il blocco con | nel YAML.
-                                details['x-microcks-operation']['dispatcherRules'] = rules.strip()
-                            else:
-                                # JSON/stringa semplice (FALLBACK, URI_PARAMS, RANDOM, ecc.): pulizia normale.
-                                clean_rules = rules.strip().replace("\n", "").replace("''", "")
-                                details['x-microcks-operation']['dispatcherRules'] = clean_rules
-                except Exception:
-                    continue  # Ignora eventuali errori strutturali strani e passa al prossimo
 
-    # 2. Sovrascrive il file scrivendo l'oggetto per esteso (senza alias, con block scalar | per multilinea)
-    with open(filepath, 'w', encoding='utf-8') as f:
-        # width=float("inf") impedisce l'a capo automatico a 80 caratteri
-        yaml.dump(data, f, Dumper=NoAliasDumper, default_flow_style=False, sort_keys=False, width=float("inf"))
+def transform_yaml(data):
+    _ensure_health_endpoint(data)
 
-    print(f"Risolto e pulito: {filepath}")
+    paths = data.get('paths', {})
+    if not isinstance(paths, dict):
+        return
+    for _path, path_obj in paths.items():
+        if not isinstance(path_obj, dict):
+            continue
+        for method, op in path_obj.items():
+            if method in ('parameters', 'summary', 'description', 'servers', '$ref'):
+                continue
+            _transform_op(op)
 
-print(f"Completato! Processati {len(file_trovati)} file YAML senza ancore/alias e con regole Microcks validate.")
+
+def fix_yaml_dir(apis_dir):
+    for fname in sorted(os.listdir(apis_dir)):
+        if not fname.endswith(('.yaml', '.yml')):
+            continue
+        fpath = os.path.join(apis_dir, fname)
+        try:
+            with open(fpath, 'r', encoding='utf-8') as f:
+                data = yaml.safe_load(f)
+            if data is None:
+                print(f'[WARN] {fname} is empty, skipping')
+                continue
+
+            transform_yaml(data)
+
+            with open(fpath, 'w', encoding='utf-8') as f:
+                yaml.dump(
+                    data, f,
+                    allow_unicode=True,
+                    sort_keys=False,
+                    default_flow_style=False,
+                    width=100000,
+                )
+            paths_count = len(data.get('paths', {}))
+            print(f'[OK] {fname} — {paths_count} paths transformed')
+        except yaml.YAMLError as e:
+            print(f'[ERROR] {fname}: {e}')
+
+
+if __name__ == '__main__':
+    apis_dir = sys.argv[1] if len(sys.argv) > 1 else '/apis'
+    fix_yaml_dir(apis_dir)

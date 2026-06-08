@@ -95,11 +95,15 @@ paths:
               schema:
                 type: object
               examples:
-                healthy:
+                healthy: &id001
                   value: {}
+                mock: *id001
   /vehicle:
     get:
-      description: "Retrieve public transport vehicles currently tracked by the system. Use query parameters to filter by city zone, multiple zones, operational status, or vehicle type - for example to find all delayed buses in Z-CENTRO, or all vehicles across every zone where a traffic incident has been detected.\n\n**Mock constraint \u2014 one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported \u2014 only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side."
+      description: 'Retrieve public transport vehicles currently tracked by the system. Use query parameters to filter by city zone, multiple zones, operational status, or vehicle type - for example to find all delayed buses in Z-CENTRO, or all vehicles across every zone where a traffic incident has been detected.
+
+
+        **Mock constraint — one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported — only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side.'
       summary: Search transit vehicles
       x-microcks-operation:
         dispatcher: FALLBACK
@@ -185,7 +189,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Vehicle'
               examples:
-                example_list:
+                example_list: &id002
                   value:
                   - id: 1
                     zoneId: Z-CENTRO
@@ -521,6 +525,7 @@ paths:
                     capacity: 75
                     status: in-service
                     lastUpdated: '2025-09-25T10:10:00Z'
+                mock: *id002
     post:
       description: Register a new public transport vehicle in the city transit system.
       summary: Register new vehicle
@@ -549,7 +554,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Vehicle'
               examples:
-                created:
+                created: &id003
                   value:
                     id: 3
                     zoneId: Z-SUD
@@ -560,6 +565,7 @@ paths:
                     capacity: 75
                     status: out-of-service
                     lastUpdated: '2025-09-25T06:00:00Z'
+                mock: *id003
   /vehicle/{id}:
     get:
       description: Retrieve real-time data for a specific public transport vehicle by ID.
@@ -582,7 +588,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Vehicle'
               examples:
-                vehicle_1:
+                vehicle_1: &id004
                   value:
                     id: 1
                     zoneId: Z-CENTRO
@@ -593,6 +599,7 @@ paths:
                     capacity: 75
                     status: in-service
                     lastUpdated: '2025-09-25T10:05:00Z'
+                mock: *id004
         '404':
           description: Vehicle not found
     put:
@@ -632,7 +639,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Vehicle'
               examples:
-                updated:
+                updated: &id005
                   value:
                     id: 1
                     zoneId: Z-CENTRO
@@ -643,6 +650,7 @@ paths:
                     capacity: 75
                     status: in-service
                     lastUpdated: '2025-09-25T10:20:00Z'
+                mock: *id005
         '404':
           description: Vehicle not found
     delete:
@@ -705,8 +713,9 @@ paths:
               schema:
                 type: string
               examples:
-                success:
+                success: &id006
                   value: Zone service status updated
+                mock: *id006
   /register:
     post:
       description: Register this service to the discovery system (Consul).
@@ -719,11 +728,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseStatus'
               examples:
-                ok:
+                ok: &id007
                   value:
                     status: success
                     httpCode: 200
                     message: Service registered
+                mock: *id007
         '500':
           description: Registration failure
           content:
@@ -731,8 +741,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseStatus'
               examples:
-                fail:
+                fail: &id008
                   value:
                     status: error
                     httpCode: 500
                     message: Unable to register to Consul
+                mock: *id008

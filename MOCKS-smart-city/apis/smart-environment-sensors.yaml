@@ -121,11 +121,15 @@ paths:
               schema:
                 type: object
               examples:
-                healthy:
+                healthy: &id001
                   value: {}
+                mock: *id001
   /sensor:
     get:
-      description: "Retrieve environmental sensors deployed across the city. Use query parameters to filter by zone, sensor type, alert status, or operational status - for example to find all active air quality sensors in Z-CENTRO with an active alert, all noise sensors across the city, or all sensors in fault/maintenance state for servicing.\n\n**Mock constraint \u2014 one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported \u2014 only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side."
+      description: 'Retrieve environmental sensors deployed across the city. Use query parameters to filter by zone, sensor type, alert status, or operational status - for example to find all active air quality sensors in Z-CENTRO with an active alert, all noise sensors across the city, or all sensors in fault/maintenance state for servicing.
+
+
+        **Mock constraint — one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported — only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side.'
       summary: Search environmental sensors
       x-microcks-operation:
         dispatcher: FALLBACK
@@ -163,7 +167,7 @@ paths:
           - light
           - pressure
           - wind_speed
-        description: "Filter by sensor type \u2014 use exact enum value"
+        description: Filter by sensor type — use exact enum value
         examples:
           air_quality:
             value: air_quality
@@ -217,7 +221,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Sensor'
               examples:
-                example_list:
+                example_list: &id002
                   value:
                   - id: 1
                     zoneId: Z-CENTRO
@@ -553,7 +557,7 @@ paths:
                   value:
                   - id: 12
                     zoneId: Z-CENTRO
-                    location: "Piazza Duomo - Sensore Luminosit\xE0, Benevento"
+                    location: Piazza Duomo - Sensore Luminosità, Benevento
                     sensorType: light
                     lastReading: 320.0
                     readingUnit: lux
@@ -641,6 +645,7 @@ paths:
                     batteryLevel: 71
                     lastUpdated: '2025-09-25T10:25:00Z'
                     status: active
+                mock: *id002
     post:
       description: Register a new environmental sensor in the city monitoring network.
       summary: Register new sensor
@@ -672,7 +677,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Sensor'
               examples:
-                created:
+                created: &id003
                   value:
                     id: 3
                     zoneId: Z-SUD
@@ -686,6 +691,7 @@ paths:
                     batteryLevel: 100
                     lastUpdated: '2025-09-25T11:15:00Z'
                     status: active
+                mock: *id003
   /sensor/{id}:
     get:
       description: Retrieve the exact real-time reading and configuration of a single sensor by ID.
@@ -708,7 +714,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Sensor'
               examples:
-                sensor_1:
+                sensor_1: &id004
                   value:
                     id: 1
                     zoneId: Z-CENTRO
@@ -722,6 +728,7 @@ paths:
                     batteryLevel: 90
                     lastUpdated: '2025-09-25T10:00:00Z'
                     status: active
+                mock: *id004
         '404':
           description: Sensor not found
     put:
@@ -764,7 +771,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Sensor'
               examples:
-                updated:
+                updated: &id005
                   value:
                     id: 1
                     zoneId: Z-CENTRO
@@ -778,6 +785,7 @@ paths:
                     batteryLevel: 88
                     lastUpdated: '2025-09-25T12:00:00Z'
                     status: active
+                mock: *id005
         '404':
           description: Sensor not found
     delete:
@@ -809,11 +817,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseStatus'
               examples:
-                ok:
+                ok: &id006
                   value:
                     status: success
                     httpCode: 200
                     message: Service registered
+                mock: *id006
         '500':
           description: Registration failed
           content:
@@ -821,8 +830,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseStatus'
               examples:
-                fail:
+                fail: &id007
                   value:
                     status: error
                     httpCode: 500
                     message: Unable to register to Consul
+                mock: *id007

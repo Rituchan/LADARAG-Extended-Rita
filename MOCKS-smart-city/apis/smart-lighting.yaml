@@ -79,11 +79,15 @@ paths:
               schema:
                 type: object
               examples:
-                healthy:
+                healthy: &id001
                   value: {}
+                mock: *id001
   /light:
     get:
-      description: "Retrieves a list of smart street lights. Use query parameters to filter by zone, multiple zones, or operational status - for example to find all malfunctioning lights in Z-CENTRO, or all offline lights across every zone that has an active environmental alert.\n\n**Mock constraint \u2014 one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported \u2014 only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side."
+      description: 'Retrieves a list of smart street lights. Use query parameters to filter by zone, multiple zones, or operational status - for example to find all malfunctioning lights in Z-CENTRO, or all offline lights across every zone that has an active environmental alert.
+
+
+        **Mock constraint — one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported — only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side.'
       summary: Search smart lights
       x-microcks-operation:
         dispatcher: FALLBACK
@@ -153,7 +157,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Light'
               examples:
-                example_list:
+                example_list: &id002
                   value:
                   - id: 101
                     zoneId: Z-CENTRO
@@ -337,6 +341,7 @@ paths:
                     brightness: 0
                     energyConsumption: 0.0
                     smartEnabled: false
+                mock: *id002
     post:
       description: Registers a newly installed smart light pole into the city's infrastructure grid.
       summary: Register new smart light
@@ -363,7 +368,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Light'
               examples:
-                created:
+                created: &id003
                   value:
                     id: 103
                     zoneId: Z-CENTRO
@@ -372,6 +377,7 @@ paths:
                     brightness: 90
                     energyConsumption: 1.35
                     smartEnabled: true
+                mock: *id003
   /light/{id}:
     get:
       description: Fetches real-time telemetry for a specific street light by ID.
@@ -394,7 +400,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Light'
               examples:
-                light_101:
+                light_101: &id004
                   value:
                     id: 101
                     zoneId: Z-CENTRO
@@ -403,6 +409,7 @@ paths:
                     brightness: 80
                     energyConsumption: 1.25
                     smartEnabled: true
+                mock: *id004
         '404':
           description: The specified smart light ID does not exist.
     put:
@@ -440,7 +447,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Light'
               examples:
-                updated:
+                updated: &id005
                   value:
                     id: 101
                     zoneId: Z-CENTRO
@@ -449,6 +456,7 @@ paths:
                     brightness: 0
                     energyConsumption: 0.0
                     smartEnabled: true
+                mock: *id005
         '404':
           description: The specified smart light ID was not found.
     delete:
@@ -511,8 +519,9 @@ paths:
               schema:
                 type: string
               examples:
-                success:
+                success: &id006
                   value: Zone brightness updated
+                mock: *id006
   /register:
     post:
       description: Registers this microservice with the central discovery system (Consul).
@@ -525,11 +534,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseStatus'
               examples:
-                ok:
+                ok: &id007
                   value:
                     status: success
                     httpCode: 200
                     message: Service registered
+                mock: *id007
         '500':
           description: Internal server error preventing successful registration.
           content:
@@ -537,8 +547,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseStatus'
               examples:
-                fail:
+                fail: &id008
                   value:
                     status: error
                     httpCode: 500
                     message: Unable to register to Consul
+                mock: *id008

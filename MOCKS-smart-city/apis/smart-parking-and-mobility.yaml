@@ -91,11 +91,15 @@ paths:
               schema:
                 type: object
               examples:
-                healthy:
+                healthy: &id001
                   value: {}
+                mock: *id001
   /parking-spot:
     get:
-      description: "Retrieve parking spots registered in the city. Use query parameters to filter by zone, multiple zones, availability, spot type or status - for example to find all free disabled spots in Z-CENTRO, all available electric spots for EV drivers, or all free spots across every zone where tourist attractions are currently open.\n\n**Mock constraint \u2014 one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported \u2014 only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side."
+      description: 'Retrieve parking spots registered in the city. Use query parameters to filter by zone, multiple zones, availability, spot type or status - for example to find all free disabled spots in Z-CENTRO, all available electric spots for EV drivers, or all free spots across every zone where tourist attractions are currently open.
+
+
+        **Mock constraint — one filter per request**: this mock dispatcher resolves a single query parameter at a time. Combining multiple query parameters is NOT supported — only the primary dispatcher parameter is matched. Issue separate requests for each filter and merge results client-side.'
       summary: Search parking spots
       x-microcks-operation:
         dispatcher: FALLBACK
@@ -190,7 +194,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/ParkingSpot'
               examples:
-                example_list:
+                example_list: &id002
                   value:
                   - id: 101
                     zoneId: Z-CENTRO
@@ -652,6 +656,7 @@ paths:
                     pricePerHour: 0.5
                     status: maintenance
                     lastUpdated: '2025-09-25T07:00:00Z'
+                mock: *id002
     post:
       description: Register a new parking spot in the city mobility system.
       summary: Register new parking spot
@@ -679,7 +684,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ParkingSpot'
               examples:
-                created:
+                created: &id003
                   value:
                     id: 103
                     zoneId: Z-CENTRO
@@ -689,6 +694,7 @@ paths:
                     pricePerHour: 1.5
                     status: free
                     lastUpdated: '2025-09-25T11:00:00Z'
+                mock: *id003
   /parking-spot/{id}:
     get:
       description: Retrieve the current availability and details of a specific parking spot by ID.
@@ -711,7 +717,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ParkingSpot'
               examples:
-                spot_101:
+                spot_101: &id004
                   value:
                     id: 101
                     zoneId: Z-CENTRO
@@ -721,6 +727,7 @@ paths:
                     pricePerHour: 1.0
                     status: free
                     lastUpdated: '2025-09-25T10:00:00Z'
+                mock: *id004
         '404':
           description: Parking spot not found
     put:
@@ -759,7 +766,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ParkingSpot'
               examples:
-                updated:
+                updated: &id005
                   value:
                     id: 101
                     zoneId: Z-CENTRO
@@ -769,6 +776,7 @@ paths:
                     pricePerHour: 1.0
                     status: occupied
                     lastUpdated: '2025-09-25T11:15:00Z'
+                mock: *id005
         '404':
           description: Parking spot not found
     delete:
@@ -832,8 +840,9 @@ paths:
               schema:
                 type: string
               examples:
-                success:
+                success: &id006
                   value: Zone pricing updated
+                mock: *id006
   /register:
     post:
       description: Register this service to the discovery system (Consul).
@@ -846,11 +855,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseStatus'
               examples:
-                ok:
+                ok: &id007
                   value:
                     status: success
                     httpCode: 200
                     message: Service registered
+                mock: *id007
         '500':
           description: Registration failure
           content:
@@ -858,8 +868,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseStatus'
               examples:
-                fail:
+                fail: &id008
                   value:
                     status: error
                     httpCode: 500
                     message: Unable to register to Consul
+                mock: *id008
