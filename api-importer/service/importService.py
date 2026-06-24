@@ -5,6 +5,7 @@ import prance          # libreria per risolvere i $ref negli OpenAPI YAML
 import os
 import json
 import re
+import random
 from urllib.parse import quote, unquote, urlparse
 import time
 
@@ -855,11 +856,11 @@ class Service:
         except Exception as e:
             print(f"Failed to register to Consul: {e}")
 
-    def _verify_service_in_mongo(self, service_id, retries=3, delay_sec=1.0):
+    def _verify_service_in_mongo(self, service_id, retries=5, delay_sec=2.0):
         verify_url = f"http://{self.GATEWAY_HOST}:{self.GATEWAY_PORT}/services/{service_id}"
         for attempt in range(1, retries + 1):
             try:
-                r = requests.get(verify_url, timeout=10)
+                r = requests.get(verify_url, timeout=20)
                 if r.status_code == 200:
                     return True
                 print(f"[MONGO][VERIFY][attempt {attempt}/{retries}] HTTP {r.status_code} for id={service_id}")
@@ -872,9 +873,14 @@ class Service:
         service_id = catalog_payload.get("id", "UNKNOWN")
         post_url = f"http://{self.GATEWAY_HOST}:{self.GATEWAY_PORT}/service"
 
+        # Il gateway calcola un embedding per OGNI capability su CPU: i servizi
+        # apis.guru con molti endpoint possono richiedere ben più di 15s. Timeout
+        # generoso e configurabile per evitare falsi [MONGO][FAILED] (il dato in
+        # realtà arriva, ma il client mollava troppo presto).
+        mongo_timeout = int(os.environ.get("MONGO_REGISTER_TIMEOUT", "180"))
         try:
             print(f"[MONGO][ATTEMPT] POST {post_url} id={service_id}")
-            response = requests.post(post_url, json=catalog_payload, timeout=15)
+            response = requests.post(post_url, json=catalog_payload, timeout=mongo_timeout)
             response.raise_for_status()
             print(f"[MONGO][HTTP_OK] id={service_id} HTTP {response.status_code}")
 
@@ -892,18 +898,45 @@ class Service:
             body = e.response.text if getattr(e, "response", None) is not None else ""
             raise RuntimeError(f"[MONGO][FAILED] id={service_id} HTTP={status} body={body}") from e
 
-    def import_apis(self):
+    def import_apis(self, limit=None, seed=42, offset=0):
         """
-        Importa tutti i servizi pubblici da apis.guru.
+        Importa i servizi pubblici da apis.guru.
         Per ogni provider: scarica lo YAML, estrae capabilities/endpoints/schema,
         poi registra in parallelo su Redis, Consul e MongoDB.
 
         Usato per arricchire il catalogo con servizi reali esterni
         (non i mock Smart City locali).
+
+        Parametri (per il test di robustezza della discovery):
+            limit:  indice di fine del campione (esclusivo). None = tutti.
+            seed:   seme per il mescolamento deterministico. A parità di seme,
+                    i sottoinsiemi sono NIDIFICATI (limit=50 ⊂ limit=100 ⊂ ...),
+                    così la curva a gradini aggiunge solo distrattori nuovi.
+            offset: indice di inizio del campione. Permette di importare SOLO
+                    la fetta nuova [offset:limit] a ogni gradino, evitando di
+                    ri-scaricare e ri-registrare i provider già presenti.
         """
         all_endpoints = {}
         providers     = self.fetch_providers()
         print(f"Found {len(providers)} providers.")
+
+        # Campionamento riproducibile e nidificato per la curva a gradini.
+        # sorted() rende stabile l'ordine di partenza a prescindere dall'ordine
+        # restituito da apis.guru; lo shuffle con seme fisso dà diversità di
+        # dominio (evita di prendere solo i provider 'a.../b...').
+        # rank_map: provider -> sample_rank assoluto nell'ordine deterministico.
+        # Serve a taggare ogni distrattore per il filtro max_rank del gateway.
+        rank_map = {}
+        if limit is not None or offset:
+            providers = sorted(providers)
+            random.Random(seed).shuffle(providers)
+            start = max(0, int(offset))
+            end   = max(start, int(limit)) if limit is not None else len(providers)
+            providers = providers[start:end]
+            # L'elemento in posizione i della fetta ha rank assoluto start+i.
+            rank_map = {p: start + i for i, p in enumerate(providers)}
+            print(f"Importing providers [{start}:{end}] → {len(providers)} (seed={seed}).")
+
         for provider in providers:
             try:
                 api_data    = self.fetch_api_details(provider)
@@ -923,6 +956,10 @@ class Service:
                 print(f"[SKIP] {service}: error parsing swagger.")
                 continue
 
+            # Tagga il distrattore con il suo rank deterministico (se disponibile).
+            if service in rank_map:
+                openapi["sample_rank"] = rank_map[service]
+
             # le tre registrazioni avvengono in parallelo con ThreadPoolExecutor
             # poi si aspetta che tutte finiscano prima di procedere (BARRIER)
             with ThreadPoolExecutor(max_workers=3) as executor:
@@ -938,3 +975,101 @@ class Service:
                         future.result()
                     except Exception as e:
                         print(f"[ERROR] Register function failed: {e}")
+
+    def backfill_ranks(self, seed=42):
+        """
+        Assegna sample_rank ai distrattori GIÀ presenti in catalogo, senza
+        riscaricare nulla da apis.guru.
+
+        Ricalcola lo stesso ordine deterministico di import_apis (provider
+        ordinati + shuffle con seed), poi per ogni provider già presente in
+        catalogo chiama PATCH /services/<id>/rank sul gateway (aggiorna Mongo +
+        payload Stage 1 senza ri-embedding).
+
+        Ritorna {"tagged": n, "present": m, "errors": e}.
+        """
+        gateway_base = f"http://{self.GATEWAY_HOST}:{self.GATEWAY_PORT}"
+
+        providers = sorted(self.fetch_providers())
+        random.Random(seed).shuffle(providers)
+        rank_map = {p: i for i, p in enumerate(providers)}
+
+        # ID dei servizi attualmente in catalogo
+        try:
+            resp = requests.get(f"{gateway_base}/services", timeout=30)
+            resp.raise_for_status()
+            present_ids = {s.get("_id") for s in resp.json()}
+        except Exception as e:
+            print(f"[BACKFILL] Cannot fetch services: {e}")
+            return {"tagged": 0, "present": 0, "errors": 1}
+
+        tagged = errors = 0
+        for sid in present_ids:
+            if sid not in rank_map:
+                continue  # non è un distrattore apis.guru (es. mock smart-city)
+            try:
+                r = requests.patch(
+                    f"{gateway_base}/services/{sid}/rank",
+                    json={"sample_rank": rank_map[sid]},
+                    timeout=30,
+                )
+                r.raise_for_status()
+                tagged += 1
+            except Exception as e:
+                print(f"[BACKFILL] Failed to tag {sid}: {e}")
+                errors += 1
+
+        print(f"[BACKFILL] tagged={tagged} present={len(present_ids)} errors={errors} (seed={seed})")
+        return {"tagged": tagged, "present": len(present_ids), "errors": errors}
+
+    def register_existing_to_registry(self):
+        """
+        Ri-registra in Consul + Redis i distrattori GIÀ in catalogo (Mongo) che
+        non risultano nel registry, SENZA riscaricare/parsare nulla.
+
+        Serve quando i distrattori sono stati recuperati via reindex/backfill
+        (che toccano solo Mongo/Qdrant) ma non sono in Consul: in quel caso la
+        control-unit li scarterebbe come 'orphaned' e l'end-to-end non vedrebbe
+        il rumore. Sono distrattori i servizi con sample_rank valorizzato.
+
+        Ritorna {"registered": n, "skipped": m, "errors": e}.
+        """
+        gateway_base = f"http://{self.GATEWAY_HOST}:{self.GATEWAY_PORT}"
+
+        try:
+            resp = requests.get(f"{gateway_base}/services", timeout=30)
+            resp.raise_for_status()
+            services = resp.json()
+        except Exception as e:
+            print(f"[REGISTER] Cannot fetch services: {e}")
+            return {"registered": 0, "skipped": 0, "errors": 1}
+
+        # ID già presenti in Consul (per non duplicare)
+        try:
+            c = requests.get(
+                f"http://{self.CONSUL_HOST}:{self.CONSUL_PORT}/v1/agent/services",
+                timeout=10,
+            )
+            c.raise_for_status()
+            consul_ids = set(c.json().keys())
+        except Exception as e:
+            print(f"[REGISTER] Cannot read Consul services: {e}")
+            consul_ids = set()
+
+        registered = skipped = errors = 0
+        for s in services:
+            sid = s.get("_id")
+            # Solo distrattori (sample_rank valorizzato) e non già nel registry
+            if not sid or s.get("sample_rank") is None or sid in consul_ids:
+                skipped += 1
+                continue
+            try:
+                self.register_to_redis(sid, "true")
+                self.register_to_consul(sid, s.get("name", sid))
+                registered += 1
+            except Exception as e:
+                print(f"[REGISTER] Failed {sid}: {e}")
+                errors += 1
+
+        print(f"[REGISTER] registered={registered} skipped={skipped} errors={errors}")
+        return {"registered": registered, "skipped": skipped, "errors": errors}

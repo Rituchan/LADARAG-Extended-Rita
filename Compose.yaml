@@ -158,6 +158,10 @@ services:
       - QDRANT_COLLECTION=services
       - OLLAMA_URL=http://192.168.250.40:15888
       #- USE_LLM_DECOMPOSITION=true
+      # Parallelismo reranking CrossEncoder (per accelerare i test sotto rumore).
+      # RERANK_THREADS=0 lascia decidere a ONNX Runtime; valori tipici = n. core fisici.
+      - RERANK_THREADS=${RERANK_THREADS:-8}
+      - RERANK_BATCH_SIZE=${RERANK_BATCH_SIZE:-16}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 15s

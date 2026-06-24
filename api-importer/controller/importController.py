@@ -20,10 +20,65 @@ upload_parser.add_argument("base_url", location="form", type=str, required=False
 @api.route("/import")
 class ImportAPI(Resource):
     def post(self):
-        """Importa tutti i provider da apis.guru"""
+        """
+        Importa provider da apis.guru.
+
+        Body JSON opzionale (o query string):
+          { "limit": 200, "seed": 42, "offset": 0 }
+        - limit assente  → importa TUTTI i provider (comportamento originale)
+        - limit = N      → importa la fetta [offset:N] campionata in modo
+                           riproducibile e nidificato (per la curva a gradini).
+                           offset permette di importare solo i NUOVI provider a
+                           ogni gradino (es. offset=50, limit=100 → i secondi 50).
+        """
+        data = request.get_json(silent=True) or {}
+
+        limit = data.get("limit")
+        if limit is None:
+            limit = request.args.get("limit", type=int)   # None se assente
+        seed   = data.get("seed",   request.args.get("seed",   default=42, type=int))
+        offset = data.get("offset", request.args.get("offset", default=0,  type=int))
+
         import_service = importService.Service()
         try:
-            import_service.import_apis()
+            import_service.import_apis(limit=limit, seed=seed, offset=offset)
+            return {"status": "ok", "limit": limit, "seed": seed, "offset": offset}, 200
+        except Exception as e:
+            return {"error": str(e)}, 500
+
+
+@api.route("/backfill_ranks")
+class BackfillRanks(Resource):
+    def post(self):
+        """
+        Tagga i distrattori GIÀ in catalogo con sample_rank, senza riscaricare
+        nulla da apis.guru. Usalo una volta sui 200 già caricati per abilitare
+        il filtro max_rank del gateway.
+
+        Body JSON opzionale: { "seed": 42 }
+        """
+        data = request.get_json(silent=True) or {}
+        seed = data.get("seed", request.args.get("seed", default=42, type=int))
+        import_service = importService.Service()
+        try:
+            result = import_service.backfill_ranks(seed=seed)
+            return result, 200
+        except Exception as e:
+            return {"error": str(e)}, 500
+
+
+@api.route("/register_existing")
+class RegisterExisting(Resource):
+    def post(self):
+        """
+        Ri-registra in Consul + Redis i distrattori già in catalogo (Mongo) ma
+        assenti dal registry, senza riscaricare nulla. Necessario per la fase
+        end-to-end dopo un recupero via reindex/backfill.
+        """
+        import_service = importService.Service()
+        try:
+            result = import_service.register_existing_to_registry()
+            return result, 200
         except Exception as e:
             return {"error": str(e)}, 500
 

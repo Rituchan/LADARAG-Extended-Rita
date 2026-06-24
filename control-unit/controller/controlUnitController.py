@@ -17,10 +17,13 @@ class ConversationalAgent(Resource):
     def post(self):
         data = request.get_json(force=True)
         user_input = data["input"]
+        # max_rank (opzionale): scoping del catalogo per il test di robustezza.
+        # Viene propagato fino alla /index/search del gateway.
+        max_rank = data.get("max_rank")
         print(f"Input ricevuto: {user_input}")
 
         orchestrator = Orchestrator()
-        results = orchestrator.control(user_input)
+        results = orchestrator.control(user_input, max_rank=max_rank)
         # control() puo' restituire una flask Response (caso download file)
         if isinstance(results, Response):
             return results

@@ -1,0 +1,2 @@
+distractors,ctrl_queries,ctrl_errors,ctrl_l1_pass,ctrl_l1_partial,ctrl_l1_fail,ctrl_selection_accuracy,ctrl_micro_f1,ctrl_final_correct_rate,ctrl_mean_latency_s,cret_queries,cret_ep_coverage_rate,cret_intrusion_rate
+150,30,0,25,4,1,0.8333,0.916,0.8333,148.16,30,0.5333,0.5

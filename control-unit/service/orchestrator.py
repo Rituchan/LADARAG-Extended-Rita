@@ -111,7 +111,7 @@ class Orchestrator:
         ]
 
     # -- ENTRY POINT (ex Controller.control) -----------------
-    def control(self, query, files=None):
+    def control(self, query, files=None, max_rank=None):
         """Punto di ingresso principale per l'orchestrazione della richiesta.
 
         Flusso generale:
@@ -151,8 +151,13 @@ class Orchestrator:
         # Discovery: otteniamo la lista dei servizi dal registry
         registry     = Discovery(registry_url)
         services     = registry.services()
-        # Interroghiamo il catalogo per trovare servizi rilevanti alla query
-        service_data = requests.post(f"{catalog_url}/index/search", json={"query": query}).json()
+        # Interroghiamo il catalogo per trovare servizi rilevanti alla query.
+        # max_rank (se presente) limita i distrattori considerati — usato dal
+        # test di robustezza per simulare un catalogo con N distrattori.
+        search_payload = {"query": query}
+        if max_rank is not None:
+            search_payload["max_rank"] = max_rank
+        service_data = requests.post(f"{catalog_url}/index/search", json=search_payload).json()
         service_list = service_data.get("results", [])
 
         # Nessun servizio trovato -> risposta di errore esplicita
@@ -201,11 +206,22 @@ class Orchestrator:
         disc_eps = self.replace_endpoints(disc_eps, mock_url)
 
         # Struttura dati complessiva da passare al planner
-        discovered = { 
+        discovered = {
             "services": disc_services, "capabilities": disc_caps, "endpoints": disc_eps,
             "response_schemas": disc_schemas, "request_schemas": disc_req_schemas,
             "parameters": disc_params,
         }
+
+        # Vista compatta dei servizi recuperati (ordinati come dal retrieval, già
+        # filtrati per registry): id + capability. Esposta nella risposta così il
+        # test può calcolare le metriche di retrieval su ciò che l'LLM ha visto,
+        # senza dover scrapare i log.
+        discovered_out = [
+            {"_id": disc_services[i]["_id"],
+             "name": disc_services[i]["name"],
+             "capabilities": list((disc_caps[i] or {}).keys())}
+            for i in range(len(disc_services))
+        ]
 
         # ---- PLANNING ----
         # Chiediamo al planner di costruire un piano a partire dalla query
@@ -242,6 +258,7 @@ class Orchestrator:
                 "empty_plan_category":      category,
                 "empty_plan_justification": analysis.get("justification", ""),
                 "suggested_api_contracts":  [contract] if isinstance(contract, dict) else [],
+                "discovered":               discovered_out,
                 "planning_latency_s":       planning_latency_s,
             }
 
@@ -286,5 +303,6 @@ class Orchestrator:
         return {
             "execution_plan":     plan,
             "execution_results":  results,
+            "discovered":         discovered_out,
             "planning_latency_s": planning_latency_s,
         }

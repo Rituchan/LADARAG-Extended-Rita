@@ -1,7 +1,10 @@
 from flask import Flask, request, jsonify
 from pymongo import MongoClient
 from qdrant_client import QdrantClient
-from qdrant_client.models import VectorParams, Distance, PointStruct
+from qdrant_client.models import (
+    VectorParams, Distance, PointStruct,
+    Filter, FieldCondition, Range, IsEmptyCondition, PayloadField, MatchValue,
+)
 from bson.json_util import dumps
 from cheroot.wsgi import Server as WSGIServer
 import uuid
@@ -82,15 +85,33 @@ class ONNXCrossEncoder:
     def __init__(self, model_name):
         logger.info(f"Converting and loading {model_name} in ONNX format (this may take a minute)...")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+        # ── Parallelismo CPU configurabile (per accelerare il reranking nei test) ──
+        # RERANK_THREADS=0 (default) lascia decidere a ONNX Runtime (di solito tutti
+        # i core). Impostandolo (es. al numero di core fisici) si controlla quante
+        # thread usa l'inferenza. Non cambia i risultati, solo la velocità.
+        rerank_threads = int(os.environ.get("RERANK_THREADS", "0"))
+        self.batch_size = int(os.environ.get("RERANK_BATCH_SIZE", "4"))
+
+        from optimum.onnxruntime import ORTModelForSequenceClassification as _ORT
+        kwargs = dict(export=True, provider="CPUExecutionProvider")
+        if rerank_threads > 0:
+            import onnxruntime as ort
+            so = ort.SessionOptions()
+            so.intra_op_num_threads = rerank_threads
+            so.inter_op_num_threads = max(1, rerank_threads // 2)
+            so.execution_mode = ort.ExecutionMode.ORT_PARALLEL
+            kwargs["session_options"] = so
+            logger.info(f"ONNX reranker: intra_op={rerank_threads} threads, "
+                        f"batch_size={self.batch_size}")
+
         # Il parametro export=True scarica il modello PyTorch e lo converte in ONNX al volo
-        self.model = ORTModelForSequenceClassification.from_pretrained(
-            model_name, 
-            export=True, 
-            provider="CPUExecutionProvider"
-        )
+        self.model = _ORT.from_pretrained(model_name, **kwargs)
         logger.info(f"{model_name} successfully loaded in ONNX.")
 
-    def predict(self, sentences, batch_size=4):
+    def predict(self, sentences, batch_size=None):
+        if batch_size is None:
+            batch_size = self.batch_size
         all_scores = []
         for i in range(0, len(sentences), batch_size):
             batch = sentences[i:i+batch_size]
@@ -425,6 +446,20 @@ def vector_search():
 
     query_text = data["query"]
 
+    # ── Scoping del catalogo per il test di robustezza (opzionale) ─────────────
+    # max_rank: include nello Stage 1 solo i servizi SENZA sample_rank (i mock
+    # smart-city, sempre presenti) PIÙ i distrattori con sample_rank < max_rank.
+    # Permette di simulare "catalogo con N distrattori" senza importarli/cancellarli
+    # fisicamente. Assente o null = nessun filtro (comportamento di produzione).
+    max_rank = data.get("max_rank")
+    stage1_filter = None
+    if max_rank is not None:
+        stage1_filter = Filter(should=[
+            IsEmptyCondition(is_empty=PayloadField(key="sample_rank")),
+            FieldCondition(key="sample_rank", range=Range(lt=int(max_rank))),
+        ])
+        logger.info(f"[SCOPE] max_rank={max_rank}: distrattori con rank<{max_rank} + smart-city")
+
     # ── Parametri pipeline ────────────────────────────────────────────────────
     STAGE1_K                  = 7
     # 6 = numero massimo di endpoint per servizio nel catalogo smart-city
@@ -462,6 +497,7 @@ def vector_search():
             collection_name=QDRANT_COLLECTION_INDEX,
             query=sq_embedding,
             limit=STAGE1_K,
+            query_filter=stage1_filter,   # None = nessun filtro (produzione)
         )
         sq_results = sq_response.points
         ids_for_log = []
@@ -551,7 +587,9 @@ def vector_search():
     # ── Unica chiamata a predict() per tutte le coppie (con partizionamento) ──
     # Impostiamo batch_size=4 per forzare il CrossEncoder a calcolare piccoli blocchi,
     # prevenendo l'esaurimento della RAM e l'utilizzo dello Swap Disk su CPU in Docker.
-    all_scores = reranker_model.predict(all_pairs, batch_size=4)
+    # batch_size=None → usa RERANK_BATCH_SIZE (default 4). Aumentarlo migliora
+    # l'utilizzo della CPU sui catalogi grandi, a costo di più RAM.
+    all_scores = reranker_model.predict(all_pairs)
 
     # ── Aggrega gli score per doc_id ─────────────────────────────────────────
     scores_by_service: dict = {doc_id: {} for doc_id in services_data}
@@ -754,13 +792,19 @@ def create_or_update_service():
     if text_to_index:
         desc_vector_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, f"desc:{doc_id}"))
         desc_embedding = embed_passage(text_to_index)
+        # sample_rank (se presente nel doc) finisce nel payload Stage 1: serve al
+        # filtro max_rank per scoping del catalogo nei test di robustezza. I mock
+        # smart-city non hanno questo campo → restano sempre inclusi.
+        stage1_payload = {"mongo_id": doc_id}
+        if data.get("sample_rank") is not None:
+            stage1_payload["sample_rank"] = int(data["sample_rank"])
         qdrant_client.upsert(
             collection_name=QDRANT_COLLECTION_INDEX,
             points=[
                 PointStruct(
                     id=desc_vector_id,
                     vector=desc_embedding,
-                    payload={"mongo_id": doc_id}
+                    payload=stage1_payload
                 )
             ]
         )
@@ -768,6 +812,34 @@ def create_or_update_service():
 
     collection.replace_one({"_id": doc_id}, data, upsert=True)
     return jsonify({"status": "ok", "id": doc_id}), 200
+
+
+@app.route("/services/<string:service_id>/rank", methods=["PATCH"])
+def set_service_rank(service_id):
+    """
+    Imposta sample_rank su un servizio già presente, SENZA ri-embedding:
+      - aggiorna il documento Mongo;
+      - aggiorna il payload del punto nello Stage 1 index (services_index)
+        via set_payload (filtro su mongo_id).
+    Usato dal backfill per taggare i distrattori già caricati, così il filtro
+    max_rank può scopare il catalogo senza reimportare nulla.
+    Body: {"sample_rank": <int>}
+    """
+    data = request.get_json(silent=True) or {}
+    if "sample_rank" not in data:
+        return jsonify({"error": "Missing 'sample_rank'"}), 400
+    rank = int(data["sample_rank"])
+
+    result = collection.update_one({"_id": service_id}, {"$set": {"sample_rank": rank}})
+    if result.matched_count == 0:
+        return jsonify({"error": f"Service '{service_id}' not found"}), 404
+
+    qdrant_client.set_payload(
+        collection_name=QDRANT_COLLECTION_INDEX,
+        payload={"sample_rank": rank},
+        points=Filter(must=[FieldCondition(key="mongo_id", match=MatchValue(value=service_id))]),
+    )
+    return jsonify({"status": "ok", "id": service_id, "sample_rank": rank}), 200
 
 
 @app.route("/services", methods=["GET"])
@@ -814,13 +886,18 @@ def reindex_descriptions():
         try:
             desc_vector_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, f"desc:{doc_id}"))
             desc_embedding = embed_passage(text_to_index)
+            # Riporta sample_rank dal doc Mongo nel payload Stage 1, così i
+            # distrattori restano filtrabili con max_rank anche dopo il reindex.
+            reindex_payload = {"mongo_id": doc_id}
+            if doc.get("sample_rank") is not None:
+                reindex_payload["sample_rank"] = int(doc["sample_rank"])
             qdrant_client.upsert(
                 collection_name=QDRANT_COLLECTION_INDEX,
                 points=[
                     PointStruct(
                         id=desc_vector_id,
                         vector=desc_embedding,
-                        payload={"mongo_id": doc_id}
+                        payload=reindex_payload
                     )
                 ]
             )
