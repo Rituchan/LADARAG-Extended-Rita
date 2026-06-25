@@ -50,7 +50,7 @@ Variabili d'ambiente (default tra parentesi):
     REQUESTS_CSV    (test_validation/smart_city_test_requests.csv)
     MIN_DISTRACTORS (=STEP)   MAX_DISTRACTORS (200)   STEP (50)   SEED (42)
     MAX_QUERIES     (0 = tutte)   TIMEOUT (180)   GATEWAY_TIMEOUT (600)   DELAY (0.3)
-    OUT_CSV         (robustness_results.csv)
+    OUT_CSV         (auto: risultati_test/robustness_<fasi>_<tipo>_<scope>_<data>.csv)
 """
 
 import csv
@@ -84,7 +84,22 @@ CROSS_ONLY      = (QUERY_FILTER == "cross")
 TIMEOUT         = int(os.environ.get("TIMEOUT", "1200"))        # control-unit (LLM)
 GATEWAY_TIMEOUT = int(os.environ.get("GATEWAY_TIMEOUT", "600"))
 DELAY           = float(os.environ.get("DELAY", "0.3"))
-OUT_CSV         = os.environ.get("OUT_CSV", os.path.join(HERE, "robustness_results.csv"))
+
+
+def _default_out_csv():
+    """Nome CSV auto: robustness_<fasi>_<tipo>_<scope>_<YYYYMMDD>.csv.
+    Così run di date o tipi diversi non si sovrascrivono. Override con OUT_CSV."""
+    date  = time.strftime("%Y%m%d")
+    parts = ["robustness", "-".join(sorted(PHASES)) if PHASES else "none"]
+    if QUERY_FILTER != "all":
+        parts.append(QUERY_FILTER)
+    parts.append(SCOPE_MODE)
+    out_dir = os.path.join(HERE, "risultati_test")
+    os.makedirs(out_dir, exist_ok=True)
+    return os.path.join(out_dir, f"{'_'.join(parts)}_{date}.csv")
+
+
+OUT_CSV         = os.environ.get("OUT_CSV") or _default_out_csv()
 
 
 

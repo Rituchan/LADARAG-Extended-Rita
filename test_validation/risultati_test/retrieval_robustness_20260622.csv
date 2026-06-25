@@ -1,0 +1,4 @@
+distractors,ret_queries,ret_errors,ep_coverage_rate,intrusion_rate,mean_intruders_above,svc_found_rate,svc_mean_rank,ep_found_rate,ep_mean_rank,svc_recall@1,ep_recall@1,svc_recall@3,ep_recall@3,svc_recall@5,ep_recall@5
+50,100,4,0.8333,0.1354,0.198,0.9688,1.914,0.9583,1.848,0.5104,0.5104,0.8646,0.8646,0.9271,0.9271
+100,100,1,0.7273,0.202,0.283,0.8687,1.791,0.8687,1.791,0.4848,0.4848,0.7677,0.7677,0.8586,0.8586
+150,100,7,0.73,0.24,0.462,0.87,1.943,0.86,1.895,0.47,0.47,0.76,0.76,0.84,0.84
